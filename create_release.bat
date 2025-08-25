@@ -2,9 +2,14 @@
 setlocal enabledelayedexpansion
 
 :: ==================== CONFIGURATION ====================
-:: Set your repository details here
-set "GITHUB_OWNER=your-username"
-set "GITHUB_REPO=your-repo-name"
+:: Set your Gitea repository details here
+set "GITEA_URL=https://gitea.wgn.wuerth.com"
+set "GITEA_OWNER=WN00224895"
+set "GITEA_REPO=Datenvalidator_Batch"
+set "GITEA_TOKEN_FILE=.gitea_token"
+set "REMOTE_NAME=%GITEA_REPO%"
+
+:: Files
 set "TAG_FILE=.currenttag"
 set "RELEASE_NOTES=release.md"
 set "ZIP_FILE=datenvalidator.zip"
@@ -12,7 +17,7 @@ set "ZIP_FILE=datenvalidator.zip"
 :: ==================== HEADER ====================
 cls
 echo ========================================
-echo   CREATE RELEASE TAG
+echo   CREATE RELEASE TAG FOR GITEA
 echo   Date: %DATE% %TIME%
 echo ========================================
 echo.
@@ -23,6 +28,18 @@ where git >nul 2>&1
 if %ERRORLEVEL% neq 0 (
     echo [ERROR] Git is not installed or not in PATH!
     goto :error
+)
+
+:: Check if curl is available (for Gitea API)
+where curl >nul 2>&1
+if %ERRORLEVEL% neq 0 (
+    echo [WARNING] curl is not installed or not in PATH!
+    echo Without curl, automatic release upload to Gitea won't work.
+    echo You can still create the tag and upload manually.
+    set "CURL_AVAILABLE=0"
+) else (
+    set "CURL_AVAILABLE=1"
+    echo curl found - automatic Gitea release upload available
 )
 
 :: Check if we're in a git repository
@@ -59,7 +76,35 @@ if not exist "%RELEASE_NOTES%" (
     ) > "%RELEASE_NOTES%"
 )
 
+:: ==================== GITEA TOKEN HANDLING ====================
+set "GITEA_TOKEN="
+if "%CURL_AVAILABLE%"=="1" (
+    if exist "%GITEA_TOKEN_FILE%" (
+        set /p GITEA_TOKEN=<"%GITEA_TOKEN_FILE%"
+        echo Gitea token loaded from file
+    ) else (
+        echo.
+        echo To enable automatic Gitea release upload, you need an access token.
+        echo.
+        echo To create one:
+        echo 1. Go to %GITEA_URL%/user/settings/applications
+        echo 2. Generate New Token with 'repo' scope
+        echo 3. Copy the token
+        echo.
+        set /p "SAVE_TOKEN=Do you want to enter a Gitea token now? (y/n): "
+        if /i "!SAVE_TOKEN!"=="y" (
+            set /p "GITEA_TOKEN=Enter your Gitea token: "
+            if not "!GITEA_TOKEN!"=="" (
+                echo !GITEA_TOKEN!>"%GITEA_TOKEN_FILE%"
+                echo Token saved to %GITEA_TOKEN_FILE%
+                attrib +h "%GITEA_TOKEN_FILE%" 2>nul
+            )
+        )
+    )
+)
+
 :: ==================== GET/INCREMENT TAG NUMBER ====================
+echo.
 echo Reading tag number...
 if exist "%TAG_FILE%" (
     set /p TAG_NUM=<"%TAG_FILE%"
@@ -179,7 +224,7 @@ if not "!STATUS!"=="" (
     echo Found uncommitted changes, committing...
     git add -A
     git commit -m "Pre-release commit for !RELEASE_TAG!"
-    git push
+    git push %REMOTE_NAME% HEAD
 ) else (
     echo No uncommitted changes.
 )
@@ -210,43 +255,115 @@ echo.
 
 :: ==================== PUSH TAG TO REMOTE ====================
 echo Pushing tag to remote repository...
-git push origin "!RELEASE_TAG!"
+git push %REMOTE_NAME% "!RELEASE_TAG!"
 if %ERRORLEVEL% neq 0 (
     echo [WARNING] Failed to push tag to remote!
     echo You can manually push later with:
-    echo   git push origin "!RELEASE_TAG!"
+    echo   git push %REMOTE_NAME% "!RELEASE_TAG!"
     echo.
 ) else (
     echo Tag pushed successfully!
 )
 echo.
 
-:: ==================== CREATE GITHUB/GITEA RELEASE ====================
-where gh >nul 2>&1
-if %ERRORLEVEL% equ 0 (
-    echo GitHub CLI detected, creating release...
+:: ==================== CREATE GITEA RELEASE ====================
+if "%CURL_AVAILABLE%"=="1" if not "!GITEA_TOKEN!"=="" (
+    echo Creating Gitea release via API...
+    echo.
     
-    gh release create "!RELEASE_TAG!" "%ZIP_FILE%" ^
-        --title "Release !RELEASE_TAG!" ^
-        --notes-file "%RELEASE_NOTES%"
+    :: Read release notes into variable
+    set "RELEASE_BODY="
+    for /f "usebackq delims=" %%a in ("%RELEASE_NOTES%") do (
+        set "LINE=%%a"
+        :: Escape quotes and backslashes for JSON
+        set "LINE=!LINE:\=\\!"
+        set "LINE=!LINE:"=\"!"
+        if defined RELEASE_BODY (
+            set "RELEASE_BODY=!RELEASE_BODY!\n!LINE!"
+        ) else (
+            set "RELEASE_BODY=!LINE!"
+        )
+    )
+    
+    :: Create JSON payload for release
+    (
+        echo {
+        echo   "tag_name": "!RELEASE_TAG!",
+        echo   "name": "Release !RELEASE_TAG!",
+        echo   "body": "!RELEASE_BODY!",
+        echo   "draft": false,
+        echo   "prerelease": false
+        echo }
+    ) > release_payload.json
+    
+    :: Create the release
+    curl -X POST ^
+        -H "Authorization: token !GITEA_TOKEN!" ^
+        -H "Content-Type: application/json" ^
+        -d @release_payload.json ^
+        "%GITEA_URL%/api/v1/repos/%GITEA_OWNER%/%GITEA_REPO%/releases" ^
+        -o release_response.json 2>nul
     
     if %ERRORLEVEL% equ 0 (
-        echo.
-        echo [SUCCESS] GitHub release created!
+        echo Release created on Gitea!
+        
+        :: Extract release ID from response (simplified parsing)
+        for /f "tokens=2 delims=:," %%a in ('findstr /C:"\"id\"" release_response.json') do (
+            set "RELEASE_ID=%%a"
+            :: Remove spaces and quotes
+            set "RELEASE_ID=!RELEASE_ID: =!"
+            set "RELEASE_ID=!RELEASE_ID:"=!"
+            goto :upload_asset
+        )
+        
+        :upload_asset
+        if defined RELEASE_ID (
+            echo Uploading ZIP file to release ID: !RELEASE_ID!
+            
+            :: Upload the ZIP file as an asset
+            curl -X POST ^
+                -H "Authorization: token !GITEA_TOKEN!" ^
+                -H "Content-Type: application/zip" ^
+                --data-binary "@%ZIP_FILE%" ^
+                "%GITEA_URL%/api/v1/repos/%GITEA_OWNER%/%GITEA_REPO%/releases/!RELEASE_ID!/assets?name=%ZIP_FILE%" ^
+                -o asset_response.json 2>nul
+            
+            if %ERRORLEVEL% equ 0 (
+                echo.
+                echo [SUCCESS] ZIP file uploaded to Gitea release!
+                echo.
+                echo Release URL: %GITEA_URL%/%GITEA_OWNER%/%GITEA_REPO%/releases/tag/!RELEASE_TAG!
+            ) else (
+                echo [WARNING] Failed to upload ZIP file to release
+                echo You can manually upload it at: %GITEA_URL%/%GITEA_OWNER%/%GITEA_REPO%/releases
+            )
+        )
+        
+        :: Clean up temporary files
+        del release_payload.json 2>nul
+        del release_response.json 2>nul
+        del asset_response.json 2>nul
+        
     ) else (
-        echo [WARNING] Failed to create GitHub release.
+        echo [WARNING] Failed to create Gitea release via API
+        echo You can create it manually at: %GITEA_URL%/%GITEA_OWNER%/%GITEA_REPO%/releases/new
+        del release_payload.json 2>nul
     )
 ) else (
     echo.
-    echo GitHub CLI not found. 
+    echo Manual release creation required:
     echo.
-    echo To create a release on Gitea:
-    echo 1. Go to your repository on Gitea
-    echo 2. Click on "Releases" 
-    echo 3. Click "New Release"
-    echo 4. Select tag: !RELEASE_TAG!
-    echo 5. Upload: %ZIP_FILE%
-    echo 6. Copy release notes from: %RELEASE_NOTES%
+    echo 1. Go to: %GITEA_URL%/%GITEA_OWNER%/%GITEA_REPO%/releases/new
+    echo 2. Select tag: !RELEASE_TAG!
+    echo 3. Title: Release !RELEASE_TAG!
+    echo 4. Upload: %ZIP_FILE%
+    echo 5. Copy release notes from: %RELEASE_NOTES%
+    echo.
+    if "%CURL_AVAILABLE%"=="0" (
+        echo Note: Install curl to enable automatic uploads
+    ) else (
+        echo Note: Configure Gitea token to enable automatic uploads
+    )
 )
 
 :: ==================== SUCCESS ====================
@@ -267,7 +384,7 @@ echo   git tag -l
 echo.
 echo To delete this tag if needed:
 echo   git tag -d "!RELEASE_TAG!"
-echo   git push origin --delete "!RELEASE_TAG!"
+echo   git push %REMOTE_NAME% --delete "!RELEASE_TAG!"
 echo.
 
 pause
