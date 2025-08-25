@@ -1,0 +1,146 @@
+{
+  "settings": {
+    "defaultDelay": 300,
+    "maxEntries": 5
+  },
+  "statistics": {
+    "completedTasks": 0,
+    "failedTasks": 0,
+    "startTime": "20250820160200",
+    "totalTasks": 15
+  },
+  "tasks": [
+    {
+      "assignedWorker": 0,
+      "destination": "W4PCLNT401_TS",
+      "endTime": "",
+      "error": "",
+      "id": 1,
+      "startTime": "20250820160204",
+      "status": "pending",
+      "tableName": "PFBE",
+      "working": 1
+    },
+    {
+      "assignedWorker": 1,
+      "destination": "W4PCLNT401_TS",
+      "endTime": "",
+      "error": "",
+      "id": 2,
+      "startTime": "20250820160211",
+      "status": "pending",
+      "tableName": "PFKT",
+      "working": 1
+    },
+    {
+      "assignedWorker": 0,
+      "destination": "W4PCLNT401_TS",
+      "endTime": "20250820160345",
+      "error": "This local variable has not been assigned a value.",
+      "id": 3,
+      "startTime": "20250820160338",
+      "status": "failed",
+      "tableName": "PPH_DBVM",
+      "working": 0
+    },
+    {
+      "assignedWorker": 1,
+      "destination": "W4PCLNT401_TS",
+      "endTime": "",
+      "error": "",
+      "id": 4,
+      "startTime": "20250820160346",
+      "status": "pending",
+      "tableName": "MSEG",
+      "working": 1
+    },
+    {
+      "assignedWorker": 0,
+      "destination": "W4PCLNT401_TS",
+      "endTime": "",
+      "error": "",
+      "id": 5,
+      "startTime": "20250820160542",
+      "status": "pending",
+      "tableName": "QALS",
+      "working": 1
+    },
+    {
+      "assignedWorker": 1,
+      "destination": "W4PCLNT401_TS",
+      "endTime": "",
+      "error": "",
+      "id": 6,
+      "startTime": "",
+      "status": "pending",
+      "tableName": "QASR",
+      "working": 0
+    },
+    {
+      "assignedWorker": 0,
+      "destination": "W4PCLNT401_TS",
+      "endTime": "",
+      "error": "",
+      "id": 7,
+      "startTime": "",
+      "status": "pending",
+      "tableName": "QASR",
+      "working": 0
+    },
+    {
+      "assignedWorker": 1,
+      "destination": "W4PCLNT401_TS",
+      "endTime": "",
+      "error": "",
+      "id": 8,
+      "startTime": "",
+      "status": "pending",
+      "tableName": "QAVE",
+      "working": 0
+    },
+    {
+      "assignedWorker": 0,
+      "destination": "W4PCLNT401_TS",
+      "endTime": "",
+      "error": "",
+      "id": 9,
+      "startTime": "",
+      "status": "pending",
+      "tableName": "QASV",
+      "working": 0
+    },
+    {
+      "assignedWorker": 1,
+      "destination": "W4PCLNT401_TS",
+      "endTime": "",
+      "error": "",
+      "id": 10,
+      "startTime": "",
+      "status": "pending",
+      "tableName": "QPGT",
+      "working": 0
+    }
+  ],
+  "workers": [
+    {
+      "completedTasks": 0,
+      "connectionIndex": 0,
+      "currentTask": "QALS -> W4PCLNT401_TS",
+      "current_status": "Reading DD03L fields",
+      "id": 0,
+      "lastUpdate": "20250820160543",
+      "sessionIndex": 0,
+      "status": "working"
+    },
+    {
+      "completedTasks": 0,
+      "connectionIndex": 1,
+      "currentTask": "PFKT -> W4PCLNT401_TS",
+      "current_status": "Reading DD03L fields",
+      "id": 1,
+      "lastUpdate": "20250820160212",
+      "sessionIndex": 1,
+      "status": "working"
+    }
+  ]
+}

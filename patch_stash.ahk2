@@ -1,0 +1,75 @@
+; Patch stashing routines for concurrent JSON edits
+
+StashPatch(patchObj) {
+    global STASH_DIR
+    if !DirExist(STASH_DIR)
+        DirCreate(STASH_DIR)
+    fn := STASH_DIR "\" A_Args[1] "_" A_TickCount ".patch"
+    FileAppend(JSON.Stringify(patchObj), fn)
+}
+
+; Call this after acquiring the lock
+ApplyStashedPatches() {
+    global CONFIG_FILE, STASH_DIR
+    if !DirExist(STASH_DIR)
+        return
+    cfg := JSON.Parse(FileRead(CONFIG_FILE))
+    patchFiles := []
+    Loop Files, STASH_DIR "\*.patch"
+        patchFiles.Push(A_LoopFileFullPath)
+    Sort(patchFiles)
+    for pf in patchFiles {
+        try {
+            patch := JSON.Parse(FileRead(pf))
+            cfg := ApplyPatch(cfg, patch)
+            FileDelete(pf)
+        } catch
+            continue
+    }
+    ; Save merged config
+    file := FileOpen(CONFIG_FILE, "w")
+    file.Write(JSON.Stringify(cfg))
+    file.Close()
+}
+
+; Apply a single patch to the config object (returns mutated config)
+ApplyPatch(cfg, patch) {
+    try {
+        if (patch.type = "worker") {
+            for w in cfg["workers"] {
+                if (w["id"] = patch.id || w["sessionIndex"] = patch.id) {
+                    w[patch.field] := patch.value
+                    if patch.HasProp("timestamp")
+                        w["lastUpdate"] := patch.timestamp
+                    break
+                }
+            }
+        } else if (patch.type = "task") {
+            for t in cfg["tasks"] {
+                if (t["id"] = patch.id) {
+                    t[patch.field] := patch.value
+                    if patch.HasProp("timestamp")
+                        t["lastUpdate"] := patch.timestamp
+                    break
+                }
+            }
+        }
+    } catch
+        ; ignore
+    return cfg
+}
+
+; Example usage in set_status:
+set_status(this, text) {
+    patch := {
+        type: "worker",
+        id: this.workerId,
+        field: "current_status",
+        value: text,
+        timestamp: A_Now
+    }
+    StashPatch(patch)
+}
+
+; In SaveConfig/LoadConfig, after acquiring lock:
+ApplyStashedPatches()
