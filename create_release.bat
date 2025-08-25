@@ -3,6 +3,9 @@ setlocal enabledelayedexpansion
 
 :: ==================== CONFIGURATION ====================
 :: Set your Gitea repository details here
+
+:: ==================== CONFIGURATION ====================
+:: Set your Gitea repository details here
 set "GITEA_URL=https://gitea.wgn.wuerth.com"
 set "GITEA_OWNER=WN00224895"
 set "GITEA_REPO=Datenvalidator_Batch"
