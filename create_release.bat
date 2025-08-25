@@ -68,60 +68,103 @@ if exist "%TAG_FILE%" (
     set TAG_NUM=0
 )
 
+:: Clean tag number (remove spaces and non-numeric chars)
+set "CLEAN_TAG_NUM="
+for /f "delims=0123456789" %%i in ("!TAG_NUM!") do set CLEAN_TAG_NUM=%%i
+if defined CLEAN_TAG_NUM (
+    echo Invalid tag number, resetting to 0
+    set TAG_NUM=0
+)
+
 :: Increment tag number
 set /a TAG_NUM+=1
 echo !TAG_NUM!>"%TAG_FILE%"
 echo New tag number: !TAG_NUM!
 echo.
 
-:: ==================== GET VERSION FROM LAST COMMIT OR USER ====================
+:: ==================== GET VERSION FROM USER ====================
 :: Try to extract version from last commit message
 for /f "tokens=*" %%i in ('git log -1 --pretty^=format:"%%s"') do set COMMIT_MSG=%%i
 echo Last commit: %COMMIT_MSG%
 echo.
 
-:: Try to extract version from commit message (looks for v0.5006 pattern)
-set "VERSION="
-for /f "tokens=2 delims=v" %%i in ('echo %COMMIT_MSG% ^| findstr /r "v[0-9]"') do (
-    for /f "tokens=1 delims= " %%j in ('echo %%i') do set VERSION=%%j
+echo Enter version number (e.g., 0.5007 or just 5007):
+set /p VERSION=
+echo.
+
+:: If empty, use a default
+if "!VERSION!"=="" (
+    echo No version entered, using default: 1.0.0
+    set VERSION=1.0.0
 )
 
-:: If no version found, ask user
-if "%VERSION%"=="" (
-    echo No version found in commit message.
-    set /p VERSION="Enter version number (e.g., 0.5006): "
+:: Clean version string - remove ALL spaces first
+set "VERSION=!VERSION: =!"
+
+:: Clean version - simple character-by-character approach
+set "CLEAN_VERSION="
+set "VALID_CHARS=0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-_"
+
+:: Process each character
+set "i=0"
+:clean_loop
+if "!VERSION:~%i%,1!"=="" goto :clean_done
+set "CHAR=!VERSION:~%i%,1!"
+
+:: Check if character is valid
+set "IS_VALID=0"
+for /l %%j in (0,1,70) do (
+    if "!CHAR!"=="!VALID_CHARS:~%%j,1!" set IS_VALID=1
 )
 
-:: Clean version string - FIXED VERSION
-set "CLEAN_VERSION=!VERSION!"
-:: Remove spaces
-set "CLEAN_VERSION=!CLEAN_VERSION: =_!"
-:: Remove forward slashes
-set "CLEAN_VERSION=!CLEAN_VERSION:/=_!"
-:: Remove backslashes
-set "CLEAN_VERSION=!CLEAN_VERSION:\=_!"
-:: Remove pipe characters
-set "CLEAN_VERSION=!CLEAN_VERSION:|=_!"
-:: Remove question marks - FIXED: escaped properly
-set "CLEAN_VERSION=!CLEAN_VERSION:?=_!"
-:: Remove asterisks - FIXED: don't use *= syntax
-for /f "delims=" %%a in ('echo !CLEAN_VERSION! ^| powershell -Command "$input -replace '\*', '_'"') do set "CLEAN_VERSION=%%a"
-:: Remove quotes
-set CLEAN_VERSION=!CLEAN_VERSION:"=_!
-:: Remove less than
-set "CLEAN_VERSION=!CLEAN_VERSION:<=_!"
-:: Remove greater than  
-set "CLEAN_VERSION=!CLEAN_VERSION:>=_!"
+:: Add character if valid, underscore if not
+if "!IS_VALID!"=="1" (
+    set "CLEAN_VERSION=!CLEAN_VERSION!!CHAR!"
+) else (
+    :: Only add underscore if last char wasn't underscore
+    if not "!CLEAN_VERSION:~-1!"=="_" (
+        set "CLEAN_VERSION=!CLEAN_VERSION!_"
+    )
+)
+
+set /a i+=1
+goto :clean_loop
+
+:clean_done
+
+:: Remove trailing underscores
+:remove_trailing
+if "!CLEAN_VERSION:~-1!"=="_" (
+    set "CLEAN_VERSION=!CLEAN_VERSION:~0,-1!"
+    goto :remove_trailing
+)
+
+:: If clean version is empty, use default
+if "!CLEAN_VERSION!"=="" (
+    set "CLEAN_VERSION=unknown"
+)
 
 :: Limit to 30 characters
-if "!CLEAN_VERSION:~30!" neq "" (
+if not "!CLEAN_VERSION:~30!"=="" (
     set "CLEAN_VERSION=!CLEAN_VERSION:~0,30!"
 )
 
 :: Create release tag name
 set "RELEASE_TAG=v!CLEAN_VERSION!_!TAG_NUM!"
-echo Release tag: !RELEASE_TAG!
+
+echo Original version: !VERSION!
+echo Cleaned version: !CLEAN_VERSION!
+echo Tag Number: !TAG_NUM!
+echo Final Release tag: !RELEASE_TAG!
 echo.
+
+:: Double-check no spaces
+set "SPACE_CHECK=!RELEASE_TAG: =X!"
+if not "!SPACE_CHECK!"=="!RELEASE_TAG!" (
+    echo [ERROR] Tag still contains spaces somehow!
+    echo Tag: "!RELEASE_TAG!"
+    goto :error
+)
 
 :: ==================== ENSURE ALL CHANGES ARE COMMITTED ====================
 echo Checking for uncommitted changes...
@@ -151,10 +194,14 @@ git tag -a "!RELEASE_TAG!" -F "%RELEASE_NOTES%"
 if %ERRORLEVEL% neq 0 (
     echo [ERROR] Failed to create tag!
     echo.
+    echo Attempted tag name: "!RELEASE_TAG!"
+    echo.
     echo If tag already exists, you can delete it with:
-    echo   git tag -d !RELEASE_TAG!
+    echo   git tag -d "!RELEASE_TAG!"
+    echo.
     echo Or force overwrite with:
     echo   git tag -f -a "!RELEASE_TAG!" -F "%RELEASE_NOTES%"
+    echo.
     goto :error
 )
 
@@ -167,12 +214,14 @@ git push origin "!RELEASE_TAG!"
 if %ERRORLEVEL% neq 0 (
     echo [WARNING] Failed to push tag to remote!
     echo You can manually push later with:
-    echo   git push origin !RELEASE_TAG!
+    echo   git push origin "!RELEASE_TAG!"
     echo.
+) else (
+    echo Tag pushed successfully!
 )
 echo.
 
-:: ==================== CREATE GITHUB RELEASE (if gh CLI available) ====================
+:: ==================== CREATE GITHUB/GITEA RELEASE ====================
 where gh >nul 2>&1
 if %ERRORLEVEL% equ 0 (
     echo GitHub CLI detected, creating release...
@@ -184,22 +233,20 @@ if %ERRORLEVEL% equ 0 (
     if %ERRORLEVEL% equ 0 (
         echo.
         echo [SUCCESS] GitHub release created!
-        echo URL: https://github.com/%GITHUB_OWNER%/%GITHUB_REPO%/releases/tag/!RELEASE_TAG!
     ) else (
         echo [WARNING] Failed to create GitHub release.
-        echo You can create it manually at:
-        echo https://github.com/%GITHUB_OWNER%/%GITHUB_REPO%/releases/new
     )
 ) else (
     echo.
-    echo GitHub CLI not found. To create a release automatically, install gh:
-    echo   https://cli.github.com/
+    echo GitHub CLI not found. 
     echo.
-    echo Manual release instructions:
-    echo 1. Go to: https://github.com/%GITHUB_OWNER%/%GITHUB_REPO%/releases/new
-    echo 2. Tag: !RELEASE_TAG!
-    echo 3. Upload: %ZIP_FILE%
-    echo 4. Copy release notes from: %RELEASE_NOTES%
+    echo To create a release on Gitea:
+    echo 1. Go to your repository on Gitea
+    echo 2. Click on "Releases" 
+    echo 3. Click "New Release"
+    echo 4. Select tag: !RELEASE_TAG!
+    echo 5. Upload: %ZIP_FILE%
+    echo 6. Copy release notes from: %RELEASE_NOTES%
 )
 
 :: ==================== SUCCESS ====================
@@ -218,9 +265,9 @@ echo.
 echo To list all tags:
 echo   git tag -l
 echo.
-echo To delete this tag (if needed):
-echo   git tag -d !RELEASE_TAG!
-echo   git push origin --delete !RELEASE_TAG!
+echo To delete this tag if needed:
+echo   git tag -d "!RELEASE_TAG!"
+echo   git push origin --delete "!RELEASE_TAG!"
 echo.
 
 pause
@@ -232,6 +279,8 @@ echo.
 echo ========================================
 echo   RELEASE CREATION FAILED!
 echo ========================================
+echo.
+echo Check the error messages above.
 echo.
 pause
 exit /b 1
