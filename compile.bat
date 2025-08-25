@@ -369,40 +369,14 @@ echo !TAG_NUM!>"%TAG_FILE%"
 git add "%TAG_FILE%"
 git commit -m "Build tag: !TAG_NUM!"
 git push
-
-:: Clean version for tag
-set "CLEAN_VERSION=%VERSION%"
-set "CLEAN_VERSION=!CLEAN_VERSION: =!"
-set "CLEAN_VERSION=!CLEAN_VERSION:/=!"
-set "CLEAN_VERSION=!CLEAN_VERSION:\=!"
-set "CLEAN_VERSION=!CLEAN_VERSION:|=!"
-set "CLEAN_VERSION=!CLEAN_VERSION:?=!"
-set "CLEAN_VERSION=!CLEAN_VERSION:*=!"
-set "CLEAN_VERSION=!CLEAN_VERSION:"=!"
-set "CLEAN_VERSION=!CLEAN_VERSION:<=!"
-set "CLEAN_VERSION=!CLEAN_VERSION:>=!"
-set "CLEAN_VERSION=!CLEAN_VERSION:~0,30!"
-
-set "RELEASE_TAG=v!CLEAN_VERSION!_!TAG_NUM!"
-
-:: Try GitHub CLI
-where gh >nul 2>&1
-if %ERRORLEVEL% equ 0 (
-    echo Creating GitHub release: !RELEASE_TAG!
-    
-    (
-    echo Build: %VERSION%
-    echo Number: !TAG_NUM!
-    echo Date: %DATE% %TIME%
-    ) > release_notes.txt
-    
-    gh release create "!RELEASE_TAG!" "%ZIP_FILE%" ^
-        --title "Release !RELEASE_TAG!" ^
-        --notes-file release_notes.txt
-    
-    del release_notes.txt
+::ask if should create release
+::yesno:
+choice /C YN /M "Create release with tag !TAG_NUM!?"
+if %ERRORLEVEL% equ 1 (
+    ::call batch
+    call create_release.bat
 ) else (
-    echo GitHub CLI not found. Manual release tag: !RELEASE_TAG!
+    echo Skipping release creation.
 )
 
 :: ==================== SUCCESS ====================
