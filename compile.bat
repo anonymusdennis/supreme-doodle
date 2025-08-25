@@ -19,7 +19,7 @@ set "TAG_FILE=.currenttag"
 :: AutoHotkey v2 paths - WITH SPACES (properly quoted)
 :: Update these paths to match your system
 set "AHK2_EXE=C:\Users\wn00224895\OneDrive - WGS 365\Desktop\AHK STUFF\v2\AutoHotkey64.exe"
-set "AHK2_COMPILER=C:\Users\wn00224895\AppData\Local\Programs\AutoHotkey\v2\Compiler\Ahk2Exe.exe"
+set "AHK2_COMPILER=C:\Users\wn00224895\AppData\Local\Programs\AutoHotkey\Compiler\Ahk2Exe.exe"
 
 :: Alternative standard locations (fallback)
 set "AHK2_COMPILER_STD=%ProgramFiles%\AutoHotkey\v2\Compiler\Ahk2Exe.exe"
