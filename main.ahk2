@@ -9,7 +9,8 @@
 #Include "se16_selectionscreen.ahk2"
 #Include "sessionfix.ahk2"
 #Include "JSON.ahk2"
-
+#Include disclaimer.ahk2
+ShowDisclaimerIfNeeded()
 ; ==================== CONSTANTS ====================
 global CONFIG_FILE := A_ScriptDir . "\sessions.json"
 global WORKER_SCRIPT := A_ScriptDir . "\sap_worker.ahk2"
