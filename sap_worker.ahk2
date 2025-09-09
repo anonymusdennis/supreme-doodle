@@ -1182,7 +1182,7 @@ WINDOW_HEIGHT=2000
         Sleep(200)
 
         try {
-            this.session.findById("wnd[1]/usr/chkGS_POP-NO_MAIL").Selected := (this.workerConfig["JOB_SEND_MAIL"] ? 0 : 1)
+            this.session.findById("wnd[1]/usr/chkGS_POP-NO_MAIL").Selected := 1
         } catch {
             ; Field might not exist
         }
