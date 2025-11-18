@@ -1,0 +1,23 @@
+--batch_2a91-134e-6756
+Content-Type: multipart/mixed; boundary=changeset_a91d-0a9d-c821
+
+--changeset_a91d-0a9d-c821
+Content-Type: application/http
+Content-Transfer-Encoding: binary
+
+POST ServiceOrderSet?sap-client=401 HTTP/1.1
+sap-contextid-accept: header
+Accept: application/json
+Accept-Language: de
+DataServiceVersion: 2.0
+MaxDataServiceVersion: 2.0
+X-Requested-With: XMLHttpRequest
+x-csrf-token: 39y1q34ECGvuAt0lc4deGg==
+Content-Type: application/json
+Content-ID: id-1757509108927-270
+Content-Length: 1694
+
+
+--changeset_a91d-0a9d-c821--
+
+--batch_2a91-134e-6756--

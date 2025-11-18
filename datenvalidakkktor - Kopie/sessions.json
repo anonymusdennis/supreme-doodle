@@ -1,0 +1,70 @@
+{
+  "settings": {
+    "defaultDelay": 300,
+    "maxEntries": 5
+  },
+  "statistics": {
+    "completedTasks": 0,
+    "failedTasks": 0,
+    "startTime": "20250916084748",
+    "totalTasks": 4
+  },
+  "tasks": [
+    {
+      "assignedWorker": 0,
+      "destination": "W4PCLNT401_TS",
+      "endTime": "20250916084850",
+      "error": "",
+      "id": 1,
+      "startTime": "20250916084751",
+      "status": "completed",
+      "tableName": "\/WUE\/MP_ZSVW_ACC",
+      "working": 0
+    },
+    {
+      "assignedWorker": 0,
+      "destination": "W4PCLNT401_TS",
+      "endTime": "20250916084938",
+      "error": "",
+      "id": 2,
+      "startTime": "20250916084851",
+      "status": "completed",
+      "tableName": "\/WRP\/MP_INBIDD",
+      "working": 0
+    },
+    {
+      "assignedWorker": 0,
+      "destination": "W4PCLNT401_TS",
+      "endTime": "20250916085019",
+      "error": "",
+      "id": 3,
+      "startTime": "20250916084939",
+      "status": "completed",
+      "tableName": "\/WRP\/MPDEVSTSUM",
+      "working": 0
+    },
+    {
+      "assignedWorker": 0,
+      "destination": "W4PCLNT401_TS",
+      "endTime": "20250916085057",
+      "error": "",
+      "id": 4,
+      "startTime": "20250916085019",
+      "status": "completed",
+      "tableName": "\/WUE\/MMV_WKBASKE",
+      "working": 0
+    }
+  ],
+  "workers": [
+    {
+      "completedTasks": 4,
+      "connectionIndex": 0,
+      "currentTask": "\/WUE\/MMV_WKBASKE -> W4PCLNT401_TS",
+      "current_status": "Idle - waiting for tasks",
+      "id": 0,
+      "lastUpdate": "20250916085020",
+      "sessionIndex": 0,
+      "status": "working"
+    }
+  ]
+}

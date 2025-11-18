@@ -1,0 +1,32 @@
+  FF_DEF   diff_count    TYPE TCREP-CNTR.
+  FF_DEF   diff_count2  TYPE TCREP-CNTR.
+  FF_DEF   message    TYPE bapiret2-message.
+
+  FF_TEXT  diff_count    EN  'Kurz'  'rows with error'.
+  FF_TEXT  diff_count2   EN  'Kurz'  'fields with error'.
+  FF_TEXT  message       EN  'Kurz'  'message'.
+
+"REMOVED FIELDS => NOT FOUND ON SYSTEM B
+<rowise_removed>
+"$FNAME$"</rowise_removed>
+
+"REMOVED FIELDS WITH LOOKALIKES ON SYSTEM B:
+<rowise_commented_out>
+  "if row-a~$THIS_SYSTEM$ <> row-b~$OTHER_SYSTEM$.
+  "notequals = notequals && '$THIS_SYSTEM$'.
+  "endif.
+</rowise_commented_out>
+
+"ACTUAL WORKING CODE:
+IF row-b IS INITIAL.
+  diff_count = 1.
+  message = '(B) Entry missing'. 
+  EXIT. 
+ENDIF.
+
+<rowise>
+  IF ROW-A~$FNAME$ <> ROW-B~$FNAME$. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && '$FNAME$' && ';'. 
+  ENDIF. </rowise>

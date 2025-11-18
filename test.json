@@ -1,0 +1,44 @@
+{
+    "Description": "DEX-TM2-S100 DEX<=>W4P diff",
+    "ProcessType": "ZMIN",
+    "DocumentType": "IN",
+    "ApprovalProcedure": "",
+    "Priority": "4",
+    "ChangedAt": "\/Date(1757508729062)\/",
+    "DueBy": "\/Date(1758113529062)\/",
+    "SoldToParty": "A000000001",
+    "Reporter": "200547",
+    "ContactPerson": "",
+    "SupportTeam": "0000239402",
+    "Categories": "CG_CAT08_14_01",
+    "ClassfId": "0001",
+    "ReleaseIdTM": "",
+    "ChangeCycleIdTM": "",
+    "Sequence": "",
+    "PMProjGuid": "",
+    "PMTaskGuid": "",
+    "PMProjId": "",
+    "PMTaskId": "",
+    "AccProjGuid": "",
+    "AccTaskGuid": "",
+    "AccProjId": "",
+    "AccTaskId": "",
+    "SolutionNodeSet": [],
+    "TextSet": [
+        {
+            "Type": "LOG",
+            "Content": "Dieses%20Ticket%20wurde%20mit%20der%20Solution%20Manager%20ITSM%20App%20erstellt.",
+            "CreatedAt": "\/Date(1757509108927)\/",
+            "ChangedAt": "\/Date(1757509108927)\/"
+        },
+        {
+            "Type": "XXXX",
+            "Content": "<html><head><meta http-equiv=content-type content=\"text/html; charset=utf-8\"></head><body><p>Beim Datenvergleich der Datenbanktabelle S100 wurden eine oder mehrere Differenzen festgestellt.</p>\n<p>Zum Testen gibt es folgende M&ouml;glichkeiten:<br />1. Die angeh&auml;ngte Datei 'spool.htm' nutzen<br />In der Transaktion SE16XXL den Script mit dem Namen '$S100_COMP_01' aufrufen</p>\n<p>Spool-Nummer: 9405326<br />Verarbeitet am: 10.09.2025 14:57:49</p>\n<p>--- English ---<br />Data comparison of database table S100 revealed one or more differences.</p>\n<p>For testing, you have the following options:<br />1. Use the attached file 'spool.htm'<br />In transaction SE16XXL, call the script named '$S100_COMP_01'</p>\n<p>Spool Number: 9405326<br />Processed on: 2025-09-10 14:57:49</p></body></html>",
+            "CreatedAt": "\/Date(1757509108927)\/",
+            "ChangedAt": "\/Date(1757509108927)\/"
+        }
+    ],
+    "SrvReqDataSet": [],
+    "AttachmentSet": [],
+    "CatScopeId": ""
+}
