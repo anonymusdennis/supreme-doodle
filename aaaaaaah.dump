@@ -1,0 +1,166 @@
+=== SAP SCREEN DUMP ===
+Date: 2025-08-01 16:59:06
+User: wn00224895
+Screen Title: Allgemeine Tabellenanzeige
+Program: SAPLSE16N
+Transaction: SE16N
+
+=== SCREEN ELEMENTS ===
+
+ID: wnd[0]
+Type: GuiMainWindow
+---------------
+Children (6):
+
+    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar
+    Type: GuiMenubar
+    ---------------
+    Children (6):
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]
+        Type: GuiMenu
+        ---------------
+        Children (3):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]/menu[0]
+            Type: GuiMenu
+            ---------------
+            Children (5):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]/menu[0]//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]/menu[0]/menu[0]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]/menu[0]//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]/menu[0]/menu[1]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]/menu[0]//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]/menu[0]/menu[2]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]/menu[0]//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]/menu[0]/menu[3]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]/menu[0]//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]/menu[0]/menu[4]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]/menu[1]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]/menu[2]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[1]
+        Type: GuiMenu
+        ---------------
+        Children (9):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[1]//app/con[0]/ses[1]/wnd[0]/mbar/menu[1]/menu[0]
+            Type: GuiMenu
+            ---------------
+            Children (2):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[1]//app/con[0]/ses[1]/wnd[0]/mbar/menu[1]/menu[0]//app/con[0]/ses[1]/wnd[0]/mbar/menu[1]/menu[0]/menu[0]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[1]//app/con[0]/ses[1]/wnd[0]/mbar/menu[1]/menu[0]//app/con[0]/ses[1]/wnd[0]/mbar/menu[1]/menu[0]/menu[1]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[1]//app/con[0]/ses[1]/wnd[0]/mbar/menu[1]/menu[1]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[1]//app/con[0]/ses[1]/wnd[0]/mbar/menu[1]/menu[2]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[1]//app/con[0]/ses[1]/wnd[0]/mbar/menu[1]/menu[3]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[1]//app/con[0]/ses[1]/wnd[0]/mbar/menu[1]/menu[4]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[1]//app/con[0]/ses[1]/wnd[0]/mbar/menu[1]/menu[5]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[1]//app/con[0]/ses[1]/wnd[0]/mbar/menu[1]/menu[6]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[1]//app/con[0]/ses[1]/wnd[0]/mbar/menu[1]/menu[7]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[1]//app/con[0]/ses[1]/wnd[0]/mbar/menu[1]/menu[8]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[2]
+        Type: GuiMenu
+        ---------------
+        Children (3):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[2]//app/con[0]/ses[1]/wnd[0]/mbar/menu[2]/menu[0]
+            Type: GuiMenu
+            ---------------
+            Children (3):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[2]//app/con[0]/ses[1]/wnd[0]/mbar/menu[2]/menu[0]//app/con[0]/ses[1]/wnd[0]/mbar/menu[2]/menu[0]/menu[0]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[2]//app/con[0]/ses[1]/wnd[0]/mbar/menu[2]/menu[0]//app/con[0]/ses[1]/wnd[0]/mbar/menu[2]/menu[0]/menu[1]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[2]//app/con[0]/ses[1]/wnd[0]/mbar/menu[2]/menu[0]//app/con[0]/ses[1]/wnd[0]/mbar/menu[2]/menu[0]/menu[2]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[2]//app/con[0]/ses[1]/wnd[0]/mbar/menu[2]/menu[1]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[2]//app/con[0]/ses[1]/wnd[0]/mbar/menu[2]/menu[2]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]
+        Type: GuiMenu
+        ---------------
+        Children (14):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]/menu[0]
+            Type: GuiMenu

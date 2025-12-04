@@ -1,0 +1,70 @@
+{
+  "settings": {
+    "defaultDelay": 300,
+    "maxEntries": 5
+  },
+  "statistics": {
+    "completedTasks": 0,
+    "failedTasks": 0,
+    "startTime": "20251127130450",
+    "totalTasks": 4
+  },
+  "tasks": [
+    {
+      "assignedWorker": 0,
+      "destination": "T4PCLNT401_TS",
+      "endTime": "20251127130549",
+      "error": "",
+      "id": 1,
+      "startTime": "20251127130459",
+      "status": "completed",
+      "tableName": "A003",
+      "working": 0
+    },
+    {
+      "assignedWorker": 0,
+      "destination": "T4PCLNT401_TS",
+      "endTime": "20251127130640",
+      "error": "",
+      "id": 2,
+      "startTime": "20251127130549",
+      "status": "completed",
+      "tableName": "A053",
+      "working": 0
+    },
+    {
+      "assignedWorker": 0,
+      "destination": "T4PCLNT401_TS",
+      "endTime": "20251127130735",
+      "error": "",
+      "id": 3,
+      "startTime": "20251127130640",
+      "status": "completed",
+      "tableName": "KONH",
+      "working": 0
+    },
+    {
+      "assignedWorker": 0,
+      "destination": "T4PCLNT401_TS",
+      "endTime": "20251127130844",
+      "error": "",
+      "id": 4,
+      "startTime": "20251127130735",
+      "status": "completed",
+      "tableName": "KONP",
+      "working": 0
+    }
+  ],
+  "workers": [
+    {
+      "completedTasks": 4,
+      "connectionIndex": 1,
+      "currentTask": "KONP -> T4PCLNT401_TS",
+      "current_status": "Idle - waiting for tasks",
+      "id": 0,
+      "lastUpdate": "20251127130736",
+      "sessionIndex": 1,
+      "status": "working"
+    }
+  ]
+}
