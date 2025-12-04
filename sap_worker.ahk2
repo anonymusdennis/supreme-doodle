@@ -38,10 +38,10 @@ global WORKER_CONFIG_FILE := A_ScriptDir . "\worker_config.ini"
 global WORKER_ID := A_Args.Length > 0 ? A_Args[1] : 0
 
 global CHECK_INTERVAL := 1000  ; ms
-; ; sleep time constants (from single worker)
-global ; sleepTimeShort := 20
-global ; sleepTimeMedium := 50
-global ; sleepTimeLong := 200
+; Sleep time constants (from single worker)
+global SleepTimeShort := 20
+global SleepTimeMedium := 50
+global SleepTimeLong := 200
 
 SetWorkingDir(A_ScriptDir)
 ProcessSetPriority("High")
@@ -278,7 +278,7 @@ WINDOW_HEIGHT=2000
                     lockContent := FileRead(LOCK_FILE)
                     ; If locked by another worker, wait
                     if (Trim(lockContent) != "" && Trim(lockContent) != String(this.workerId)) {
-                        ; sleep(LOCK_RETRY_INTERVAL)
+                        Sleep(LOCK_RETRY_INTERVAL)
                         continue
                     }
                 }
@@ -289,7 +289,7 @@ WINDOW_HEIGHT=2000
                 file.Close()
 
                 ; Verify we got the lock
-                ; sleep(10)  ; Small delay to ensure file write completed
+                ; Sleep(10)  ; Small delay to ensure file write completed
                 verifyContent := FileRead(LOCK_FILE)
                 if (Trim(verifyContent) = String(this.workerId)) {
                     return true
@@ -297,7 +297,7 @@ WINDOW_HEIGHT=2000
             } catch {
                 ; Continue trying
             }
-            ; sleep(LOCK_RETRY_INTERVAL)
+            Sleep(LOCK_RETRY_INTERVAL)
         }
         return false
     }
@@ -614,7 +614,7 @@ WINDOW_HEIGHT=2000
                 }
             } else {
                 set_status(this, "Idle - waiting for tasks")
-                ; sleep(CHECK_INTERVAL)
+                Sleep(CHECK_INTERVAL)
                 this.LoadConfig()
                 allDone := true
                 for t in this.config["tasks"] {
@@ -735,35 +735,35 @@ WINDOW_HEIGHT=2000
     ReadDD03LFields(tableName) {
         this.session.findById("wnd[0]/tbar[0]/okcd").Text := "/nSE16N"
         this.session.findById("wnd[0]").sendVKey(0)
-        ; sleep(200)
+        ; Sleep(200)
 
         this.session.findById("wnd[0]/usr/ctxtGD-TAB").Text := "DD03L"
         this.session.findById("wnd[0]").sendVKey(0)
-        ; sleep(200)
+        ; Sleep(200)
 
         ExecuteSapCommand(this.session, "REMARKALL")
         SetSapFieldDirect("wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,7]", "", this.session)
         this.session.findById("wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,7]").setFocus()
-        ; sleep(200)
+        ; Sleep(200)
 
         ExecuteSapCommand(this.session, "OPTION")
-        ; sleep(200)
+        ; Sleep(200)
         ControlSelectOptionPopup("NE", this.session)
-        ; sleep(200)
+        ; Sleep(200)
 
         SetSapFieldDirect("wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,0]", tableName, this.session)
         SetSapFieldDirect("wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/chkGS_SELFIELDS-MARK[5,1]", "X", this.session)
         SetSapFieldDirect("wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/chkGS_SELFIELDS-MARK[5,5]", "X", this.session)
-        ; sleep(200)
+        ; Sleep(200)
 
         ExecuteSapCommand(this.session, "EXEC")
-        ; sleep(500)
+        ; Sleep(500)
 
         ; Handle popup if exists
         try {
             popup := this.session.findById("wnd[1]")
             popup.sendVKey(0)
-            ; sleep(200)
+            ; Sleep(200)
         } catch {
             ; No popup
         }
@@ -813,7 +813,7 @@ WINDOW_HEIGHT=2000
     ProcessTable(tableName, destination, fields) {
         set_status(this, "SE16XXL for " . tableName . " to " . destination)
         ExecuteSapCommand(this.session, "/n/TFTO/SE16XXL")
-        ; sleep(200)
+        ; Sleep(200)
 
         set_status(this, "Selecting table mode in SE16XXL")
         this.session.findById("wnd[0]/usr/subSC:/TFTO/TX_BX:1111/radSP_TAB").Select()
@@ -940,12 +940,12 @@ WINDOW_HEIGHT=2000
         } catch {
             ; Key fields exist, continue
         }
-        ; sleep(200)
+        ; Sleep(200)
 
         set_status(this, "Opening script editor")
         ;this.session.findById("wnd[0]/tbar[1]/btn[31]").press()
         ExecuteSapCommand(this.session, "ZZFORMULA" ) ; commit...
-        ; sleep(200)
+        ; Sleep(200)
 
         ; Generate script name
         scriptName := this.GenerateScriptName(tableName, destination)
@@ -1057,7 +1057,7 @@ WINDOW_HEIGHT=2000
             this.session.findById("wnd[0]/usr/cntlCC/shellcont/shell/shellcont[0]/shell").text := script
             ;this.session.findById("wnd[0]/tbar[1]/btn[27]").press()
             ExecuteSapCommand(this.session, "ZZACTIV" ) ; activate formula
-            ; sleep(200)
+            ; Sleep(200)
 
             try {
                 errorPopup := this.session.findById("wnd[1]")
@@ -1085,7 +1085,7 @@ WINDOW_HEIGHT=2000
 
                 ;this.session.findById("wnd[1]/tbar[0]/btn[0]").press()
                 ExecuteSapCommand(this.session, "BACK" ) ; back to edit script
-                ; sleep(100)
+                ; Sleep(100)
 
             } catch {
                 ; No error - script is valid
@@ -1097,23 +1097,23 @@ WINDOW_HEIGHT=2000
                         colnames := this.session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell/shellcont[1]/shell").columnOrder
                         for rowIdx in range(0, colnames.Length - 1) {
                             if (SubStr(colnames[rowIdx], 1, 3) = "_XX") {
-                            ; sleep(5000)
+                            ; Sleep(5000)
                                 this.session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell/shellcont[1]/shell").selectColumn(colnames[rowIdx])
-                                ; sleep(5000)
+                                ; Sleep(5000)
                                 ExecuteSapCommand(this.session, "ZZFILTER")
-                                ; sleep(5000)
+                                ; Sleep(5000)
                                 ExecuteSapCommand(this.session, "ZZMORE_001")
-                                ; sleep(5000)
+                                ; Sleep(5000)
                                 ExecuteSapCommand(this.session, "ZOPTI001")
-                                ; sleep(5000)
+                                ; Sleep(5000)
                                 this.session.findById("wnd[3]/usr/cntlOPTION_CONTAINER/shellcont/shell").selectedRows(5)
-                                ; sleep(5000)
+                                ; Sleep(5000)
                                 ExecuteSapCommand(this.session, "OKAY")
-                                ; sleep(5000)
+                                ; Sleep(5000)
                                 ExecuteSapCommand(this.session, "ZZOKAY")
-                                ; sleep(5000)
+                                ; Sleep(5000)
                                 ExecuteSapCommand(this.session, "ZZKEEP")
-                                ; sleep(5000)
+                                ; Sleep(5000)
                                 break
                             }
                         }
@@ -1129,7 +1129,7 @@ WINDOW_HEIGHT=2000
                     set_status(this, "Saving script")
                     ;this.session.findById("wnd[0]/tbar[0]/btn[11]").press()
                     ExecuteSapCommand(this.session, "ZZSAVE" ) ; commit...
-                    ; sleep(200)
+                    ; Sleep(200)
 
                     this.session.findById("wnd[1]/usr/ctxtSP_SCRIP").text := SubStr(scriptName, 1, 23)
 
@@ -1163,15 +1163,15 @@ WINDOW_HEIGHT=2000
         set_status(this, "Launching batch job in SE16XXL")
         ExecuteSapCommand(this.session, "/n/TFTO/SE16XXL")
         this.session.findById("wnd[0]/usr/subSC:/TFTO/TX_BX:1111/radSP_SCR").Select()
-        ; sleep(200)
+        ; Sleep(200)
 
         this.session.findById("wnd[0]/usr/subSC:/TFTO/TX_BX:1111/ctxtSP_SCRIP").text := SubStr(scriptName, 1, 23)
-        ; sleep(200)
+        ; Sleep(200)
 
         ExecuteSapCommand(this.session, "ZZSHOW")
-        ; sleep(200)
+        ; Sleep(200)
         ExecuteSapCommand(this.session, "ZZENTER")
-        ; sleep(200)
+        ; Sleep(200)
 
         ; Set row count for batch job
         this.session.findById("wnd[0]/usr").Children[0].Children[0].Children[0].children[3].text := this.workerConfig["ROWS_AFTER_SAVE"]
@@ -1194,7 +1194,7 @@ WINDOW_HEIGHT=2000
         } catch {
             ; Field might not exist
         }
-        ; sleep(200)
+        ; Sleep(200)
 
         try {
             this.session.findById("wnd[0]/usr").Children[0].Children[0].Children[0].children[6].text := 999
@@ -1202,26 +1202,26 @@ WINDOW_HEIGHT=2000
             ; Field might not exist
         }
 
-        ; sleep(200)
+        ; Sleep(200)
         ExecuteSapCommand(this.session, "ZZBATCH")
-        ; sleep(200)
+        ; Sleep(200)
 
         this.session.findById("wnd[1]/usr/chkGS_POP-NON_STD").Selected := 1
-        ; sleep(200)
+        ; Sleep(200)
 
         ; Use generated job name
         jobName := this.GenerateJobName(tableName, destination)
         this.session.findById("wnd[1]/usr/txtTBTCJOB-JOBNAME").text := jobName
-        ; sleep(200)
+        ; Sleep(200)
 
         this.session.findById("wnd[1]/usr/radGS_POP-START_IMMED").Select()
-        ; sleep(200)
+        ; Sleep(200)
         this.session.findById("wnd[1]/usr/chkGS_POP-RMUS_FLAG").Selected := 1
-        ; sleep(200)
+        ; Sleep(200)
 
         ; Spool settings from config
         this.session.findById("wnd[1]/usr/chkGS_POP-TO_SPOOL").Selected := (this.workerConfig["JOB_TO_SPOOL"] ? 1 : 0)
-        ; sleep(200)
+        ; Sleep(200)
 
         try {
             this.session.findById("wnd[1]/usr/chkGS_POP-NO_MAIL").Selected := 1
@@ -1229,9 +1229,9 @@ WINDOW_HEIGHT=2000
             ; Field might not exist
         }
 
-        ; sleep(200)
+        ; Sleep(200)
         ExecuteSapCommand(this.session, "ZZOK")
-        ; sleep(200)
+        ; Sleep(200)
 
         ; Spool destination from config
         try {
@@ -1240,7 +1240,7 @@ WINDOW_HEIGHT=2000
             ; Field might not exist
         }
 
-        ; sleep(200)
+        ; Sleep(200)
 
         try {
             ; if popup saying Aufbereitung auf 'X_65_255' gesetzt appears, we need to handle it
@@ -1257,7 +1257,7 @@ WINDOW_HEIGHT=2000
             ; No popup
         }
 
-        ; sleep(200)
+        ; Sleep(200)
 
         try {
             ExecuteSapCommand(this.session, "SAVE")
@@ -1265,7 +1265,7 @@ WINDOW_HEIGHT=2000
             ; Ignore save errors
         }
 
-        ; sleep(200)
+        ; Sleep(200)
 
         try {
             ExecuteSapCommand(this.session, "WEIT")
@@ -1273,7 +1273,7 @@ WINDOW_HEIGHT=2000
             ; Ignore
         }
 
-        ; sleep(200)
+        ; Sleep(200)
         set_status(this, "Batch job launched")
     }
 
@@ -1856,7 +1856,7 @@ WINDOW_HEIGHT=2000
         data := []
 
         grid.firstVisibleRow := 0
-        ; sleep(100)
+        ; Sleep(100)
 
         currentRow := 0
         while (currentRow < totalRows) {
@@ -1878,7 +1878,7 @@ WINDOW_HEIGHT=2000
             currentRow += visibleRows
             if (currentRow < totalRows) {
                 grid.firstVisibleRow := currentRow
-                ; sleep(200)
+                ; Sleep(200)
             }
         }
 
