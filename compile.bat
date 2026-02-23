@@ -26,7 +26,7 @@ set "AHK2_COMPILER_STD=%ProgramFiles%\AutoHotkey\v2\Compiler\Ahk2Exe.exe"
 set "AHK2_COMPILER_ALT=%LocalAppData%\Programs\AutoHotkey\v2\Compiler\Ahk2Exe.exe"
 
 :: Required files
-set "REQUIRED_AHK2_FILES=declarations.ahk2 utility.ahk2 excel_functions.ahk2 sap_functions.ahk2 se16_selectionscreen.ahk2 sessionfix.ahk2 JSON.ahk2 sap_worker.ahk2 codewrapper.ahk2"
+set "REQUIRED_AHK2_FILES=declarations.ahk2 utility.ahk2 excel_functions.ahk2 sap_functions.ahk2 se16_selectionscreen.ahk2 sessionfix.ahk2 JSON.ahk2 sap_worker.ahk2 codewrapper.ahk2 ahk_sap_api\src\SapWrapper.ahk ahk_sap_api\src\core\SapCollectionProxy.ahk ahk_sap_api\src\core\SapComProxy.ahk ahk_sap_api\src\core\SapHookPolicy.ahk ahk_sap_api\src\core\SapTypeRegistry.ahk ahk_sap_api\src\generated\Allowlists.ahk ahk_sap_api\src\types\GuiApplication.ahk ahk_sap_api\src\types\GuiCollection.ahk ahk_sap_api\src\types\GuiComponent.ahk ahk_sap_api\src\types\GuiComponentCollection.ahk ahk_sap_api\src\types\GuiConnection.ahk ahk_sap_api\src\types\GuiContainer.ahk ahk_sap_api\src\types\GuiFrameWindow.ahk ahk_sap_api\src\types\GuiSession.ahk ahk_sap_api\src\types\GuiVComponent.ahk ahk_sap_api\src\types\GuiVContainer.ahk"
 set "REQUIRED_OTHER_FILES=script_template.txt worker_config.ini illegals.cfg"
 set "REQUIRED_EMPTY_FILES=databases.cfg rfc_destinations.cfg"
 
