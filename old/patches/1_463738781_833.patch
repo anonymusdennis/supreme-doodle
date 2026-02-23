@@ -1,0 +1,9 @@
+{
+  "id": "1",
+  "timestamp": "20250806172917",
+  "type": "worker",
+  "updates": {
+    "current_status": "Selecting RFC option"
+  },
+  "workerId": "1"
+}

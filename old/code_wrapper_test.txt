@@ -1,0 +1,201 @@
+ABAP Code Wrapper Test Results
+Generated: 2025-08-20 10:12:59
+================================================================================
+
+=== Test: Long comment ===
+Max chars: 40
+Original:
+" This is a very long comment that needs to be wrapped because it exceeds the maximum character limit we have set for our code
+
+Wrapped:
+" This is a very long comment that
+" needs to be wrapped because it
+" exceeds the maximum character limit
+" we have set for our code
+
+Line lengths:
+  Line 1: 34 chars
+  Line 2: 32 chars
+  Line 3: 37 chars
+  Line 4: 26 chars
+? All lines within limit
+
+--------------------------------------------------------------------------------
+
+=== Test: String concatenation ===
+Max chars: 50
+Original:
+DATA(lv_text) = 'This is a very long string that needs to be broken up into multiple lines for better readability'.
+
+Wrapped:
+DATA(lv_text) = 'This is a very long string that ' &&
+'needs to be broken up into multiple lines ' &&
+'for better readability'.
+
+Line lengths:
+  Line 1: 53 chars - WARNING: Exceeds limit by 3 chars!
+  Line 2: 47 chars
+  Line 3: 25 chars
+
+--------------------------------------------------------------------------------
+
+=== Test: String template ===
+Max chars: 60
+Original:
+DATA(lv_msg) = |{ lv_name } is processing { lv_count } items from table { lv_table } with status { lv_status }|.
+
+Wrapped:
+DATA(lv_msg) = |{ lv_name } is processing { lv_count 
+} items from table { lv_table } with status { lv_status }|.
+
+Line lengths:
+  Line 1: 53 chars
+  Line 2: 59 chars
+? All lines within limit
+
+--------------------------------------------------------------------------------
+
+=== Test: Very long string needing multiple breaks ===
+Max chars: 40
+Original:
+DATA(lv_long) = 'This is an extremely long string that will need to be broken multiple times because it is so incredibly long that a single break will not be sufficient to keep it under the limit'.
+
+Wrapped:
+DATA(lv_long) = 'This is an extremely ' &&
+'long string that will need to be ' &&
+'broken multiple times because it ' &&
+'is so incredibly long that a ' &&
+'single break will not be ' &&
+'sufficient to keep it under the limit'.
+
+Line lengths:
+  Line 1: 42 chars - WARNING: Exceeds limit by 2 chars!
+  Line 2: 38 chars
+  Line 3: 38 chars
+  Line 4: 34 chars
+  Line 5: 30 chars
+  Line 6: 40 chars
+
+--------------------------------------------------------------------------------
+
+=== Test: String with exact spacing ===
+Max chars: 35
+Original:
+lv_test = 'The    spaces    between    these    words    must    be    preserved    exactly'.
+
+Wrapped:
+lv_test = 'The    spaces    ' &&
+'between    these    words    ' &&
+'must    be    preserved    ' &&
+'exactly'.
+
+Line lengths:
+  Line 1: 32 chars
+  Line 2: 34 chars
+  Line 3: 32 chars
+  Line 4: 10 chars
+? All lines within limit
+
+--------------------------------------------------------------------------------
+
+=== Test: Complex code with multiple statements ===
+Max chars: 50
+Original:
+DATA(lv_a) = 'Short'. DATA(lv_b) = 'This is a longer string that needs to be wrapped properly'.
+
+Wrapped:
+DATA(lv_a) = 'Short'. DATA(lv_b) = 'This is a ' &&
+'longer string that needs to be wrapped properly'.
+
+Line lengths:
+  Line 1: 50 chars
+  Line 2: 50 chars
+? All lines within limit
+
+--------------------------------------------------------------------------------
+
+=== Test: Code with operators ===
+Max chars: 45
+Original:
+IF lv_a = 'Test' AND lv_b <> 'Example'. WRITE: / 'Condition met!'. ENDIF.
+
+Wrapped:
+IF lv_a = 'Test' AND lv_b <> 'Example'.
+WRITE: / 'Condition met!'. ENDIF.
+
+Line lengths:
+  Line 1: 39 chars
+  Line 2: 33 chars
+? All lines within limit
+
+--------------------------------------------------------------------------------
+
+=== Test: Code with nested structures ===
+Max chars: 50
+Original:
+LOOP AT lt_items INTO DATA(ls_item). IF ls_item-field1 = 'Value'. WRITE: / ls_item-field2. ENDIF. ENDLOOP.
+
+Wrapped:
+LOOP AT lt_items INTO DATA(ls_item). IF
+ls_item-field1 = 'Value'. WRITE: / ls_item-field2.
+ ENDIF. ENDLOOP.
+
+Line lengths:
+  Line 1: 39 chars
+  Line 2: 50 chars
+  Line 3: 16 chars
+? All lines within limit
+
+--------------------------------------------------------------------------------
+
+=== Test: Long variable assignment ===
+Max chars: 60
+Original:
+DATA(lv_long_var) = 'This is a very long variable assignment that should be wrapped correctly to avoid exceeding the maximum character limit'.
+
+Wrapped:
+DATA(lv_long_var) = 'This is a very long variable ' &&
+'assignment that should be wrapped correctly to avoid ' &&
+'exceeding the maximum character limit'.
+
+Line lengths:
+  Line 1: 54 chars
+  Line 2: 58 chars
+  Line 3: 40 chars
+? All lines within limit
+
+--------------------------------------------------------------------------------
+
+=== Test: Complex expression ===
+Max chars: 50
+Original:
+DATA(lv_result) = ( lv_a + lv_b ) * ( lv_c - lv_d ) / lv_e.
+
+Wrapped:
+DATA(lv_result) = ( lv_a + lv_b ) * ( lv_c - lv_d
+) / lv_e.
+
+Line lengths:
+  Line 1: 49 chars
+  Line 2: 9 chars
+? All lines within limit
+
+--------------------------------------------------------------------------------
+
+=== Test: Long method call ===
+Max chars: 55
+Original:
+CALL METHOD cl_example=>do_something_long( EXPORTING param1 = 'This is a very long parameter that needs to be wrapped' ).
+
+Wrapped:
+CALL METHOD cl_example=>do_something_long( EXPORTING
+param1 = 'This is a very long parameter that needs to ' &&
+'be wrapped' ).
+
+Line lengths:
+  Line 1: 52 chars
+  Line 2: 58 chars - WARNING: Exceeds limit by 3 chars!
+  Line 3: 15 chars
+
+--------------------------------------------------------------------------------
+

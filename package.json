@@ -1,0 +1,16 @@
+{
+  "name": "datenvalidierung",
+  "version": "1.0.0",
+  "description": "",
+  "main": "fixmycode.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "diff-match-patch": "^1.0.5",
+    "fast-glob": "^3.3.3"
+  }
+}

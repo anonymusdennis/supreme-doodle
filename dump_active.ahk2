@@ -36,4 +36,4 @@ if (!DirExist(A_ScriptDir "\logs")) {
 SapGui := ConnectSAP()
 
 
-DumpSapScreen("DUMP_SE16nResultlist.txt")
+DumpSapScreen("DUMP_SE16nResultlist2.txt","wnd[1]")

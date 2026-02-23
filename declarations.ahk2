@@ -1,4 +1,5 @@
 #Requires AutoHotkey v2.0
+#Include "ahk_sap_api/src/SapWrapper.ahk"
 
 ; ==================== CONSTANTS ====================
 ; Sleep time constants
@@ -14,6 +15,7 @@ global LOG_DEBUG := "DEBUG"
 ; ==================== GLOBAL VARIABLES ====================
 global SapGui := ""
 global SapSession := ""
+global SapApp := ""
 global ExcelApp := ""
 global ExcelWorkbook := ""
 global ExcelWorksheet := ""

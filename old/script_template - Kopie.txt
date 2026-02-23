@@ -1,0 +1,19 @@
+FF_DEF notequals TYPE sy-ucomm.
+
+"REMOVED FIELDS => NOT FOUND ON SYSTEM B
+<rowise_removed>
+"$FNAME$"</rowise_removed>
+
+"REMOVED FIELDS WITH LOOKALIKES ON SYSTEM B:
+<rowise_commented_out>
+"if row-a~$THIS_SYSTEM$ <> row-b~$OTHER_SYSTEM$.
+"   notequals = notequals && '$THIS_SYSTEM$'.
+"endif.
+</rowise_commented_out>
+
+"ACTUAL WORKING CODE:
+<rowise>
+if row-a~$FNAME$ <> row-b~$FNAME$.
+notequals = notequals && '$FNAME$'.
+endif.
+</rowise>

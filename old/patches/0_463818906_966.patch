@@ -1,0 +1,18 @@
+{
+  "id": "0",
+  "timestamp": "20250806173037",
+  "type": "worker",
+  "updates": {
+    "currentTask": "MARA -> NONE",
+    "status": "working"
+  },
+  "workerId": "0"
+}{
+  "id": "0",
+  "timestamp": "20250806173037",
+  "type": "worker",
+  "updates": {
+    "current_status": "Reading DD03L fields"
+  },
+  "workerId": "0"
+}

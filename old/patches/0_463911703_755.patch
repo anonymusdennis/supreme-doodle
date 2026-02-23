@@ -1,0 +1,17 @@
+{
+  "id": "0",
+  "timestamp": "20250806173210",
+  "type": "worker",
+  "updates": {
+    "current_status": "Processing table and generating script"
+  },
+  "workerId": "0"
+}{
+  "id": "0",
+  "timestamp": "20250806173210",
+  "type": "worker",
+  "updates": {
+    "current_status": "Navigating to SE16XXL"
+  },
+  "workerId": "0"
+}

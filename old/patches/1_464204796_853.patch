@@ -1,0 +1,12 @@
+{
+  "id": 1,
+  "timestamp": "20250806173703",
+  "type": "task",
+  "updates": {
+    "endTime": "20250806173703",
+    "error": "(0x8004046B) \nThe control could not be found by id.\nSource:\tSAP Frontend Server",
+    "status": "failed",
+    "working": 0
+  },
+  "workerId": "1"
+}

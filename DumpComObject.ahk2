@@ -91,7 +91,7 @@ DumpComObject(comObj, outputFileName := "", maxDepth := 3, currentPath := "", vi
                     AppendToLog(outputFileName, indent . "  ." prop " = " value)
                 }
             }
-        } catch Error as e {
+        } catch {
             ; Property doesn't exist or can't be accessed
         }
     }
@@ -266,8 +266,8 @@ AppendToLog(filename, text) {
     try {
         FileAppend(text . "`n", filename)
         return true
-    } catch Error as e {
-        MsgBox("Error writing to log file: " e.Message)
+    } catch {
+        MsgBox("Error writing to log file: ")
         return false
     }
 }
@@ -283,6 +283,6 @@ AppendToLog(filename, text) {
  * DumpComObject(SapSession)
  * 
  * ; Or dump a specific control
- * gridControl := SapSession.findById("wnd[0]/usr/cntlGRID1/shellcont/shell")
+ * gridControl := SapSession.FindById("wnd[0]/usr/cntlGRID1/shellcont/shell")
  * DumpComObject(gridControl, A_ScriptDir "\logs\GridControlDump.txt")
  */

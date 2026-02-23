@@ -1,0 +1,9 @@
+{
+  "id": "0",
+  "timestamp": "20250806172900",
+  "type": "worker",
+  "updates": {
+    "current_status": "Setting max rows to 5"
+  },
+  "workerId": "0"
+}

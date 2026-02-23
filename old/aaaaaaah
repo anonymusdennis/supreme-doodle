@@ -1,0 +1,1280 @@
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]/menu[1]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]/menu[2]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]/menu[3]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]/menu[4]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]/menu[5]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]/menu[6]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]/menu[7]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]/menu[8]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]/menu[9]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]/menu[10]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]/menu[11]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]/menu[12]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[3]/menu[13]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]
+        Type: GuiMenu
+        ---------------
+        Children (13):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[0]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[1]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[2]
+            Type: GuiMenu
+            ---------------
+            Children (5):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[2]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[2]/menu[0]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[2]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[2]/menu[1]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[2]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[2]/menu[2]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[2]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[2]/menu[3]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[2]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[2]/menu[4]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]
+            Type: GuiMenu
+            ---------------
+            Children (10):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[0]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[1]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[2]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[3]
+                Type: GuiMenu
+                ---------------
+                Children (2):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[3]/menu[0]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[3]/menu[1]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]
+                Type: GuiMenu
+                ---------------
+                Children (11):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[0]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[1]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[2]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[3]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[4]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[5]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[6]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[7]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[8]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[9]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[10]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]
+                Type: GuiMenu
+                ---------------
+                Children (4):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]/menu[0]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]/menu[1]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]/menu[2]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]/menu[3]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[6]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[7]
+                Type: GuiMenu
+                ---------------
+                Children (2):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[7]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[7]/menu[0]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[7]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[7]/menu[1]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[8]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[3]/menu[9]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]
+            Type: GuiMenu
+            ---------------
+            Children (10):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]/menu[0]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]/menu[1]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]/menu[2]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]/menu[3]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]/menu[4]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]/menu[5]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]/menu[6]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]/menu[7]
+                Type: GuiMenu
+                ---------------
+                Children (3):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]/menu[7]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]/menu[7]/menu[0]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]/menu[7]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]/menu[7]/menu[1]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]/menu[7]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]/menu[7]/menu[2]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]/menu[8]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]/menu[9]
+                Type: GuiMenu
+                ---------------
+                Children (2):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]/menu[9]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]/menu[9]/menu[0]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]/menu[9]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[4]/menu[9]/menu[1]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[5]
+            Type: GuiMenu
+            ---------------
+            Children (5):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[5]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[5]/menu[0]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[5]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[5]/menu[1]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[5]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[5]/menu[2]
+                Type: GuiMenu
+                ---------------
+                Children (3):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[5]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[5]/menu[2]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[5]/menu[2]/menu[0]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[5]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[5]/menu[2]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[5]/menu[2]/menu[1]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[5]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[5]/menu[2]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[5]/menu[2]/menu[2]
+                    Type: GuiMenu
+                    ---------------
+                    Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[5]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[5]/menu[3]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[5]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[5]/menu[4]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[6]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[7]
+            Type: GuiMenu
+            ---------------
+            Children (2):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[7]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[7]/menu[0]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+                ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[7]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[7]/menu[1]
+                Type: GuiMenu
+                ---------------
+                Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[8]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[9]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[10]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[11]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]//app/con[0]/ses[1]/wnd[0]/mbar/menu[4]/menu[12]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[5]
+        Type: GuiMenu
+        ---------------
+        Children (10):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[5]//app/con[0]/ses[1]/wnd[0]/mbar/menu[5]/menu[0]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[5]//app/con[0]/ses[1]/wnd[0]/mbar/menu[5]/menu[1]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[5]//app/con[0]/ses[1]/wnd[0]/mbar/menu[5]/menu[2]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[5]//app/con[0]/ses[1]/wnd[0]/mbar/menu[5]/menu[3]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[5]//app/con[0]/ses[1]/wnd[0]/mbar/menu[5]/menu[4]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[5]//app/con[0]/ses[1]/wnd[0]/mbar/menu[5]/menu[5]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[5]//app/con[0]/ses[1]/wnd[0]/mbar/menu[5]/menu[6]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[5]//app/con[0]/ses[1]/wnd[0]/mbar/menu[5]/menu[7]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[5]//app/con[0]/ses[1]/wnd[0]/mbar/menu[5]/menu[8]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[5]//app/con[0]/ses[1]/wnd[0]/mbar/menu[5]/menu[9]
+            Type: GuiMenu
+            ---------------
+            Children (0):
+
+    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]
+    Type: GuiToolbar
+    ---------------
+    Children (18):
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[0]
+        Type: GuiButton
+        Text: 
+        Tooltip: Weiter
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[423]
+        Type: GuiButton
+        Text: 
+        Tooltip: Befehlsfeld schließen
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[11]
+        Type: GuiButton
+        Text: 
+        Tooltip: Sichern   (Strg+S)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[3]
+        Type: GuiButton
+        Text: 
+        Tooltip: Zurück   (F3)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[15]
+        Type: GuiButton
+        Text: 
+        Tooltip: Beenden   (Umsch+F3)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[12]
+        Type: GuiButton
+        Text: 
+        Tooltip: Abbrechen   (F12)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[86]
+        Type: GuiButton
+        Text: 
+        Tooltip: 
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[71]
+        Type: GuiButton
+        Text: 
+        Tooltip: Suchen   (Strg+F)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[84]
+        Type: GuiButton
+        Text: 
+        Tooltip: Weiter suchen   (Strg+G)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[80]
+        Type: GuiButton
+        Text: 
+        Tooltip: Erste Seite   (Strg+Bild hoch)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[81]
+        Type: GuiButton
+        Text: 
+        Tooltip: Vorige Seite   (Bild hoch)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[82]
+        Type: GuiButton
+        Text: 
+        Tooltip: Nächste Seite   (Bild runt)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[83]
+        Type: GuiButton
+        Text: 
+        Tooltip: Letzte Seite   (Strg+Bild runt)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[419]
+        Type: GuiButton
+        Text: 
+        Tooltip: Neues GUI-Fenster
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[418]
+        Type: GuiButton
+        Text: 
+        Tooltip: Erstellt eine Verknüpfung
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[1]
+        Type: GuiButton
+        Text: 
+        Tooltip: Hilfe   (F1)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[446]
+        Type: GuiButton
+        Text: 
+        Tooltip: Lok. Layout anpassen (Alt+F12)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/okcd
+        Type: GuiOkCodeField
+        ---------------
+
+    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/titl
+    Type: GuiTitlebar
+    ---------------
+    Children (0):
+
+    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]
+    Type: GuiToolbar
+    ---------------
+    Children (17):
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[8]
+        Type: GuiButton
+        Text: 
+        Tooltip: Online   (F8)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[32]
+        Type: GuiButton
+        Text: Hintergrund
+        Tooltip: Hintergrundverarbeitung   (Strg+F8)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[7]
+        Type: GuiButton
+        Text: Anzahl Einträge
+        Tooltip: Anzahl Einträge   (F7)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[13]
+        Type: GuiButton
+        Text: 
+        Tooltip: Alle markieren   (Umsch+F1)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[30]
+        Type: GuiButton
+        Text: 
+        Tooltip: Schlüsselfelder für Ausgabe markieren   (Strg+F6)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[18]
+        Type: GuiButton
+        Text: 
+        Tooltip: Alle Mark. löschen   (Umsch+F6)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[14]
+        Type: GuiButton
+        Text: 
+        Tooltip: Zeile löschen   (Umsch+F2)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[25]
+        Type: GuiButton
+        Text: Alle Eingaben
+        Tooltip: Alle Eingaben löschen   (Strg+F1)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[28]
+        Type: GuiButton
+        Text: 
+        Tooltip: Schmale Spaltenbreite   (Strg+F4)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[29]
+        Type: GuiButton
+        Text: 
+        Tooltip: Normale Spaltenbreite   (Strg+F5)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[37]
+        Type: GuiButton
+        Text: 
+        Tooltip: Nach genutzten Feldern sortieren   (Strg+Umsch+F1)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[38]
+        Type: GuiButton
+        Text: 
+        Tooltip: Sortierung der Selektionsfelder rückgängig machen   (Strg+Umsch+F2)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[43]
+        Type: GuiButton
+        Text: 
+        Tooltip: Sortierung der Selektionsfelder löschen   (Strg+Umsch+F7)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[40]
+        Type: GuiButton
+        Text: 
+        Tooltip: Setze Cursor auf nächstes Sel.krit.   (Strg+Umsch+F4)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[39]
+        Type: GuiButton
+        Text: 
+        Tooltip: Setze Cursor auf voriges Sel.krit.   (Strg+Umsch+F3)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[36]
+        Type: GuiButton
+        Text: 
+        Tooltip: Einstellungen ändern   (Strg+F12)
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[26]
+        Type: GuiButton
+        Text: 
+        Tooltip: Verwendungsnachweis   (Strg+F2)
+        ---------------
+
+    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr
+    Type: GuiUserArea
+    ---------------
+    Children (18):
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/lblSEARCHTAB
+        Type: GuiLabel
+        Text: Tabelle
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/ctxtGD-TAB
+        Type: GuiCTextField
+        Text: 
+        Name: GD-TAB
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/btnEXT_F4
+        Type: GuiButton
+        Text: 
+        Tooltip: Erweiterte Suche
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/txtGD_TABL_TEXT
+        Type: GuiTextField
+        Text: 
+        Name: GD_TABL_TEXT
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/lblTXTTAB
+        Type: GuiLabel
+        Text: Texttabelle
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/txtGD-TXT_TAB
+        Type: GuiTextField
+        Text: 
+        Name: GD-TXT_TAB
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/chkGD-NO_TXT
+        Type: GuiCheckBox
+        Selected: No
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/lblTEXTANZ
+        Type: GuiLabel
+        Text: Anzeigevariante
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/ctxtGD-VARIANT
+        Type: GuiCTextField
+        Text: 
+        Name: GD-VARIANT
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/txtGD-VARIANTTEXT
+        Type: GuiTextField
+        Text: 
+        Name: GD-VARIANTTEXT
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/lblTEXTMAX
+        Type: GuiLabel
+        Text: Maximale Trefferzahl
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/txtGD-MAX_LINES
+        Type: GuiTextField
+        Text: 500
+        Name: GD-MAX_LINES
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/chkGD-EDIT
+        Type: GuiCheckBox
+        Selected: No
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/lblTXT_GET_COLUMN
+        Type: GuiLabel
+        Text: Feld holen
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/ctxtGD_ADD_COLUMN
+        Type: GuiCTextField
+        Text: 
+        Name: GD_ADD_COLUMN
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/btnBUTTON_PARAM_IMPORT
+        Type: GuiButton
+        Text: 
+        Tooltip: Feldauswahl importieren
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/btnBUTTON_PARAM_EXPORT
+        Type: GuiButton
+        Text: 
+        Tooltip: Feldauswahl exportieren
+        ---------------
+
+        ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC
+        Type: GuiTableControl
+        ---------------
+        Children (196):
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,0]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,1]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,2]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,3]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,4]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,5]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,6]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,7]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,8]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,9]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,10]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,11]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,12]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,13]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,14]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,15]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,16]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,17]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,18]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,19]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,20]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,21]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,22]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,23]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,24]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,25]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,26]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,27]
+            Type: GuiTextField
+            Text: 
+            Name: GS_SELFIELDS-SCRTEXT_M
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,0]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,1]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,2]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,3]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,4]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,5]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,6]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,7]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,8]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,9]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,10]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,11]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,12]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,13]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,14]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,15]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,16]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,17]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,18]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,19]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,20]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,21]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,22]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,23]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,24]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,25]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,26]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,27]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-LOW
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-HIGH[2,0]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-HIGH
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-HIGH[2,1]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-HIGH
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-HIGH[2,2]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-HIGH
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-HIGH[2,3]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-HIGH
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-HIGH[2,4]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-HIGH
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-HIGH[2,5]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-HIGH
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-HIGH[2,6]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-HIGH
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-HIGH[2,7]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-HIGH
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-HIGH[2,8]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-HIGH
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-HIGH[2,9]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-HIGH
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-HIGH[2,10]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-HIGH
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-HIGH[2,11]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-HIGH
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-HIGH[2,12]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-HIGH
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-HIGH[2,13]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-HIGH
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-HIGH[2,14]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-HIGH
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-HIGH[2,15]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-HIGH
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-HIGH[2,16]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-HIGH
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-HIGH[2,17]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-HIGH
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-HIGH[2,18]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-HIGH
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-HIGH[2,19]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-HIGH
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-HIGH[2,20]
+            Type: GuiCTextField
+            Text: 
+            Name: GS_SELFIELDS-HIGH
+            ---------------
+
+            ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/usr//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[1]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-HIGH[2,21]
+            Type: GuiCTextField

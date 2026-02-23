@@ -170,7 +170,7 @@ class DisclaimerDialog {
                     } catch {
                         ; Ignore if attrib fails
                     }
-                } catch Error as e {
+                } catch {
                     ; Silently fail - don't bother user
                 }
             }
@@ -219,8 +219,8 @@ class DisclaimerDialog {
                 ; Try without unhiding
                 try {
                     FileDelete(DisclaimerDialog.NODISCLAIMER_FILE)
-                } catch Error as e {
-                    MsgBox("Could not reset disclaimer: " . e.Message, "Error", 0x10)
+                } catch {
+                    MsgBox("Could not reset disclaimer: ", "Error", 0x10)
                 }
             }
         }

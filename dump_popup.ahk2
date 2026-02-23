@@ -110,8 +110,8 @@ AnalyzeOptionPopup() {
     }
     
     try {
-        popup := SapSession.findById("wnd[1]")
-        optionGrid := SapSession.findById("wnd[1]/usr/cntlGRID/shellcont/shell")
+        popup := SapSession.FindById("wnd[1]")
+        optionGrid := SapSession.FindById("wnd[1]/usr/cntlGRID/shellcont/shell")
         
         rowCount := optionGrid.RowCount
         LogMessage(LOG_INFO, "=== OPTION POPUP CONTENT ===")
@@ -141,8 +141,8 @@ AnalyzeOptionPopup() {
         
         LogMessage(LOG_INFO, "=== END OPTION CONTENT ===")
         
-    } catch Error as e {
-        LogMessage(LOG_ERROR, "Error analyzing option popup: " e.Message)
+    } catch {
+        LogMessage(LOG_ERROR, "Error analyzing option popup: ")
     }
 }
 
@@ -151,11 +151,11 @@ SelectOptionByRow(rowNumber) {
     global SapSession
     
     try {
-        popup := SapSession.findById("wnd[1]")
-        optionGrid := SapSession.findById("wnd[1]/usr/cntlGRID/shellcont/shell")
+        popup := SapSession.FindById("wnd[1]")
+        optionGrid := SapSession.FindById("wnd[1]/usr/cntlGRID/shellcont/shell")
         
         ; Select the row
-        optionGrid.selectedRows := rowNumber
+        optionGrid.SelectedRows := rowNumber
         Sleep SleepTimeShort
         
         ; Confirm with double-click
@@ -164,8 +164,8 @@ SelectOptionByRow(rowNumber) {
         LogMessage(LOG_INFO, "Selected option at row " rowNumber)
         return true
         
-    } catch Error as e {
-        LogMessage(LOG_ERROR, "Row selection failed: " e.Message)
+    } catch {
+        LogMessage(LOG_ERROR, "Row selection failed: ")
         return false
     }
 }

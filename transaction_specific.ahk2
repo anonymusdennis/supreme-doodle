@@ -55,8 +55,8 @@ LogErrorToExcel(rowIndex, errorType, errorMessage, step, vendorName := "") {
         }
         
         return true
-    } catch Error as e {
-        LogMessage(LOG_ERROR, "Could not log error to Excel: " e.Message)
+    } catch {
+        LogMessage(LOG_ERROR, "Could not log error to Excel: ")
         ; Try to return to sheet 1 as fallback
         try {
             ExcelSelectSheet(1)
@@ -170,9 +170,9 @@ ProcessCentralData(rowIndex, Row_structured) {
         LogMessage(LOG_INFO, "Central data filled successfully for row " rowIndex)
         return true
         
-    } catch Error as e {
-        LogMessage(LOG_ERROR, "Error processing central data: " e.Message)
-        LogErrorToExcel(rowIndex, "CENTRAL_DATA_ERROR", e.Message, "ProcessCentralData", Row_structured.NAME)
+    } catch {
+        LogMessage(LOG_ERROR, "Error processing central data: ")
+        LogErrorToExcel(rowIndex, "CENTRAL_DATA_ERROR",, "ProcessCentralData", Row_structured.NAME)
         return false
     }
 }
@@ -276,9 +276,9 @@ ProcessKredData(rowIndex, vendorName) {
         LogMessage(LOG_INFO, "KREDDATA0002 filled successfully for row " rowIndex)
         return true
         
-    } catch Error as e {
-        LogMessage(LOG_ERROR, "Error processing KREDDATA0002: " e.Message)
-        LogErrorToExcel(rowIndex, "KREDDATA_ERROR", e.Message, "ProcessKredData", vendorName)
+    } catch {
+        LogMessage(LOG_ERROR, "Error processing KREDDATA0002: ")
+        LogErrorToExcel(rowIndex, "KREDDATA_ERROR",, "ProcessKredData", vendorName)
         return false
     }
 }
@@ -331,8 +331,8 @@ HandleDocumentAttachment(rowIndex, vendorName) {
             try {
                 DirCreate(sapTempDir)
                 LogMessage(LOG_INFO, "Created SAP temp directory: " sapTempDir)
-            } catch Error as e {
-                Error("Could not create SAP temp directory: " e.Message)
+            } catch {
+                Error("Could not create SAP temp directory: ")
             }
         }
         
@@ -341,8 +341,8 @@ HandleDocumentAttachment(rowIndex, vendorName) {
         try {
             FileCopy(originalPath, targetPath, true)
             LogMessage(LOG_INFO, "Copied document to temp: " targetPath)
-        } catch Error as e {
-            Error("Failed to copy file: " e.Message)
+        } catch {
+            Error("Failed to copy file: ")
         }
         
         ; Wait for popup
@@ -359,7 +359,7 @@ HandleDocumentAttachment(rowIndex, vendorName) {
         
         ; Confirm popup
         try {
-            SapSession.findById("wnd[1]/usr/btnBTN_OK").Press()
+            SapSession.FindById("wnd[1]/usr/btnBTN_OK").Press()
             LogMessage(LOG_INFO, "Document attached successfully for row " rowIndex)
             
             ; Clean up temp file
@@ -370,21 +370,21 @@ HandleDocumentAttachment(rowIndex, vendorName) {
                 ; Ignore deletion errors
             }
             
-        } catch Error as e {
+        } catch {
             ; Clean up on error
             try {
                 FileDelete(targetPath)
             } catch {
                 ; Ignore
             }
-            Error("Could not confirm document attachment: " e.Message)
+            Error("Could not confirm document attachment: ")
         }
         
         return true
         
-    } catch Error as e {
-        LogMessage(LOG_ERROR, "Error in document attachment: " e.Message)
-        LogErrorToExcel(rowIndex, "DOCUMENT_ERROR", e.Message, "HandleDocumentAttachment", vendorName)
+    } catch {
+        LogMessage(LOG_ERROR, "Error in document attachment: ")
+        LogErrorToExcel(rowIndex, "DOCUMENT_ERROR",, "HandleDocumentAttachment", vendorName)
         return false
     }
 }
@@ -527,9 +527,9 @@ ProcessVendorRow(rowIndex) {
      
 
         
-    } catch Error as e {
-        LogMessage(LOG_ERROR, "Error processing row " rowIndex ": " e.Message)
-        LogErrorToExcel(rowIndex, "PROCESSING_ERROR", e.Message, "ProcessVendorRow", vendorName)
+    } catch {
+        LogMessage(LOG_ERROR, "Error processing row " rowIndex ": ")
+        LogErrorToExcel(rowIndex, "PROCESSING_ERROR",, "ProcessVendorRow", vendorName)
         return false
     }
 }
@@ -578,59 +578,59 @@ processExtraData(rowIndex, vendorName)
         ; Fill Lokale Kontengruppe
         if (ExtraData_structured.LOKALE_KONTENGRUPPE != "") {
             try {
-                SapSession.findById("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:2035/ctxtGS_FIELDS1035-LOKKTGRP").text := ExtraData_structured.LOKALE_KONTENGRUPPE
+                SapSession.FindById("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:2035/ctxtGS_FIELDS1035-LOKKTGRP").Text := ExtraData_structured.LOKALE_KONTENGRUPPE
                 LogMessage(LOG_DEBUG, "Set Lokale Kontengruppe: " ExtraData_structured.LOKALE_KONTENGRUPPE)
-            } catch Error as e {
-                LogMessage(LOG_WARNING, "Failed to set Lokale Kontengruppe: " e.Message)
+            } catch {
+                LogMessage(LOG_WARNING, "Failed to set Lokale Kontengruppe: ")
             }
         }
         
         ; Fill Lokale Lieferantennummer
         if (ExtraData_structured.LOKALE_LIEFERANTENNUMMER != "") {
             try {
-                SapSession.findById("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:2035/txtGS_FIELDS1035-LOKLIEFNR").text := ExtraData_structured.LOKALE_LIEFERANTENNUMMER
+                SapSession.FindById("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:2035/txtGS_FIELDS1035-LOKLIEFNR").Text := ExtraData_structured.LOKALE_LIEFERANTENNUMMER
                 LogMessage(LOG_DEBUG, "Set Lokale Lieferantennummer: " ExtraData_structured.LOKALE_LIEFERANTENNUMMER)
-            } catch Error as e {
-                LogMessage(LOG_WARNING, "Failed to set Lokale Lieferantennummer: " e.Message)
+            } catch {
+                LogMessage(LOG_WARNING, "Failed to set Lokale Lieferantennummer: ")
             }
         }
         
         ; Fill Einkauforganisation
         if (ExtraData_structured.EINKAUFORGANISATION != "") {
             try {
-                SapSession.findById("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:2035/ctxtGS_FIELDS1035-LOKEKORG").text := ExtraData_structured.EINKAUFORGANISATION
+                SapSession.FindById("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:2035/ctxtGS_FIELDS1035-LOKEKORG").Text := ExtraData_structured.EINKAUFORGANISATION
                 LogMessage(LOG_DEBUG, "Set Einkauforganisation: " ExtraData_structured.EINKAUFORGANISATION)
-            } catch Error as e {
-                LogMessage(LOG_WARNING, "Failed to set Einkauforganisation: " e.Message)
+            } catch {
+                LogMessage(LOG_WARNING, "Failed to set Einkauforganisation: ")
             }
         }
         
         ; Fill Debitor
         if (ExtraData_structured.DEBITOR != "") {
             try {
-                SapSession.findById("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:2035/ctxtLFA1-KUNNR").text := ExtraData_structured.DEBITOR
+                SapSession.FindById("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:2035/ctxtLFA1-KUNNR").Text := ExtraData_structured.DEBITOR
                 LogMessage(LOG_DEBUG, "Set Debitor: " ExtraData_structured.DEBITOR)
-            } catch Error as e {
-                LogMessage(LOG_WARNING, "Failed to set Debitor: " e.Message)
+            } catch {
+                LogMessage(LOG_WARNING, "Failed to set Debitor: ")
             }
         }
         
         ; Press Enter to confirm entries and trigger any field validations
         try {
-            SapSession.findById("wnd[0]").sendVKey(0)  ; Enter key
+            SapSession.FindById("wnd[0]").SendVKey(0)  ; Enter key
             LogMessage(LOG_INFO, "Confirmed extra data entries")
             Sleep SleepTimeShort
-        } catch Error as e {
-            LogMessage(LOG_WARNING, "Failed to confirm entries: " e.Message)
+        } catch {
+            LogMessage(LOG_WARNING, "Failed to confirm entries: ")
         }
         
         ; Wait for any popup that might appear and handle it
         try {
             Sleep SleepTimeShort
-            popup := SapSession.findById("wnd[1]")
+            popup := SapSession.FindById("wnd[1]")
             if (IsSet(popup) && IsObject(popup)) {
                 LogMessage(LOG_INFO, "Popup detected after entering extra data, accepting it")
-                popup.sendVKey(0)  ; Press Enter to accept popup
+                popup.SendVKey(0)  ; Press Enter to accept popup
                 Sleep SleepTimeShort
             }
         } catch {
@@ -640,9 +640,9 @@ processExtraData(rowIndex, vendorName)
         LogMessage(LOG_INFO, "Extra data processing completed for row " rowIndex)
         return true
     }
-    catch Error as e {
-        LogMessage(LOG_ERROR, "Error processing extra data: " e.Message)
-        LogErrorToExcel(rowIndex, "EXTRADATA_ERROR", e.Message, "ProcessExtraData", vendorName)
+    catch {
+        LogMessage(LOG_ERROR, "Error processing extra data: ")
+        LogErrorToExcel(rowIndex, "EXTRADATA_ERROR",, "ProcessExtraData", vendorName)
         return false
     }
 }

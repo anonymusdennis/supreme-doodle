@@ -1,0 +1,9 @@
+{
+  "id": "0",
+  "timestamp": "20250806174024",
+  "type": "worker",
+  "updates": {
+    "current_status": "Processing table MARA for destination NONE"
+  },
+  "workerId": "0"
+}

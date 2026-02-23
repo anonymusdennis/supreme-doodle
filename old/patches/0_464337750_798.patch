@@ -1,0 +1,9 @@
+{
+  "id": "0",
+  "timestamp": "20250806173916",
+  "type": "worker",
+  "updates": {
+    "current_status": "RFC destination exists"
+  },
+  "workerId": "0"
+}

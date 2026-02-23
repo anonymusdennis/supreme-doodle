@@ -1,0 +1,17 @@
+{
+  "id": "0",
+  "timestamp": "20250806172932",
+  "type": "worker",
+  "updates": {
+    "current_status": "Table exists in destination"
+  },
+  "workerId": "0"
+}{
+  "id": "0",
+  "timestamp": "20250806172932",
+  "type": "worker",
+  "updates": {
+    "current_status": "Counting keys and adding rows"
+  },
+  "workerId": "0"
+}

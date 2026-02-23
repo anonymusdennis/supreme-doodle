@@ -1,0 +1,17 @@
+{
+  "id": "1",
+  "timestamp": "20250806173343",
+  "type": "worker",
+  "updates": {
+    "current_status": "Got task: MARA -> NONE"
+  },
+  "workerId": "1"
+}{
+  "id": "1",
+  "timestamp": "20250806173343",
+  "type": "worker",
+  "updates": {
+    "current_status": "Processing: MARA -> NONE"
+  },
+  "workerId": "1"
+}

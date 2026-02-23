@@ -1,0 +1,895 @@
+#Requires AutoHotkey v2.0
+
+; ==================== ENHANCED SINGLE WORKER CLASS ====================
+EXECUTE_BATCH := false ; Set to true to execute batch jobs, false to only generate scripts
+class SAPSingleWorker {
+    __New(session, scriptTemplate) {
+        this.session := session
+        this.scriptTemplate := scriptTemplate
+        this.current_dbtable := ""
+        this.current_rfc_destination := ""
+        this.removed_fields := []
+        this.commented_out_fields := []
+        this.key_fields := []
+        this.non_key_fields := []
+        this.all_fields := []
+        this.field_count := 0
+        this.key_field_count := 0
+        this.non_key_field_count := 0
+        this.removed_field_count := 0
+        this.script_name := ""
+        this.job_name := ""
+
+        ; System info
+        this.current_user := A_UserName
+        this.current_date := FormatTime(, "yyyyMMdd")
+        this.current_time := FormatTime(, "HHmmss")
+        this.current_datetime := FormatTime(, "yyyy-MM-dd HH:mm:ss")
+        this.current_timestamp := A_Now
+
+        ; SAP system info (will be populated when connected)
+        this.sap_client := ""
+        this.sap_system := ""
+        this.sap_user := ""
+
+        ; Get SAP info if available
+        try {
+            info := session.Info
+            this.sap_client := info.Client
+            this.sap_system := info.SystemName
+            this.sap_user := info.User
+        } catch {
+            ; Session info not available yet
+        }
+
+        ; Ensure logs exist
+        if (!FileExist(SUCCESS_LOG)) {
+            FileAppend("Timestamp|Table|Destination|ScriptName`r`n", SUCCESS_LOG)
+        }
+        if (!FileExist(FAILURE_LOG)) {
+            FileAppend("Timestamp|Table|Destination|Error`r`n", FAILURE_LOG)
+        }
+    }
+    SetConfig(config) {
+        this.config := config
+
+        ; Update instance variables from config
+        this.auto_save_script := config.Get("AUTO_SAVE_SCRIPT", true)
+        this.initial_row_count := config.Get("INITIAL_ROW_COUNT", 5)
+        this.apply_filters := config.Get("APPLY_FILTERS", true)
+        this.rows_after_save := config.Get("ROWS_AFTER_SAVE", 50000)
+        this.create_batch_job := config.Get("CREATE_BATCH_JOB", true)
+        this.job_to_spool := config.Get("JOB_TO_SPOOL", true)
+        this.confirm_batch_execution := config.Get("CONFIRM_BATCH_EXECUTION", true)
+        this.max_validation_attempts := config.Get("MAX_VALIDATION_ATTEMPTS", 35)
+        this.script_name_pattern := config.Get("SCRIPT_NAME_PATTERN", "${DBNAME}_MAN_{DEST}")
+        this.script_is_global := config.Get("SCRIPT_IS_GLOBAL", false)
+        this.job_name_pattern := config.Get("JOB_NAME_PATTERN", "Manual_{DBNAME}_{DEST}")
+        this.spool_destination := config.Get("SPOOL_DESTINATION", "LOCAL")
+        this.job_send_mail := !config.Get("JOB_SEND_MAIL", false)  ; Inverted for NO_MAIL flag
+    }
+    ProcessTask(tableName, destination) {
+        this.current_dbtable := tableName
+        this.current_rfc_destination := destination
+        this.removed_fields := []
+        this.commented_out_fields := []
+        this.key_fields := []
+        this.non_key_fields := []
+        this.all_fields := []
+
+        width := this.session.findById("wnd[0]").width
+        height := this.session.findById("wnd[0]").height
+        try {
+            ; Read DD03L fields
+            ;resize sap window to be very long, as this is needed for SE16N
+            ;save original size to restore later
+            try {
+                this.session.findById("wnd[0]").restore()
+                this.session.findById("wnd[0]").height(2000)
+                this.session.findById("wnd[0]").width(4000)
+                this.session.findById("wnd[0]").SetFocus()
+            } catch {
+                ; Ignore resize errors
+            } catch {
+                ; Ignore resize errors
+            }
+            fields := this.ReadDD03LFields(tableName)
+            this.session.findById("wnd[0]").width := width ; Restore original width
+            this.session.findById("wnd[0]").height := height ; Restore original height
+            if (fields.Count = 0) {
+                Error("No fields found for table " . tableName)
+            }
+
+            ; Populate field arrays for template use
+            for fieldName, fieldData in fields {
+                if (fieldData.fieldName != "MANDT" && fieldData.fieldName != "CLIENT") {
+                    this.all_fields.Push(fieldData.fieldName)
+                    if (fieldData.key = "X") {
+                        this.key_fields.Push(fieldData.fieldName)
+                    } else {
+                        this.non_key_fields.Push(fieldData.fieldName)
+                    }
+                }
+            }
+
+            ; Update counts
+            this.field_count := this.all_fields.Length
+            this.key_field_count := this.key_fields.Length
+            this.non_key_field_count := this.non_key_fields.Length
+
+            ; Process table
+            this.ProcessTable(tableName, destination, fields)
+
+            ; Log success
+            this.LogSuccess(tableName, destination)
+            return true
+
+        } catch Error as e {
+            try {
+                this.session.findById("wnd[0]").width := width ; Restore original width
+                this.session.findById("wnd[0]").height := height ; Restore original height
+            } catch {
+                ; Ignore resize errors
+            }
+            this.LogFailure(tableName, destination, e.Message)
+            return false
+        }
+    }
+
+    ReadDD03LFields(tableName) {
+        this.session.findById("wnd[0]/tbar[0]/okcd").Text := "/nSE16N"
+        this.session.findById("wnd[0]").sendVKey(0)
+        Sleep(200)
+
+        this.session.findById("wnd[0]/usr/ctxtGD-TAB").Text := "DD03L"
+        this.session.findById("wnd[0]").sendVKey(0)
+        Sleep(200)
+
+        ExecuteSapCommand(this.session, "REMARKALL")
+        SetSapFieldDirect("wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,7]", "", this.session)
+        this.session.findById("wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,7]").setFocus()
+        Sleep(200)
+
+        ExecuteSapCommand(this.session, "OPTION")
+        Sleep(200)
+        ControlSelectOptionPopup("NE", this.session)
+        Sleep(200)
+
+        SetSapFieldDirect("wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,0]", tableName, this.session)
+        SetSapFieldDirect("wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/chkGS_SELFIELDS-MARK[5,1]", "X", this.session)
+        SetSapFieldDirect("wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/chkGS_SELFIELDS-MARK[5,5]", "X", this.session)
+        Sleep(200)
+
+        ExecuteSapCommand(this.session, "EXEC")
+        Sleep(500)
+
+        ; Handle popup if exists
+        try {
+            popup := this.session.findById("wnd[1]")
+            popup.sendVKey(0)
+            Sleep(200)
+        } catch {
+            ; No popup
+        }
+
+        ; Get grid control
+        gridControl := this.session.findById("wnd[0]/usr/cntlRESULT_LIST/shellcont/shell")
+
+        results := Map()
+        griddata := this.LoadAllGridData(gridControl)
+
+        for rowIdx in range(1, griddata.Length) {
+            try {
+                fieldName := griddata[rowIdx]["FIELDNAME"]
+                is_key := griddata[rowIdx]["KEYFLAG"]
+
+                if (fieldName != "" && fieldName != "MANDT" && fieldName != "CLIENT"
+                    && RegExMatch(fieldName, "^[\/A-Za-z0-9_]+$")) {
+                    results[fieldName] := {
+                        fieldName: fieldName,
+                        key: is_key
+                    }
+                }
+            } catch {
+                continue
+            }
+        }
+
+        ExecuteSapCommand(this.session, "/n")
+        return results
+    }
+
+    ProcessTable(tableName, destination, fields) {
+        ; Open SE16XXL
+        ExecuteSapCommand(this.session, "/n/TFTO/SE16XXL")
+        Sleep(200)
+
+        this.session.findById("wnd[0]/usr/subSC:/TFTO/TX_BX:1111/radSP_TAB").Select()
+        this.session.findById("wnd[0]/usr/subSC:/TFTO/TX_BX:1111/ctxtSP_TABNA").text := tableName
+
+        ExecuteSapCommand(this.session, "ZZSHOW")
+        ;check if sap says no results found
+        try {
+            this.session.findById("wnd[1]")
+        } catch Error as e
+        {
+            ;log as message in Special_cases.log
+            FileAppend(tableName . " _ " . destination . " Could not find any entries for this table.")
+            ;remove in batch mode:
+            LogError("No entries found for table " . tableName . " in destination " . destination)
+            return false
+
+        }
+        try {
+            ; Use config for initial row count
+            this.session.findById("wnd[0]/usr/ssubSUBMAIN:/TFTO/TX_SELECT_DYNPRO:9300/ssubOPTSEL:/TFTO/TX_SELECT_DYNPRO:9902/subOPTIONS:/TFTO/TX_SELECT_DYNPRO:9053/txtSP_MAX").text := this.initial_row_count
+        } catch {
+            MsgBox("Failed to set initial row count. Please check your configuration.", "Configuration Error", 16)
+            return false
+        }
+        this.session.findById("wnd[0]/tbar[1]/btn[8]").press()
+
+        ; RFC comparison
+        ExecuteSapCommand(this.session, "ZZOUTJOIN")
+        this.session.findById("wnd[1]/usr/radG_OPTION_RFC").select()
+        this.session.findById("wnd[1]/usr/ctxtG_DIA_DEST").text := destination
+        this.session.findById("wnd[1]/tbar[0]/btn[0]").press()
+
+        ; Check RFC exists
+        try {
+            this.session.findById("wnd[2]")
+            this.session.findById("wnd[2]/tbar[0]/btn[0]").press()
+            Error("RFC destination does not exist: " . destination)
+        } catch {
+            ; RFC exists, continue
+        }
+
+        this.session.findById("wnd[1]/usr/ctxtG_TABNA_RFC").text := tableName
+        this.session.findById("wnd[1]/tbar[0]/btn[0]").press()
+
+        ; Check table exists
+        try {
+            this.session.findById("wnd[2]")
+            this.session.findById("wnd[2]/tbar[0]/btn[0]").press()
+            Error("Table does not exist in destination")
+        } catch {
+            ; Table exists, continue
+        }
+
+        ; Set up join fields
+        keyCount := 0
+        for fieldName, fieldData in fields {
+            if (fieldData.key = "X" && fieldData.fieldName != "MANDT" && fieldData.fieldName != "CLIENT") {
+                keyCount++
+                if (keyCount > 2) {
+                    this.session.findById("wnd[1]/tbar[0]/btn[30]").press()
+                }
+            }
+        }
+
+        row := 0
+        for fieldName, fieldData in fields {
+            if (fieldData.key = "X" && fieldData.fieldName != "MANDT" && fieldData.fieldName != "CLIENT") {
+                this.session.findById("wnd[1]/usr/tbl/TFTO/SAPLTX_SELFAETC/ctxtGS_JSEL-OLDF[0," . row . "]").text := fieldData.fieldName
+                this.session.findById("wnd[1]/usr/tbl/TFTO/SAPLTX_SELFAETC/ctxtGS_JSEL-NEWF[2," . row . "]").text := fieldData.fieldName
+                row++
+            }
+        }
+
+        this.session.findById("wnd[1]/tbar[0]/btn[8]").press()
+        Sleep(200)
+
+        ; Open script editor
+        this.session.findById("wnd[0]/tbar[1]/btn[31]").press()
+        Sleep(200)
+
+        ; Generate script name
+        scriptName := this.GenerateScriptName(tableName, destination)
+
+        ; Generate and validate script
+        this.GenerateAndValidateScript(tableName, destination, fields, scriptName)
+
+        ; Launch batch job
+        this.LaunchBatchJob(tableName, destination, scriptName)
+    }
+
+    ; Enhanced template replacement function
+    replace_placeholders(script, fname := "", this_system := "", other_system := "") {
+        if (this_system = "") {
+            this_system := fname
+        }
+        if (other_system = "") {
+            other_system := fname
+        }
+
+        ; Basic field replacements
+        script := StrReplace(script, "$FNAME$", fname)
+        script := StrReplace(script, "$THIS_SYSTEM$", this_system)
+        script := StrReplace(script, "$OTHER_SYSTEM$", other_system)
+        script := StrReplace(script, "$FIELDNAME$", fname)  ; Alias for FNAME
+
+        ; Table and destination
+        script := StrReplace(script, "$TABLENAME$", this.current_dbtable)
+        script := StrReplace(script, "$TABLE$", this.current_dbtable)  ; Short alias
+        script := StrReplace(script, "$DESTINATION$", this.current_rfc_destination)
+        script := StrReplace(script, "$RFC$", this.current_rfc_destination)  ; Short alias
+        script := StrReplace(script, "$DEST$", this.current_rfc_destination)  ; Another alias
+
+        ; Date and time replacements
+        script := StrReplace(script, "$DATE$", this.current_date)
+        script := StrReplace(script, "$TIME$", this.current_time)
+        script := StrReplace(script, "$DATETIME$", this.current_datetime)
+        script := StrReplace(script, "$TIMESTAMP$", this.current_timestamp)
+        script := StrReplace(script, "$YEAR$", FormatTime(, "yyyy"))
+        script := StrReplace(script, "$MONTH$", FormatTime(, "MM"))
+        script := StrReplace(script, "$DAY$", FormatTime(, "dd"))
+        script := StrReplace(script, "$HOUR$", FormatTime(, "HH"))
+        script := StrReplace(script, "$MINUTE$", FormatTime(, "mm"))
+        script := StrReplace(script, "$SECOND$", FormatTime(, "ss"))
+
+        ; User and system info
+        script := StrReplace(script, "$USER$", this.current_user)
+        script := StrReplace(script, "$WINDOWS_USER$", this.current_user)
+        script := StrReplace(script, "$SAP_USER$", this.sap_user)
+        script := StrReplace(script, "$SAP_CLIENT$", this.sap_client)
+        script := StrReplace(script, "$SAP_SYSTEM$", this.sap_system)
+        script := StrReplace(script, "$COMPUTER$", A_ComputerName)
+
+        ; Field counts
+        script := StrReplace(script, "$FIELD_COUNT$", this.field_count)
+        script := StrReplace(script, "$KEY_COUNT$", this.key_field_count)
+        script := StrReplace(script, "$NONKEY_COUNT$", this.non_key_field_count)
+        script := StrReplace(script, "$REMOVED_COUNT$", this.removed_field_count)
+
+        ; Script and job names
+        script := StrReplace(script, "$SCRIPT_NAME$", this.script_name)
+        script := StrReplace(script, "$JOB_NAME$", this.job_name)
+
+        ; Field lists (comma-separated)
+        script := StrReplace(script, "$ALL_FIELDS$", this.JoinFields(this.all_fields, ","))
+        script := StrReplace(script, "$KEY_FIELDS$", this.JoinFields(this.key_fields, ","))
+        script := StrReplace(script, "$NONKEY_FIELDS$", this.JoinFields(this.non_key_fields, ","))
+        script := StrReplace(script, "$REMOVED_FIELDS$", this.JoinFields(this.removed_fields, ","))
+
+        ; Special formatting
+        script := StrReplace(script, "$FNAME_UPPER$", StrUpper(fname))
+        script := StrReplace(script, "$FNAME_LOWER$", StrLower(fname))
+        script := StrReplace(script, "$TABLE_UPPER$", StrUpper(this.current_dbtable))
+        script := StrReplace(script, "$TABLE_LOWER$", StrLower(this.current_dbtable))
+
+        ; Conditional replacements based on field type
+        if (this.IsKeyField(fname)) {
+            script := StrReplace(script, "$IS_KEY$", "X")
+            script := StrReplace(script, "$FIELD_TYPE$", "KEY")
+        } else {
+            script := StrReplace(script, "$IS_KEY$", "")
+            script := StrReplace(script, "$FIELD_TYPE$", "DATA")
+        }
+
+        return script
+    }
+
+    GenerateScriptFromTemplate(tableName, validFields) {
+        templateContent := this.scriptTemplate
+
+        ; Update script and job names
+        this.script_name := "$" . tableName . "_MAN_" . SubStr(this.current_rfc_destination, 1, 3)
+        this.job_name := "Manual_" . tableName . "_" . this.current_rfc_destination
+
+        ; Handle <rowise> pattern - for all valid fields
+        rowisePattern := "mis)<rowise>(.*?)</rowise>"
+        rowiseMatch := ""
+
+        if (RegExMatch(templateContent, rowisePattern, &rowiseMatch)) {
+            rowiseTemplate := rowiseMatch[1]
+            rowiseCode := ""
+
+            for fieldName, fieldData in validFields {
+                if (fieldData.fieldName != "MANDT" && fieldData.fieldName != "CLIENT") {
+                    fieldCode := this.replace_placeholders(rowiseTemplate, fieldData.fieldName)
+                    rowiseCode .= fieldCode . "`r`n"
+                }
+            }
+
+            script := RegExReplace(templateContent, rowisePattern, rowiseCode)
+        } else {
+            script := templateContent
+        }
+
+        ; Handle <rowise_key> pattern - only for key fields
+        rowiseKeyPattern := "mis)<rowise_key>(.*?)</rowise_key>"
+        rowiseKeyMatch := ""
+
+        if (RegExMatch(script, rowiseKeyPattern, &rowiseKeyMatch)) {
+            rowiseKeyTemplate := rowiseKeyMatch[1]
+            rowiseKeyCode := ""
+
+            for fieldName in this.key_fields {
+                if (validFields.Has(fieldName)) {
+                    fieldCode := this.replace_placeholders(rowiseKeyTemplate, fieldName)
+                    rowiseKeyCode .= fieldCode . "`r`n"
+                }
+            }
+
+            script := RegExReplace(script, rowiseKeyPattern, rowiseKeyCode)
+        }
+
+        ; Handle <rowise_nonkey> pattern - only for non-key fields
+        rowiseNonKeyPattern := "mis)<rowise_nonkey>(.*?)</rowise_nonkey>"
+        rowiseNonKeyMatch := ""
+
+        if (RegExMatch(script, rowiseNonKeyPattern, &rowiseNonKeyMatch)) {
+            rowiseNonKeyTemplate := rowiseNonKeyMatch[1]
+            rowiseNonKeyCode := ""
+
+            for fieldName in this.non_key_fields {
+                if (validFields.Has(fieldName)) {
+                    fieldCode := this.replace_placeholders(rowiseNonKeyTemplate, fieldName)
+                    rowiseNonKeyCode .= fieldCode . "`r`n"
+                }
+            }
+
+            script := RegExReplace(script, rowiseNonKeyPattern, rowiseNonKeyCode)
+        }
+
+        ; Handle <rowise_removed> pattern - for removed fields
+        rowise_removedPattern := "mis)<rowise_removed>(.*?)</rowise_removed>"
+        rowiseRemovedMatch := ""
+
+        if (RegExMatch(script, rowise_removedPattern, &rowiseRemovedMatch)) {
+            rowiseRemovedTemplate := rowiseRemovedMatch[1]
+            rowiseRemovedCode := ""
+
+            for index, field in this.removed_fields {
+                fieldCode := this.replace_placeholders(rowiseRemovedTemplate, field, field, "")
+                rowiseRemovedCode .= fieldCode . "`r`n"
+            }
+
+            this.removed_field_count := this.removed_fields.Length
+            script := RegExReplace(script, rowise_removedPattern, rowiseRemovedCode)
+        }
+
+        ; Handle <rowise_commented_out> pattern - for fields with different names
+        rowise_commented_outPattern := "mis)<rowise_commented_out>(.*?)</rowise_commented_out>"
+        rowiseCommentedOutMatch := ""
+
+        if (RegExMatch(script, rowise_commented_outPattern, &rowiseCommentedOutMatch)) {
+            rowiseCommentedOutTemplate := rowiseCommentedOutMatch[1]
+            rowiseCommentedOutCode := ""
+
+            for field_index, field in this.commented_out_fields {
+                fieldCode := this.replace_placeholders(rowiseCommentedOutTemplate,
+                    field.this_system, field.this_system, field.other_system)
+                rowiseCommentedOutCode .= fieldCode . "`r`n"
+            }
+
+            script := RegExReplace(script, rowise_commented_outPattern, rowiseCommentedOutCode)
+        }
+
+        ; Handle <if_has_keys> conditional block
+        ifHasKeysPattern := "mis)<if_has_keys>(.*?)</if_has_keys>"
+        ifHasKeysMatch := ""
+
+        if (RegExMatch(script, ifHasKeysPattern, &ifHasKeysMatch)) {
+            if (this.key_field_count > 0) {
+                script := RegExReplace(script, ifHasKeysPattern, ifHasKeysMatch[1])
+            } else {
+                script := RegExReplace(script, ifHasKeysPattern, "")
+            }
+        }
+
+        ; Handle <if_no_keys> conditional block
+        ifNoKeysPattern := "mis)<if_no_keys>(.*?)</if_no_keys>"
+        ifNoKeysMatch := ""
+
+        if (RegExMatch(script, ifNoKeysPattern, &ifNoKeysMatch)) {
+            if (this.key_field_count = 0) {
+                script := RegExReplace(script, ifNoKeysPattern, ifNoKeysMatch[1])
+            } else {
+                script := RegExReplace(script, ifNoKeysPattern, "")
+            }
+        }
+
+        ; Handle <if_removed> conditional block
+        ifRemovedPattern := "mis)<if_removed>(.*?)</if_removed>"
+        ifRemovedMatch := ""
+
+        if (RegExMatch(script, ifRemovedPattern, &ifRemovedMatch)) {
+            if (this.removed_field_count > 0) {
+                script := RegExReplace(script, ifRemovedPattern, ifRemovedMatch[1])
+            } else {
+                script := RegExReplace(script, ifRemovedPattern, "")
+            }
+        }
+
+        ; Handle <foreach_field> with separator
+        foreachPattern := "mis)<foreach_field sep=`"([^`"]*)`">([^<]*)</foreach_field>"
+        foreachMatch := ""
+
+        while (RegExMatch(script, foreachPattern, &foreachMatch)) {
+            separator := foreachMatch[1]
+            template := foreachMatch[2]
+            generatedCode := ""
+
+            fieldList := []
+            for fieldName, fieldData in validFields {
+                if (fieldData.fieldName != "MANDT" && fieldData.fieldName != "CLIENT") {
+                    fieldCode := this.replace_placeholders(template, fieldData.fieldName)
+                    fieldList.Push(fieldCode)
+                }
+            }
+
+            generatedCode := this.JoinFields(fieldList, separator)
+            script := StrReplace(script, foreachMatch[0], generatedCode)
+        }
+
+        ; Final replacements for any remaining placeholders
+        script := this.replace_placeholders(script)
+        code_wrapped_script := code_wrap(script, 60)  ; Wrap lines to 80 characters
+        return code_wrapped_script
+    }
+
+    ; Helper function to check if a field is a key field
+    IsKeyField(fieldName) {
+        for keyField in this.key_fields {
+            if (keyField = fieldName) {
+                return true
+            }
+        }
+        return false
+    }
+
+    ; Helper function to join fields with a separator
+    JoinFields(fields, separator) {
+        result := ""
+        for index, field in fields {
+            if (index > 1) {
+                result .= separator
+            }
+            result .= field
+        }
+        return result
+    }
+
+
+    GenerateAndValidateScript(tableName, destination, fields, scriptName) {
+        validFields := Map()
+        for fieldName, fieldData in fields {
+            validFields[fieldName] := fieldData
+        }
+
+        maxAttempts := this.max_validation_attempts
+        attempts := 0
+        scriptGenerated := false
+
+        while (!scriptGenerated && attempts < maxAttempts) {
+            attempts++
+            script := this.GenerateScriptFromTemplate(tableName, validFields)
+
+            this.session.findById("wnd[0]/usr/cntlCC/shellcont/shell/shellcont[0]/shell").text := script
+            this.session.findById("wnd[0]/tbar[1]/btn[27]").press()
+            Sleep(200)
+
+            try {
+                errorPopup := this.session.findById("wnd[1]")
+                errorText := ""
+                message_row := 1
+
+                Loop {
+                    try {
+                        errorText .= errorPopup.findById("usr/lbl[0," . message_row . "]").text
+                        message_row++
+                    } catch {
+                        break
+                    }
+                }
+
+                invalidField := this.ExtractInvalidFieldFromError(errorText, tableName)
+                if (invalidField != "") {
+                    for index, fieldData in validFields {
+                        if (fieldData.fieldName == invalidField) {
+                            validFields.Delete(index)
+                            this.removed_fields.Push(invalidField)
+                        }
+                    }
+                }
+
+                this.session.findById("wnd[1]/tbar[0]/btn[0]").press()
+                Sleep(100)
+
+            } catch {
+                ; No error - script is valid
+                scriptGenerated := true
+                if (scriptGenerated && this.apply_filters) {
+                    ; Filter results
+                    try {
+                        colnames := this.session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell/shellcont[1]/shell").columnOrder
+                        for rowIdx in range(0, colnames.Length - 1) {
+                            if (SubStr(colnames[rowIdx], 1, 3) = "_XX") {
+                                this.session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell/shellcont[1]/shell").selectColumn(colnames[rowIdx])
+                                ExecuteSapCommand(this.session, "ZZFILTER")
+                                ExecuteSapCommand(this.session, "ZZMORE_001")
+                                ExecuteSapCommand(this.session, "ZOPTI001")
+                                this.session.findById("wnd[3]/usr/cntlOPTION_CONTAINER/shellcont/shell").selectedRows(5)
+                                ExecuteSapCommand(this.session, "OKAY")
+                                ExecuteSapCommand(this.session, "ZZOKAY")
+                                ExecuteSapCommand(this.session, "ZZKEEP")
+                                break
+                            }
+                        }
+                    } catch {
+                        ; Ignore filter errors
+                    }
+                }
+                ; Handle script saving based on config
+                if (scriptGenerated && this.auto_save_script) {
+                    ; Generate script name from pattern
+                    scriptName := this.GenerateScriptName(tableName, destination)
+                    ; Save script
+                    this.session.findById("wnd[0]/tbar[0]/btn[11]").press()
+                    Sleep(200)
+
+                    this.session.findById("wnd[1]/usr/ctxtSP_SCRIP").text := SubStr(scriptName, 1, 23)
+                    if (this.script_is_global) {
+                        this.session.findById("wnd[1]/usr/chkSP_SGLOB").Selected := 1
+                    } else {
+                        this.session.findById("wnd[1]/usr/chkSP_SGLOB").Selected := 0
+                    }
+
+                    timestamp := FormatTime(, "yyyy_MM_dd HH:mm:ss")
+                    this.session.findById("wnd[1]/usr/txtSP_STEXT").text := SubStr("[" . timestamp . "]: Manual " . tableName . " & " . destination, 1, 59)
+                    this.session.findById("wnd[1]/tbar[0]/btn[0]").press()
+
+                    try {
+                        ExecuteSapCommand(this.session, "YES")
+                        this.session.findById("wnd[2]/tbar[0]/btn[0]").press()
+                    } catch {
+                        ; No overwrite needed
+                    }
+                } else if (!this.auto_save_script) {
+                    ; Stop before saving
+                    LogMessage("INFO", "Script generated but not saved (AUTO_SAVE_SCRIPT = false)")
+                    MsgBox("Script has been generated and validated.`nStopping before save as configured.", "Script Ready", 0x40)
+                    return false
+                }
+            }
+        }
+
+        if (!scriptGenerated) {
+            Error("Failed to generate valid script after " . attempts . " attempts")
+        }
+    }
+    ; Add method to generate script name from pattern
+    GenerateScriptName(tableName, destination) {
+        pattern := this.script_name_pattern
+
+        ; Replace placeholders
+        pattern := StrReplace(pattern, "{DBNAME}", tableName)
+        pattern := StrReplace(pattern, "{DEST}", SubStr(destination, 1, 3))
+        pattern := StrReplace(pattern, "{DATE}", FormatTime(, "yyyyMMdd"))
+        pattern := StrReplace(pattern, "{TIME}", FormatTime(, "HHmmss"))
+        pattern := StrReplace(pattern, "{USER}", A_UserName)
+        ;when global save is enabled, add $ at the beginning of the script name
+        if (this.script_is_global && SubStr(pattern, 1, 1) != "$") {
+            pattern := "$" . pattern
+        }
+        ; Ensure it fits within SAP's 23 character limit
+        return SubStr(pattern, 1, 23)
+    }
+
+
+    LaunchBatchJob(tableName, destination, scriptName) {
+        ; Check if batch job creation is enabled
+        if (!this.create_batch_job) {
+            LogMessage("INFO", "Batch job creation skipped (CREATE_BATCH_JOB = false)")
+            return
+        }
+        ExecuteSapCommand(this.session, "/n/TFTO/SE16XXL")
+        this.session.findById("wnd[0]/usr/subSC:/TFTO/TX_BX:1111/radSP_SCR").Select()
+        Sleep(200)
+
+        this.session.findById("wnd[0]/usr/subSC:/TFTO/TX_BX:1111/ctxtSP_SCRIP").text := SubStr(scriptName, 1, 23)
+        Sleep(200)
+
+        ExecuteSapCommand(this.session, "ZZSHOW")
+        Sleep(200)
+        ExecuteSapCommand(this.session, "ZZENTER")
+        Sleep(200)
+        ; Use config for row count after save
+        this.session.findById("wnd[0]/usr").Children[0].Children[0].Children[0].children[3].text := this.rows_after_save
+        try {
+            this.session.findById("wnd[0]/usr").Children[0].Children[0].Children[0].children[6].text := 999
+        } catch {
+            ; Field might not exist
+        }
+        ; Ask user confirmation if configured
+        if (this.confirm_batch_execution) {
+            result := MsgBox("Do you want to execute the batch job for " . tableName . " on destination " . destination . "?", "Execute Batch Job", 4)
+            if (result = "No") {
+                LogMessage("INFO", "Batch job execution cancelled by user")
+                return
+            }
+        }
+        Sleep(200)
+        ExecuteSapCommand(this.session, "ZZBATCH")
+        Sleep(200)
+
+        this.session.findById("wnd[1]/usr/chkGS_POP-NON_STD").Selected := 1
+        ; Use config for job name
+        jobName := this.GenerateJobName(tableName, destination)
+        this.session.findById("wnd[1]/usr/txtTBTCJOB-JOBNAME").text := SubStr(jobName, 1, 31)
+        this.session.findById("wnd[1]/usr/radGS_POP-START_IMMED").Select()
+        this.session.findById("wnd[1]/usr/chkGS_POP-RMUS_FLAG").Selected := 1
+        ; Use config for spool settings
+        this.session.findById("wnd[1]/usr/chkGS_POP-TO_SPOOL").Selected := (this.job_to_spool ? 1 : 0)
+        try {
+            this.session.findById("wnd[1]/usr/chkGS_POP-NO_MAIL").Selected := (this.job_send_mail ? 0 : 1)
+        } catch {
+            ; Field might not exist, ignore
+        }
+        ExecuteSapCommand(this.session, "ZZOK")
+        Sleep(200)
+
+        ; Use config for spool destination
+        try
+        {
+            this.session.findById("wnd[1]/usr/ctxtPRI_PARAMS-PDEST").text := this.spool_destination
+        } catch {
+            ; Field might not exist, ignore
+        }
+        Sleep(200)
+
+        try {
+            this.session.findById("wnd[2]")
+            ExecuteSapCommand(this.session, "WEIT")
+        } catch {
+            ; No popup
+        }
+
+        try {
+            ExecuteSapCommand(this.session, "SAVE")
+        } catch {
+            ; Ignore save errors
+        }
+
+        Sleep(200)
+
+        try {
+            ExecuteSapCommand(this.session, "WEIT")
+        } catch {
+            ; Ignore
+        }
+
+    }
+    ; Add method to generate job name from pattern
+    GenerateJobName(tableName, destination) {
+        pattern := this.job_name_pattern
+
+        ; Replace placeholders
+        pattern := StrReplace(pattern, "{DBNAME}", tableName)
+        pattern := StrReplace(pattern, "{DEST}", destination)
+        pattern := StrReplace(pattern, "{DATE}", FormatTime(, "yyyyMMdd"))
+        pattern := StrReplace(pattern, "{TIME}", FormatTime(, "HHmmss"))
+        pattern := StrReplace(pattern, "{USER}", A_UserName)
+
+        return pattern
+    }
+    ExtractInvalidFieldFromError(errorText, currentDatabase := "") {
+        ; Find all string fields in quotes
+        stringFields := []
+        pos := 1
+
+        while (pos := RegExMatch(errorText, '"([A-Za-z_-]+)"', &match, pos)) {
+            stringFields.Push(match[1])
+            pos += StrLen(match[0])
+        }
+
+        ; Determine which field to return
+        fieldToReturn := ""
+
+        if (stringFields.Length >= 2) {
+            ; If we have 2 or more, return the second one if it matches pattern
+            if (RegExMatch(stringFields[2], "[A-Za-z_]+")) {
+                fieldToReturn := stringFields[2]
+            }
+        } else if (stringFields.Length = 1) {
+            ; If we have 1, return it if it matches pattern
+            if (RegExMatch(stringFields[1], "[A-Za-z_]+")) {
+                fieldToReturn := stringFields[1]
+            }
+        }
+
+        ; If we have 3 fields, it means there's a lookalike field on the other system
+        if (stringFields.Length >= 3) {
+            this.commented_out_fields.Push({
+                this_system: stringFields[2],
+                other_system: stringFields[3]
+            })
+        }
+
+        ; Log the information to removed_fields file
+        if (fieldToReturn != "" || stringFields.Length > 0) {
+            logFile := A_ScriptDir . "\removed_fields.log"
+
+            ; Prepare log entry
+            logEntry := "DB:" . currentDatabase . ",miss:" . fieldToReturn . ",AorB:"
+            logEntry .= (stringFields.Length > 1 ? stringFields[1] : "?:-(?") . "`r`n"
+
+            ; Append to file
+            try {
+                FileAppend(logEntry, logFile)
+            } catch Error as e {
+                ; If we can't write to the log file, at least output to debug
+                OutputDebug("Failed to write to removed_fields.log: " . e.Message)
+            }
+        }
+
+        return fieldToReturn
+    }
+
+
+    LoadAllGridData(grid) {
+        totalRows := grid.rowCount
+        visibleRows := grid.visibleRowCount
+        data := []
+
+        grid.firstVisibleRow := 0
+        Sleep(100)
+
+        currentRow := 0
+        while (currentRow < totalRows) {
+            Loop Min(visibleRows, totalRows - currentRow) {
+                rowIndex := currentRow + A_Index - 1
+                try {
+                    rowData := Map()
+                    for colIdx in range(0, grid.columnOrder.Length - 1) {
+                        colName := grid.columnOrder[colIdx]
+                        value := grid.getCellValue(rowIndex, colName)
+                        rowData[colName] := value
+                    }
+                    data.Push(rowData)
+                } catch {
+                    continue
+                }
+            }
+
+            currentRow += visibleRows
+            if (currentRow < totalRows) {
+                grid.firstVisibleRow := currentRow
+                Sleep(200)
+            }
+        }
+
+        return data
+    }
+
+    LogSuccess(tableName, destination, scriptName := "") {
+        try {
+            timestamp := FormatTime(, "yyyy-MM-dd HH:mm:ss")
+            logEntry := Format("{}|{}|{}|{}`r`n",
+                timestamp, tableName, destination, scriptName)
+            FileAppend(logEntry, SUCCESS_LOG)
+        } catch {
+            ; Ignore log errors
+        }
+    }
+
+    LogFailure(tableName, destination, errorMsg) {
+        try {
+            timestamp := FormatTime(, "yyyy-MM-dd HH:mm:ss")
+            logEntry := Format("{}|{}|{}|{}`r`n",
+                timestamp, tableName, destination, errorMsg)
+            FileAppend(logEntry, FAILURE_LOG)
+        } catch {
+            ; Ignore log errors
+        }
+    }
+}
+; Helper function for range
+range(start, end) {
+    result := []
+    Loop (end - start + 1) {
+        result.Push(start + A_Index - 1)
+    }
+    return result
+}

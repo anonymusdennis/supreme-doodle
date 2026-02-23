@@ -1,0 +1,9 @@
+{
+  "id": "1",
+  "timestamp": "20250806172620",
+  "type": "worker",
+  "updates": {
+    "current_status": "Setting field mappings"
+  },
+  "workerId": "1"
+}

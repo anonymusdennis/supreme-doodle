@@ -1,0 +1,58 @@
+
+**** Log file opened at 2025-08-01 15:59:35.031531 UTC+02:00 (Mitteleuropäische Zeit), Encoding UTF-8
+NW RFC Library: Frontend800 variant, Release 750 Patch Level 15
+Compilation date          : Jan 27 2025 00:12:56
+CPIC library              : 753.2024.07.29 version 3
+NI library                : 40
+Kernel Release            : 753 Patch Level 1434
+Current working directory : C:\Users\wn00224895\OneDrive - WGS 365\Desktop\datenvalidierung
+Program                   : AutoHotkey64
+Process ID                : 27160
+User                      : wn00224895
+Hardware                  : PC with Windows NT 12x AMD64 Level 6 (Mod 154 Step 4)
+Binary Type               : 64bit
+Operating_system          : Windows NT 10.0
+Hostname                  : CN2911IT001513
+IP address                : 192.168.33.51
+IPv6 address              : fe80::4848:da27:2e5f:69ad
+Global trace level        : 0
+
+2025-08-01 15:59:35.032450 [25096] >> Info entry
+	Did not find config file C:\Users\wn00224895\OneDrive - WGS 365\Desktop\datenvalidierung\sapnwrfc.ini.
+
+**** Log file opened at 2025-08-01 16:34:01.445245 UTC+02:00 (Mitteleuropäische Zeit), Encoding UTF-8
+NW RFC Library: Frontend800 variant, Release 750 Patch Level 15
+Compilation date          : Jan 27 2025 00:12:56
+CPIC library              : 753.2024.07.29 version 3
+NI library                : 40
+Kernel Release            : 753 Patch Level 1434
+Current working directory : C:\Users\wn00224895\OneDrive - WGS 365\Desktop\datenvalidierung
+Program                   : AutoHotkey64
+Process ID                : 26224
+User                      : wn00224895
+Hardware                  : PC with Windows NT 12x AMD64 Level 6 (Mod 154 Step 4)
+Binary Type               : 64bit
+Operating_system          : Windows NT 10.0
+Hostname                  : CN2911IT001513
+IP address                : 192.168.33.51
+IPv6 address              : fe80::4848:da27:2e5f:69ad
+Global trace level        : 0
+
+2025-08-01 16:34:01.444161 [26792] >> Error entry
+	[Handle: 107558960	ConvID: 	Target: 	SysID: 	SysNr: 	User: 	Codepage: 4103]
+	RfcCommunicationException: Return Value: 20, Code: RFC_COMMUNICATION_FAILURE, Message: 
+LOCATION    CPIC (TCP/IP) on local host with Unicode
+ERROR       partner '10.15.135.219:3300' not reached
+TIME        Fri Aug  1 16:34:01 2025
+RELEASE     753
+COMPONENT   NI (network interface)
+VERSION     40
+RC          -10
+MODULE      D:/depot/bas/753_REL/src/base/ni/nixxi.cpp
+LINE        3458
+DETAIL      NiPConnect2: 10.15.135.219:3300
+SYSTEM CALL connect
+ERRNO       10060
+ERRNO TEXT  WSAETIMEDOUT: Connection timed out
+COUNTER     2
+

@@ -1,0 +1,9 @@
+{
+  "id": "0",
+  "timestamp": "20250806173708",
+  "type": "worker",
+  "updates": {
+    "current_status": "Reading DD03L for MARA"
+  },
+  "workerId": "0"
+}

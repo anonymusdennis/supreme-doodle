@@ -1,0 +1,9 @@
+{
+  "id": "0",
+  "timestamp": "20250806173919",
+  "type": "worker",
+  "updates": {
+    "current_status": "Checking table existence in destination"
+  },
+  "workerId": "0"
+}

@@ -1,0 +1,9 @@
+{
+  "id": "0",
+  "timestamp": "20250806173600",
+  "type": "worker",
+  "updates": {
+    "current_status": "Counting keys and adding rows"
+  },
+  "workerId": "0"
+}

@@ -1,0 +1,1831 @@
+=== ADVANCED SAP SCREEN DUMP ===
+Date: 2025-08-04 10:11:08
+User: wn00224895
+Screen Title: Allgemeine Tabellenanzeige
+Program: SAPLSE16N
+Transaction: N
+System: DE7
+Client: 401
+User: WN00224895
+Language: DE
+Screen Number: 100
+
+=== SCREEN ELEMENT HIERARCHY ===
+
+ID: wnd[0]
+Type: GuiMainWindow
+Name: wnd[0]
+Full Path: wnd[0]
+Position: Left=1912, Top=-8
+Size: Width=1936, Height=1168
+Changeable: Yes
+---------------
+Children (6):
+  ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar
+  Type: GuiMenubar
+  Name: mbar
+  Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar
+  Position: Left=1956, Top=17
+  Size: Width=1610, Height=18
+  Changeable: No
+  ---------------
+  Children (6):
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]
+    Type: GuiMenu
+    Name: Tabellenanzeige
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]
+    Position: Left=-1, Top=-1
+    Size: Width=-1, Height=-1
+    Changeable: Yes
+    ---------------
+    Children (3):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[0]
+      Type: GuiMenu
+      Name: Ausführen
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[0]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (5):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[0]/menu[0]
+        Type: GuiMenu
+        Name: Online
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[0]/menu[0]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[0]/menu[1]
+        Type: GuiMenu
+        Name: Hintergrund
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[0]/menu[1]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[0]/menu[2]
+        Type: GuiMenu
+        Name: menu[2]
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[0]/menu[2]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: No
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[0]/menu[3]
+        Type: GuiMenu
+        Name: Extrakt im Hintergrund erzeugen
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[0]/menu[3]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[0]/menu[4]
+        Type: GuiMenu
+        Name: Extrakt anzeigen
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[0]/menu[4]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[1]
+      Type: GuiMenu
+      Name: menu[1]
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[1]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: No
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[2]
+      Type: GuiMenu
+      Name: Beenden
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[0]/menu[2]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]
+    Type: GuiMenu
+    Name: Bearbeiten
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]
+    Position: Left=-1, Top=-1
+    Size: Width=-1, Height=-1
+    Changeable: Yes
+    ---------------
+    Children (9):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[0]
+      Type: GuiMenu
+      Name: Markierfunktionen
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[0]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (2):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[0]/menu[0]
+        Type: GuiMenu
+        Name: Alle markieren
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[0]/menu[0]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[0]/menu[1]
+        Type: GuiMenu
+        Name: Alle Mark. löschen
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[0]/menu[1]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[1]
+      Type: GuiMenu
+      Name: menu[1]
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[1]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: No
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[2]
+      Type: GuiMenu
+      Name: Alle Eingaben löschen
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[2]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[3]
+      Type: GuiMenu
+      Name: Zeile löschen
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[3]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[4]
+      Type: GuiMenu
+      Name: menu[4]
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[4]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: No
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[5]
+      Type: GuiMenu
+      Name: Anzahl Einträge
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[5]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[6]
+      Type: GuiMenu
+      Name: Anz Einträge (Batch)
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[6]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[7]
+      Type: GuiMenu
+      Name: menu[7]
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[7]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: No
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[8]
+      Type: GuiMenu
+      Name: Abbrechen
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]//app/con[0]/ses[0]/wnd[0]/mbar/menu[1]/menu[8]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]
+    Type: GuiMenu
+    Name: Springen
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]
+    Position: Left=-1, Top=-1
+    Size: Width=-1, Height=-1
+    Changeable: Yes
+    ---------------
+    Children (3):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]/menu[0]
+      Type: GuiMenu
+      Name: Varianten
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]/menu[0]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (3):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]/menu[0]/menu[0]
+        Type: GuiMenu
+        Name: Holen
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]/menu[0]/menu[0]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]/menu[0]/menu[1]
+        Type: GuiMenu
+        Name: Löschen
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]/menu[0]/menu[1]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]/menu[0]/menu[2]
+        Type: GuiMenu
+        Name: Sichern
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]/menu[0]//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]/menu[0]/menu[2]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]/menu[1]
+      Type: GuiMenu
+      Name: menu[1]
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]/menu[1]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: No
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]/menu[2]
+      Type: GuiMenu
+      Name: Zurück
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[2]/menu[2]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]
+    Type: GuiMenu
+    Name: Zusätze
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]
+    Position: Left=-1, Top=-1
+    Size: Width=-1, Height=-1
+    Changeable: Yes
+    ---------------
+    Children (14):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[0]
+      Type: GuiMenu
+      Name: Verwendungsnachweis
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[0]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[1]
+      Type: GuiMenu
+      Name: menu[1]
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[1]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: No
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[2]
+      Type: GuiMenu
+      Name: Technische Sicht ein
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[2]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[3]
+      Type: GuiMenu
+      Name: Technische Sicht aus
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[3]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[4]
+      Type: GuiMenu
+      Name: menu[4]
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[4]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: No
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[5]
+      Type: GuiMenu
+      Name: Mehrfacheingabe
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[5]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: No
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[6]
+      Type: GuiMenu
+      Name: menu[6]
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[6]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: No
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[7]
+      Type: GuiMenu
+      Name: Batchvariante erzeugen
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[7]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[8]
+      Type: GuiMenu
+      Name: Batchvariante (Anzahl Zeilen)
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[8]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[9]
+      Type: GuiMenu
+      Name: menu[9]
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[9]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: No
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[10]
+      Type: GuiMenu
+      Name: Einstellungen ändern
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[10]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[11]
+      Type: GuiMenu
+      Name: Einstellungen speichern
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[11]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[12]
+      Type: GuiMenu
+      Name: menu[12]
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[12]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: No
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[13]
+      Type: GuiMenu
+      Name: Änd.belege anzeigen
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[3]/menu[13]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]
+    Type: GuiMenu
+    Name: System
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]
+    Position: Left=-1, Top=-1
+    Size: Width=-1, Height=-1
+    Changeable: Yes
+    ---------------
+    Children (13):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[0]
+      Type: GuiMenu
+      Name: Neues GUI-Fenster
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[0]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[1]
+      Type: GuiMenu
+      Name: GUI-Fenster schließen
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[1]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[2]
+      Type: GuiMenu
+      Name: Benutzervorgaben
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[2]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (5):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[2]/menu[0]
+        Type: GuiMenu
+        Name: Halten Daten
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[2]/menu[0]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: No
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[2]/menu[1]
+        Type: GuiMenu
+        Name: Setzen Daten
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[2]/menu[1]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: No
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[2]/menu[2]
+        Type: GuiMenu
+        Name: Löschen Daten
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[2]/menu[2]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: No
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[2]/menu[3]
+        Type: GuiMenu
+        Name: Eigene Daten
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[2]/menu[3]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[2]/menu[4]
+        Type: GuiMenu
+        Name: Favoriten erweitern
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[2]/menu[4]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]
+      Type: GuiMenu
+      Name: Dienste
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (10):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[0]
+        Type: GuiMenu
+        Name: Reporting
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[0]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[1]
+        Type: GuiMenu
+        Name: Quick Viewer
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[1]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[2]
+        Type: GuiMenu
+        Name: Ausgabesteuerung
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[2]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[3]
+        Type: GuiMenu
+        Name: Tabellenpflege
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[3]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (2):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[3]/menu[0]
+          Type: GuiMenu
+          Name: Erweit. Tab.pflege
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[3]/menu[0]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: Yes
+          ---------------
+          Children (0):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[3]/menu[1]
+          Type: GuiMenu
+          Name: Viewclusterpflege
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[3]/menu[1]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: Yes
+          ---------------
+          Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]
+        Type: GuiMenu
+        Name: Batch-Input
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (11):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[0]
+          Type: GuiMenu
+          Name: Mappen
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[0]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: Yes
+          ---------------
+          Children (0):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[1]
+          Type: GuiMenu
+          Name: Protokolle
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[1]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: Yes
+          ---------------
+          Children (0):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[2]
+          Type: GuiMenu
+          Name: Recorder
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[2]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: Yes
+          ---------------
+          Children (0):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[3]
+          Type: GuiMenu
+          Name: Restart Transaktion
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[3]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: No
+          ---------------
+          Children (0):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[4]
+          Type: GuiMenu
+          Name: Transaktion löschen
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[4]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: No
+          ---------------
+          Children (0):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[5]
+          Type: GuiMenu
+          Name: Nächste Transaktion
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[5]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: No
+          ---------------
+          Children (0):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[6]
+          Type: GuiMenu
+          Name: Sichtbar abspielen
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[6]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: No
+          ---------------
+          Children (0):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[7]
+          Type: GuiMenu
+          Name: Nur Fehler anzeigen
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[7]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: No
+          ---------------
+          Children (0):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[8]
+          Type: GuiMenu
+          Name: Expertenmodus ein
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[8]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: No
+          ---------------
+          Children (0):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[9]
+          Type: GuiMenu
+          Name: Expertenmodus aus
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[9]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: No
+          ---------------
+          Children (0):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[10]
+          Type: GuiMenu
+          Name: Abbrechen
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[4]/menu[10]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: No
+          ---------------
+          Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]
+        Type: GuiMenu
+        Name: Fast-Input
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (4):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]/menu[0]
+          Type: GuiMenu
+          Name: Recorder
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]/menu[0]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: Yes
+          ---------------
+          Children (0):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]/menu[1]
+          Type: GuiMenu
+          Name: Sichtbar abspielen
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]/menu[1]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: No
+          ---------------
+          Children (0):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]/menu[2]
+          Type: GuiMenu
+          Name: Nur Fehler anzeigen
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]/menu[2]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: No
+          ---------------
+          Children (0):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]/menu[3]
+          Type: GuiMenu
+          Name: Abbrechen
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[5]/menu[3]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: No
+          ---------------
+          Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[6]
+        Type: GuiMenu
+        Name: Direct-Input
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[6]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[7]
+        Type: GuiMenu
+        Name: Jobs
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[7]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (2):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[7]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[7]/menu[0]
+          Type: GuiMenu
+          Name: Job-Definition
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[7]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[7]/menu[0]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: Yes
+          ---------------
+          Children (0):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[7]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[7]/menu[1]
+          Type: GuiMenu
+          Name: Job-Übersicht
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[7]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[7]/menu[1]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: Yes
+          ---------------
+          Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[8]
+        Type: GuiMenu
+        Name: Queue
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[8]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[9]
+        Type: GuiMenu
+        Name: SAP Service
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[3]/menu[9]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]
+      Type: GuiMenu
+      Name: Hilfsmittel
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (10):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[0]
+        Type: GuiMenu
+        Name: Debugging Dynpro
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[0]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[1]
+        Type: GuiMenu
+        Name: Debugging ABAP
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[1]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[2]
+        Type: GuiMenu
+        Name: Debugging System
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[2]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[3]
+        Type: GuiMenu
+        Name: Resourcenverbrauch
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[3]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[4]
+        Type: GuiMenu
+        Name: Autom. Queue synchrone Verarbeitung
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[4]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[5]
+        Type: GuiMenu
+        Name: Performance Trace
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[5]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[6]
+        Type: GuiMenu
+        Name: Kontexttrace
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[6]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[7]
+        Type: GuiMenu
+        Name: Laufzeitanalyse
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[7]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (3):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[7]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[7]/menu[0]
+          Type: GuiMenu
+          Name: Ausführen
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[7]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[7]/menu[0]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: Yes
+          ---------------
+          Children (0):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[7]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[7]/menu[1]
+          Type: GuiMenu
+          Name: Einschalten
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[7]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[7]/menu[1]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: Yes
+          ---------------
+          Children (0):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[7]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[7]/menu[2]
+          Type: GuiMenu
+          Name: Ausschalten
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[7]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[7]/menu[2]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: Yes
+          ---------------
+          Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[8]
+        Type: GuiMenu
+        Name: Anz. Berecht.prüfung
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[8]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[9]
+        Type: GuiMenu
+        Name: Speicheranalyse
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[9]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (2):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[9]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[9]/menu[0]
+          Type: GuiMenu
+          Name: Speicherabzug erzeugen
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[9]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[9]/menu[0]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: Yes
+          ---------------
+          Children (0):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[9]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[9]/menu[1]
+          Type: GuiMenu
+          Name: Speicherabzüge vergleichen
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[9]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[4]/menu[9]/menu[1]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: Yes
+          ---------------
+          Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]
+      Type: GuiMenu
+      Name: Liste
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (5):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]/menu[0]
+        Type: GuiMenu
+        Name: Drucken
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]/menu[0]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: No
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]/menu[1]
+        Type: GuiMenu
+        Name: Suchen nach...
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]/menu[1]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: No
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]/menu[2]
+        Type: GuiMenu
+        Name: Sichern
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]/menu[2]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (3):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]/menu[2]/menu[0]
+          Type: GuiMenu
+          Name: Ablage SAPoffice
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]/menu[2]/menu[0]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: No
+          ---------------
+          Children (0):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]/menu[2]/menu[1]
+          Type: GuiMenu
+          Name: Liste
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]/menu[2]/menu[1]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: No
+          ---------------
+          Children (0):
+          ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]/menu[2]/menu[2]
+          Type: GuiMenu
+          Name: Lokale Datei
+          Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]/menu[2]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]/menu[2]/menu[2]
+          Position: Left=-1, Top=-1
+          Size: Width=-1, Height=-1
+          Changeable: No
+          ---------------
+          Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]/menu[3]
+        Type: GuiMenu
+        Name: Senden
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]/menu[3]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: No
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]/menu[4]
+        Type: GuiMenu
+        Name: Listüberschrift
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[5]/menu[4]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: No
+        ---------------
+        Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[6]
+      Type: GuiMenu
+      Name: Dienste zum Objekt
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[6]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[7]
+      Type: GuiMenu
+      Name: Meine Objekte
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[7]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (2):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[7]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[7]/menu[0]
+        Type: GuiMenu
+        Name: Objekthistorie
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[7]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[7]/menu[0]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+        ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[7]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[7]/menu[1]
+        Type: GuiMenu
+        Name: Objekte bearbeiten
+        Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[7]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[7]/menu[1]
+        Position: Left=-1, Top=-1
+        Size: Width=-1, Height=-1
+        Changeable: Yes
+        ---------------
+        Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[8]
+      Type: GuiMenu
+      Name: Eigene Spoolaufträge
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[8]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[9]
+      Type: GuiMenu
+      Name: Eigene Jobs
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[9]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[10]
+      Type: GuiMenu
+      Name: Kurznachricht
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[10]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[11]
+      Type: GuiMenu
+      Name: Status...
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[11]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[12]
+      Type: GuiMenu
+      Name: Abmelden
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]//app/con[0]/ses[0]/wnd[0]/mbar/menu[4]/menu[12]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]
+    Type: GuiMenu
+    Name: Hilfe
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]
+    Position: Left=-1, Top=-1
+    Size: Width=-1, Height=-1
+    Changeable: Yes
+    ---------------
+    Children (10):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]/menu[0]
+      Type: GuiMenu
+      Name: Hilfe zur Anwendung
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]/menu[0]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]/menu[1]
+      Type: GuiMenu
+      Name: Lerninhalte
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]/menu[1]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]/menu[2]
+      Type: GuiMenu
+      Name: SAP-Bibliothek
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]/menu[2]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]/menu[3]
+      Type: GuiMenu
+      Name: Glossar
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]/menu[3]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]/menu[4]
+      Type: GuiMenu
+      Name: Release-Infos
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]/menu[4]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]/menu[5]
+      Type: GuiMenu
+      Name: menu[5]
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]/menu[5]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: No
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]/menu[6]
+      Type: GuiMenu
+      Name: SAP Support Portal
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]/menu[6]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]/menu[7]
+      Type: GuiMenu
+      Name: Support Meldung erfassen
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]/menu[7]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]/menu[8]
+      Type: GuiMenu
+      Name: menu[8]
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]/menu[8]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: No
+      ---------------
+      Children (0):
+      ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]/menu[9]
+      Type: GuiMenu
+      Name: Einstellungen...
+      Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/mbar//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]//app/con[0]/ses[0]/wnd[0]/mbar/menu[5]/menu[9]
+      Position: Left=-1, Top=-1
+      Size: Width=-1, Height=-1
+      Changeable: Yes
+      ---------------
+      Children (0):
+  ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]
+  Type: GuiToolbar
+  Name: tbar[0]
+  Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]
+  Position: Left=1934, Top=38
+  Size: Width=1892, Height=31
+  Changeable: Yes
+  ---------------
+  Children (18):
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[0]
+    Type: GuiButton
+    Name: btn[0]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[0]
+    Position: Left=1942, Top=42
+    Size: Width=22, Height=22
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Weiter
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[0]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[423]
+    Type: GuiButton
+    Name: btn[423]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[423]
+    Position: Left=2120, Top=42
+    Size: Width=22, Height=22
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Befehlsfeld schließen
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[423]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[11]
+    Type: GuiButton
+    Name: btn[11]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[11]
+    Position: Left=2142, Top=42
+    Size: Width=22, Height=22
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Sichern   (Strg+S)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[11]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[3]
+    Type: GuiButton
+    Name: btn[3]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[3]
+    Position: Left=2176, Top=42
+    Size: Width=22, Height=22
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Zurück   (F3)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[3]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[15]
+    Type: GuiButton
+    Name: btn[15]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[15]
+    Position: Left=2198, Top=42
+    Size: Width=22, Height=22
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Beenden   (Umsch+F3)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[15]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[12]
+    Type: GuiButton
+    Name: btn[12]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[12]
+    Position: Left=2220, Top=42
+    Size: Width=22, Height=22
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Abbrechen   (F12)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[12]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[86]
+    Type: GuiButton
+    Name: btn[86]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[86]
+    Position: Left=2254, Top=42
+    Size: Width=22, Height=22
+    Changeable: No
+    Button Text: 
+    Tooltip: 
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[86]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[71]
+    Type: GuiButton
+    Name: btn[71]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[71]
+    Position: Left=2276, Top=42
+    Size: Width=22, Height=22
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Suchen   (Strg+F)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[71]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[84]
+    Type: GuiButton
+    Name: btn[84]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[84]
+    Position: Left=2298, Top=42
+    Size: Width=22, Height=22
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Weiter suchen   (Strg+G)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[84]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[80]
+    Type: GuiButton
+    Name: btn[80]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[80]
+    Position: Left=2332, Top=42
+    Size: Width=22, Height=22
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Erste Seite   (Strg+Bild hoch)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[80]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[81]
+    Type: GuiButton
+    Name: btn[81]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[81]
+    Position: Left=2354, Top=42
+    Size: Width=22, Height=22
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Vorige Seite   (Bild hoch)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[81]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[82]
+    Type: GuiButton
+    Name: btn[82]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[82]
+    Position: Left=2376, Top=42
+    Size: Width=22, Height=22
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Nächste Seite   (Bild runt)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[82]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[83]
+    Type: GuiButton
+    Name: btn[83]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[83]
+    Position: Left=2398, Top=42
+    Size: Width=22, Height=22
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Letzte Seite   (Strg+Bild runt)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[83]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[419]
+    Type: GuiButton
+    Name: btn[419]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[419]
+    Position: Left=2432, Top=42
+    Size: Width=22, Height=22
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Neues GUI-Fenster
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[419]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[418]
+    Type: GuiButton
+    Name: btn[418]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[418]
+    Position: Left=2454, Top=42
+    Size: Width=22, Height=22
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Erstellt eine Verknüpfung
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[418]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[1]
+    Type: GuiButton
+    Name: btn[1]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[1]
+    Position: Left=2488, Top=42
+    Size: Width=22, Height=22
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Hilfe   (F1)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[1]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[446]
+    Type: GuiButton
+    Name: btn[446]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[446]
+    Position: Left=2510, Top=42
+    Size: Width=22, Height=22
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Lok. Layout anpassen (Alt+F12)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/btn[446]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/okcd
+    Type: GuiOkCodeField
+    Name: okcd
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]//app/con[0]/ses[0]/wnd[0]/tbar[0]/okcd
+    Position: Left=1974, Top=43
+    Size: Width=142, Height=22
+    Changeable: Yes
+    ---------------
+    [Children error: This value of type "GuiOkCodeField" has no property named "Children".]
+  ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/titl
+  Type: GuiTitlebar
+  Name: titl
+  Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/titl
+  Position: Left=1934, Top=78
+  Size: Width=1892, Height=31
+  ---------------
+  Children (0):
+  ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]
+  Type: GuiToolbar
+  Name: tbar[1]
+  Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]
+  Position: Left=1934, Top=109
+  Size: Width=1892, Height=34
+  Changeable: Yes
+  ---------------
+  Children (17):
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[8]
+    Type: GuiButton
+    Name: btn[8]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[8]
+    Position: Left=1944, Top=115
+    Size: Width=20, Height=20
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Online   (F8)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[8]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[32]
+    Type: GuiButton
+    Name: btn[32]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[32]
+    Position: Left=1968, Top=115
+    Size: Width=79, Height=20
+    Changeable: Yes
+    Button Text: Hintergrund
+    Tooltip: Hintergrundverarbeitung   (Strg+F8)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[32]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[7]
+    Type: GuiButton
+    Name: btn[7]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[7]
+    Position: Left=2051, Top=115
+    Size: Width=98, Height=20
+    Changeable: Yes
+    Button Text: Anzahl Einträge
+    Tooltip: Anzahl Einträge   (F7)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[7]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[13]
+    Type: GuiButton
+    Name: btn[13]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[13]
+    Position: Left=2163, Top=115
+    Size: Width=20, Height=20
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Alle markieren   (Umsch+F1)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[13]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[30]
+    Type: GuiButton
+    Name: btn[30]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[30]
+    Position: Left=2187, Top=115
+    Size: Width=20, Height=20
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Schlüsselfelder für Ausgabe markieren   (Strg+F6)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[30]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[18]
+    Type: GuiButton
+    Name: btn[18]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[18]
+    Position: Left=2211, Top=115
+    Size: Width=20, Height=20
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Alle Mark. löschen   (Umsch+F6)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[18]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[14]
+    Type: GuiButton
+    Name: btn[14]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[14]
+    Position: Left=2235, Top=115
+    Size: Width=20, Height=20
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Zeile löschen   (Umsch+F2)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[14]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[25]
+    Type: GuiButton
+    Name: btn[25]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[25]
+    Position: Left=2259, Top=115
+    Size: Width=107, Height=20
+    Changeable: Yes
+    Button Text: Alle Eingaben
+    Tooltip: Alle Eingaben löschen   (Strg+F1)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[25]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[28]
+    Type: GuiButton
+    Name: btn[28]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[28]
+    Position: Left=2370, Top=115
+    Size: Width=20, Height=20
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Schmale Spaltenbreite   (Strg+F4)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[28]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[29]
+    Type: GuiButton
+    Name: btn[29]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[29]
+    Position: Left=2394, Top=115
+    Size: Width=20, Height=20
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Normale Spaltenbreite   (Strg+F5)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[29]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[37]
+    Type: GuiButton
+    Name: btn[37]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[37]
+    Position: Left=2428, Top=115
+    Size: Width=20, Height=20
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Nach genutzten Feldern sortieren   (Strg+Umsch+F1)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[37]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[38]
+    Type: GuiButton
+    Name: btn[38]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[38]
+    Position: Left=2452, Top=115
+    Size: Width=20, Height=20
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Sortierung der Selektionsfelder rückgängig machen   (Strg+Umsch+F2)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[38]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[43]
+    Type: GuiButton
+    Name: btn[43]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[43]
+    Position: Left=2476, Top=115
+    Size: Width=20, Height=20
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Sortierung der Selektionsfelder löschen   (Strg+Umsch+F7)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[43]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[40]
+    Type: GuiButton
+    Name: btn[40]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[40]
+    Position: Left=2500, Top=115
+    Size: Width=20, Height=20
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Setze Cursor auf nächstes Sel.krit.   (Strg+Umsch+F4)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[40]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[39]
+    Type: GuiButton
+    Name: btn[39]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[39]
+    Position: Left=2524, Top=115
+    Size: Width=20, Height=20
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Setze Cursor auf voriges Sel.krit.   (Strg+Umsch+F3)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[39]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[36]
+    Type: GuiButton
+    Name: btn[36]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[36]
+    Position: Left=2558, Top=115
+    Size: Width=20, Height=20
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Einstellungen ändern   (Strg+F12)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[36]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[26]
+    Type: GuiButton
+    Name: btn[26]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[26]
+    Position: Left=2592, Top=115
+    Size: Width=20, Height=20
+    Changeable: Yes
+    Button Text: 
+    Tooltip: Verwendungsnachweis   (Strg+F2)
+    Sample: SapSession.findById('wnd[0]//app/con[0]/ses[0]/wnd[0]/tbar[1]//app/con[0]/ses[0]/wnd[0]/tbar[1]/btn[26]').Press()
+    ---------------
+    [Children error: This value of type "GuiButton" has no property named "Children".]
+  ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/usr
+  Type: GuiUserArea
+  Name: usr
+  Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/usr
+  Position: Left=1934, Top=143
+  Size: Width=1892, Height=980
+  Changeable: Yes
+  ---------------
+  Children (18):
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/lblSEARCHTAB
+    Type: GuiLabel
+    Name: SEARCHTAB
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/lblSEARCHTAB
+    Position: Left=1937, Top=151
+    Size: Width=76, Height=20
+    Changeable: No
+    Text: Tabelle
+    MaxLength: 7
+    Tooltip: 
+    Sample Set: SetSapFieldDirect('wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/lblSEARCHTAB', 'value')
+    ---------------
+    [Children error: This value of type "GuiLabel" has no property named "Children".]
+    [Error getting child 1: (0x8004046D) 
+The object invoked has disconnected from its clients.
+Source:	SAP Frontend Server]
+    [Error getting child 2: (0x8004046D) 
+The object invoked has disconnected from its clients.
+Source:	SAP Frontend Server]
+    [Error getting child 3: (0x8004046D) 
+The object invoked has disconnected from its clients.
+Source:	SAP Frontend Server]
+    [Error getting child 4: (0x8004046D) 
+The object invoked has disconnected from its clients.
+Source:	SAP Frontend Server]
+    [Error getting child 5: (0x8004046D) 
+The object invoked has disconnected from its clients.
+Source:	SAP Frontend Server]
+    [Error getting child 6: (0x8004046D) 
+The object invoked has disconnected from its clients.
+Source:	SAP Frontend Server]
+    [Error getting child 7: (0x8004046D) 
+The object invoked has disconnected from its clients.
+Source:	SAP Frontend Server]
+    [Error getting child 8: (0x8004046D) 
+The object invoked has disconnected from its clients.
+Source:	SAP Frontend Server]
+    [Error getting child 9: (0x8004046D) 
+The object invoked has disconnected from its clients.
+Source:	SAP Frontend Server]
+    [Error getting child 10: (0x8004046D) 
+The object invoked has disconnected from its clients.
+Source:	SAP Frontend Server]
+    [Error getting child 11: (0x8004046D) 
+The object invoked has disconnected from its clients.
+Source:	SAP Frontend Server]
+    [Error getting child 12: (0x8004046D) 
+The object invoked has disconnected from its clients.
+Source:	SAP Frontend Server]
+    [Error getting child 13: (0x8004046D) 
+The object invoked has disconnected from its clients.
+Source:	SAP Frontend Server]
+    [Error getting child 14: (0x8004046D) 
+The object invoked has disconnected from its clients.
+Source:	SAP Frontend Server]
+    [Error getting child 15: (0x8004046D) 
+The object invoked has disconnected from its clients.
+Source:	SAP Frontend Server]
+    [Error getting child 16: (0x8004046D) 
+The object invoked has disconnected from its clients.
+Source:	SAP Frontend Server]
+    [Error getting child 17: (0x8004046D) 
+The object invoked has disconnected from its clients.
+Source:	SAP Frontend Server]
+  ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/sbar
+  Type: GuiStatusbar
+  Name: sbar
+  Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/sbar
+  Position: Left=1934, Top=1123
+  Size: Width=1892, Height=29
+  Changeable: No
+  ---------------
+  Children (7):
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/sbar//app/con[0]/ses[0]/wnd[0]/sbar/pane[0]
+    Type: GuiStatusPane
+    Name: pane[0]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/sbar//app/con[0]/ses[0]/wnd[0]/sbar/pane[0]
+    Position: Left=1934, Top=1123
+    Size: Width=1660, Height=29
+    Changeable: No
+    ---------------
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/sbar//app/con[0]/ses[0]/wnd[0]/sbar/pane[1]
+    Type: GuiStatusPane
+    Name: pane[1]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/sbar//app/con[0]/ses[0]/wnd[0]/sbar/pane[1]
+    Position: Left=3594, Top=1123
+    Size: Width=36, Height=29
+    Changeable: No
+    ---------------
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/sbar//app/con[0]/ses[0]/wnd[0]/sbar/pane[2]
+    Type: GuiStatusPane
+    Name: pane[2]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/sbar//app/con[0]/ses[0]/wnd[0]/sbar/pane[2]
+    Position: Left=3630, Top=1123
+    Size: Width=69, Height=29
+    Changeable: No
+    ---------------
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/sbar//app/con[0]/ses[0]/wnd[0]/sbar/pane[3]
+    Type: GuiStatusPane
+    Name: pane[3]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/sbar//app/con[0]/ses[0]/wnd[0]/sbar/pane[3]
+    Position: Left=3699, Top=1123
+    Size: Width=32, Height=29
+    Changeable: No
+    ---------------
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/sbar//app/con[0]/ses[0]/wnd[0]/sbar/pane[4]
+    Type: GuiStatusPane
+    Name: pane[4]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/sbar//app/con[0]/ses[0]/wnd[0]/sbar/pane[4]
+    Position: Left=3731, Top=1123
+    Size: Width=26, Height=29
+    Changeable: No
+    ---------------
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/sbar//app/con[0]/ses[0]/wnd[0]/sbar/pane[5]
+    Type: GuiStatusPane
+    Name: pane[5]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/sbar//app/con[0]/ses[0]/wnd[0]/sbar/pane[5]
+    Position: Left=3757, Top=1123
+    Size: Width=39, Height=29
+    Changeable: No
+    ---------------
+    ID: wnd[0]//app/con[0]/ses[0]/wnd[0]/sbar//app/con[0]/ses[0]/wnd[0]/sbar/pane[6]
+    Type: GuiStatusPane
+    Name: pane[6]
+    Full Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/sbar//app/con[0]/ses[0]/wnd[0]/sbar/pane[6]
+    Position: Left=3796, Top=1123
+    Size: Width=30, Height=29
+    Changeable: No
+    ---------------
+
+=== INPUT FIELDS SUMMARY ===
+
+• Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/ctxtGD-TAB
+  Type: GuiCTextField
+  Text: DD03L
+  Sample: SetSapFieldDirect('wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/ctxtGD-TAB', 'value')
+
+• Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/txtGD_TABL_TEXT
+  Type: GuiTextField
+  Text: Tabellenfelder
+  Sample: SetSapFieldDirect('wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/txtGD_TABL_TEXT', 'value')
+
+• Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/txtGD-TXT_TAB
+  Type: GuiTextField
+  Sample: SetSapFieldDirect('wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/txtGD-TXT_TAB', 'value')
+
+• Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/chkGD-NO_TXT
+  Type: GuiCheckBox
+  Text: Ohne Texte
+  Sample: SetSapFieldDirect('wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/chkGD-NO_TXT', 'value')
+
+• Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/ctxtGD-VARIANT
+  Type: GuiCTextField
+  Sample: SetSapFieldDirect('wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/ctxtGD-VARIANT', 'value')
+
+• Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/txtGD-VARIANTTEXT
+  Type: GuiTextField
+  Sample: SetSapFieldDirect('wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/txtGD-VARIANTTEXT', 'value')
+
+• Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/txtGD-MAX_LINES
+  Type: GuiTextField
+  Text: 500
+  Sample: SetSapFieldDirect('wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/txtGD-MAX_LINES', 'value')
+
+• Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/chkGD-EDIT
+  Type: GuiCheckBox
+  Text: Einträge pflegen
+  Sample: SetSapFieldDirect('wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/chkGD-EDIT', 'value')
+
+• Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/ctxtGD_ADD_COLUMN
+  Type: GuiCTextField
+  Sample: SetSapFieldDirect('wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/ctxtGD_ADD_COLUMN', 'value')
+
+• Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,0]
+  Type: GuiTextField
+  Text: Tabellenname
+  Sample: SetSapFieldDirect('wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,0]', 'value')
+
+• Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,1]
+  Type: GuiTextField
+  Text: Feldname
+  Sample: SetSapFieldDirect('wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,1]', 'value')
+
+• Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,2]
+  Type: GuiTextField
+  Text: Aktivierungsstand
+  Sample: SetSapFieldDirect('wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,2]', 'value')
+
+• Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,3]
+  Type: GuiTextField
+  Text: Version
+  Sample: SetSapFieldDirect('wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,3]', 'value')
+
+• Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,4]
+  Type: GuiTextField
+  Text: Tabellenpos.
+  Sample: SetSapFieldDirect('wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,4]', 'value')
+
+• Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,5]
+  Type: GuiTextField
+  Text: Schlüsselfeld
+  Sample: SetSapFieldDirect('wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,5]', 'value')
+
+• Path: wnd[0]//app/con[0]/ses[0]/wnd[0]/usr//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC//app/con[0]/ses[0]/wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/txtGS_SELFIELDS-SCRTEXT_M[0,6]

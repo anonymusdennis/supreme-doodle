@@ -1,0 +1,2530 @@
+#Requires AutoHotkey v2.0
+#SingleInstance Force
+
+; ==================== CONSTANTS ====================
+; Sleep time constants
+SleepTimeShort := 20
+SleepTimeMedium := 50
+SleepTimeLong := 200
+
+; Logging constants
+LOG_INFO := "INFO"
+LOG_WARNING := "WARNING"
+LOG_ERROR := "ERROR"
+LOG_DEBUG := "DEBUG"
+
+; ==================== DECLARATIONS ====================
+; Global variables
+global SapGui := ""
+global SapSession := ""
+global ExcelApp := ""
+global ExcelWorkbook := ""
+global ExcelWorksheet := ""
+global ExcelFilePath := A_ScriptDir "\Lieferanten.xlsx"
+global CurrentObjectName := ""
+global ExcelIsOpen := false  ; Track if Excel is open
+global LogFile := A_ScriptDir "\logs\SAPAutomation_" FormatTime(, "yyyy-MM-dd") ".log"
+
+; ==================== INITIAL SETUP ====================
+
+; Structure definition for Sheet 1 (Central Data)
+Row_structured_empty := {
+    ANREDE: "",
+    ANREDETEXT: "",
+    NAME: "",
+    NAME2: "",
+    SUCHBEGRIFF1: "",
+    SUCHBEGRIFF2: "",
+    STRASSE: "",
+    HAUSNUMMER: "",
+    STRASSE2: "",
+    STRASSE3: "",
+    STRASSE4: "",
+    PLZ: "",
+    ORT: "",
+    ORTSTEIL: "",
+    LAND: "",
+    BUNDESLAND: "",
+    ZEITZONE: "",
+    POSTFACH: "",
+    FIRMEN_PLZ: "",
+    POSTFACH_PLZ: "",
+    SPRACHE: "",
+    TELEFON: "",
+    DURCHWAHL: "",
+    MOBILTELEFON: "",
+    FAX: "",
+    GEBAEUDE: "",
+    RAUM: "",
+    STOCKWERK: ""
+}
+
+; Structure definition for Sheet 2 (KREDDATA0002 - Vendor/Tax Data)
+KredData_structured_empty := {
+    STEUERNUMMER: "",
+    STEUERNUMMER1: "",
+    STEUERNUMMER3: "",
+    STEUERNUMMER4: "",
+    STEUERNUMMER5: "",
+    UST_ID_NR: "",
+    LOKATIONSNR1: "",
+    LOKATIONSNR2: "",
+    PRUEFZIFFER: "",
+    DUNS_NUMMER: "",
+    PARTNERGESELLSCHAFT: "",
+    BRANCHE: "",
+    SPERRFUNKTION: "",
+    SPERRGRUND: "",
+    ZUSTAENDIGES_FINANZAMT: ""
+}
+; Structure definition for Sheet 3 (Document Attachments)
+DocData_structured_empty := {
+    DOKUMENTART: "",
+    PFAD: "",
+    KOMMENTAR: ""
+}
+ProcessSetPriority("High")
+SetWorkingDir(A_ScriptDir)
+SetKeyDelay(100, 100)
+SetTitleMatchMode(2)
+
+; Create logs directory if it doesn't exist
+if (!DirExist(A_ScriptDir "\logs"))
+    DirCreate(A_ScriptDir "\logs")
+;delete log file if it exists
+if (FileExist(LogFile))
+    FileDelete LogFile
+; Initialize log file with header
+LogMessage(LOG_INFO, "=== Script Started ===")
+LogMessage(LOG_INFO, "Current User: " A_UserName)
+LogMessage(LOG_INFO, "Current Date: " FormatTime(, "yyyy-MM-dd HH:mm:ss"))
+LogMessage(LOG_INFO, "Excel File: " ExcelFilePath)
+
+; Clean up previous session
+If FileExist("clip.txt")
+    FileDelete "clip.txt"
+
+; Hotkey to exit script
+^Esc:: {
+    LogMessage(LOG_INFO, "Script terminated by user (Ctrl+Esc)")
+    CleanupExcel()  ; Ensure Excel is closed properly on exit
+    ExitApp
+}
+
+; ==================== FUNCTIONS ====================
+; === Logging Functions ===
+LogMessage(level, message) {
+    timestamp := FormatTime(, "yyyy-MM-dd HH:mm:ss")
+    logEntry := timestamp " [" level "] " message "`n"
+
+    try {
+        FileAppend(logEntry, LogFile)
+    } catch Error as e {
+        ; If we can't write to the log file, fall back to OutputDebug
+        OutputDebug("Log Error: " e.Message " - Original message: " logEntry)
+    }
+
+    ; For errors, also show a tray notification
+    if (level = LOG_ERROR) {
+        TrayTip("Error: " message, "SAP Automation Error", 0x3)  ; 0x3 = Error icon
+    }
+}
+
+; === SAP Functions ===
+ConnectSAP() {
+    WinWaitActive("ahk_exe" "saplogon.exe")
+    try {
+        ; Initialize SAP connection
+        global SapGui := ComObjGet("SAPGUI").GetScriptingEngine
+        global SapSession := SapGui.ActiveSession
+        LogMessage(LOG_INFO, "Successfully connected to SAP")
+        return true
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Failed to connect to SAP: " e.Message)
+        decision := MsgBox("Could not connect to SAP window. Retry?`n" e.Message, "Connection Error", 0x5)
+        if (decision == "Retry")
+            return ConnectSAP()
+        else {
+            LogMessage(LOG_ERROR, "User chose not to retry SAP connection. Exiting.")
+            ExitApp()
+        }
+    }
+}
+
+; Function to maximize the SAP window
+MaximizeSapWindow() {
+    if (!IsSet(SapSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for window maximization")
+        return false
+    }
+
+    try {
+        LogMessage(LOG_INFO, "Maximizing SAP window")
+        SapSession.findById("wnd[0]").maximize()
+        return true
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error maximizing SAP window: " e.Message)
+        return false
+    }
+}
+
+; Function to select a node in a tree control
+SelectTreeNode(nodeName, treeControlId := "wnd[0]/usr/cntlCANVAS_TREE/shellcont/shell") {
+    if (!IsSet(SapSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for tree node selection")
+        return false
+    }
+
+    try {
+        LogMessage(LOG_INFO, "Selecting tree node: " nodeName)
+        treeControl := SapSession.findById(treeControlId)
+        treeControl.selectedNode := nodeName
+        LogMessage(LOG_INFO, "Tree node selected: " nodeName)
+        return true
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error selecting tree node " nodeName ": " e.Message)
+        return false
+    }
+}
+
+; Function to double-click a node in a tree control
+DoubleClickTreeNode(nodeName, treeControlId := "wnd[0]/usr/cntlCANVAS_TREE/shellcont/shell") {
+    if (!IsSet(SapSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for tree node double-click")
+        return false
+    }
+
+    try {
+        LogMessage(LOG_INFO, "Double-clicking tree node: " nodeName)
+        treeControl := SapSession.findById(treeControlId)
+        treeControl.doubleClickNode(nodeName)
+        LogMessage(LOG_INFO, "Tree node double-clicked: " nodeName)
+        return true
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error double-clicking tree node " nodeName ": " e.Message)
+        return false
+    }
+}
+
+; Function to expand a node in a tree control
+ExpandTreeNode(nodeName, treeControlId := "wnd[0]/usr/cntlCANVAS_TREE/shellcont/shell") {
+    if (!IsSet(SapSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for tree node expansion")
+        return false
+    }
+
+    try {
+        LogMessage(LOG_INFO, "Expanding tree node: " nodeName)
+        treeControl := SapSession.findById(treeControlId)
+        treeControl.expandNode(nodeName)
+        LogMessage(LOG_INFO, "Tree node expanded: " nodeName)
+        return true
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error expanding tree node " nodeName ": " e.Message)
+        return false
+    }
+}
+
+; Function to collapse a node in a tree control
+CollapseTreeNode(nodeName, treeControlId := "wnd[0]/usr/cntlCANVAS_TREE/shellcont/shell") {
+    if (!IsSet(SapSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for tree node collapse")
+        return false
+    }
+
+    try {
+        LogMessage(LOG_INFO, "Collapsing tree node: " nodeName)
+        treeControl := SapSession.findById(treeControlId)
+        treeControl.collapseNode(nodeName)
+        LogMessage(LOG_INFO, "Tree node collapsed: " nodeName)
+        return true
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error collapsing tree node " nodeName ": " e.Message)
+        return false
+    }
+}
+
+; Function to get all top-level nodes in a tree control
+GetTreeNodes(treeControlId := "wnd[0]/usr/cntlCANVAS_TREE/shellcont/shell") {
+    if (!IsSet(SapSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for getting tree nodes")
+        return []
+    }
+
+    try {
+        LogMessage(LOG_INFO, "Getting tree nodes")
+        treeControl := SapSession.findById(treeControlId)
+        nodeCount := treeControl.nodeCount
+        LogMessage(LOG_INFO, "Tree has " nodeCount " nodes")
+
+        nodes := []
+        Loop nodeCount {
+            nodeName := treeControl.getNodeKeyByIndex(A_Index - 1)  ; SAP uses 0-based indexing
+            nodes.Push(nodeName)
+            LogMessage(LOG_DEBUG, "Found tree node: " nodeName)
+        }
+
+        return nodes
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error getting tree nodes: " e.Message)
+        return []
+    }
+}
+
+ExecuteSapCommand(command, pressEnterAgain := " ") {
+    LogMessage(LOG_DEBUG, "Executing SAP command: " command)
+    SapSession.findById("wnd[0]/tbar[0]/okcd").Text := command  ; OKCODE
+    Sleep SleepTimeMedium
+    SapSession.findById("wnd[0]").sendVKey(0)
+
+    if (pressEnterAgain = "X") {
+        Sleep SleepTimeMedium
+        SapSession.findById("wnd[0]").sendVKey(0)
+    }
+}
+; Enhanced Function to find and set a field value by name with better subscreen support
+FindSapField(fieldName, dynpro := "") {
+    if (!IsSet(SapSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for field search")
+        return false
+    }
+
+    try {
+        ; Log the search attempt
+        LogMessage(LOG_DEBUG, "Searching for SAP field: " fieldName (dynpro ? " (Dynpro: " dynpro ")" : ""))
+
+        ; Try to find the field directly first
+        try {
+            field := SapSession.findById("wnd[0]/usr/" fieldName)
+            LogMessage(LOG_INFO, "Found field directly: " fieldName)
+            return field
+        } catch Error as e {
+            LogMessage(LOG_DEBUG, "Direct field search failed, trying alternative methods")
+        }
+
+        ; If dynpro is specified, try to use it
+        if (dynpro != "") {
+            try {
+                field := SapSession.findById("wnd[0]/usr/dynpro=" dynpro "/" fieldName)
+                LogMessage(LOG_INFO, "Found field with dynpro: " fieldName)
+                return field
+            } catch Error as e {
+                LogMessage(LOG_DEBUG, "Dynpro field search failed")
+            }
+        }
+
+        ; Try common prefixes if direct search failed
+        prefixes := ["txt", "ctxt", "btn", "cmb", "rad", "chk", "lbl", "tab"]
+        for prefix in prefixes {
+            try {
+                field := SapSession.findById("wnd[0]/usr/" prefix fieldName)
+                LogMessage(LOG_INFO, "Found field with prefix " prefix ": " fieldName)
+                return field
+            } catch Error as e {
+                ; Continue to next prefix
+            }
+        }
+
+        ; Try to search within subscreens - this is the key addition
+        try {
+            userArea := SapSession.findById("wnd[0]/usr")
+            field := SearchFieldRecursive(userArea, fieldName, "wnd[0]/usr")
+            if (field) {
+                LogMessage(LOG_INFO, "Found field via recursive search: " fieldName)
+                return field
+            }
+        } catch Error as e {
+            LogMessage(LOG_DEBUG, "Recursive search failed: " e.Message)
+        }
+
+        LogMessage(LOG_WARNING, "Could not find field: " fieldName)
+        return false
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error searching for field " fieldName ": " e.Message)
+        return false
+    }
+}
+
+; Helper function to recursively search for a field in SAP controls
+SearchFieldRecursive(parentControl, targetFieldName, currentPath := "") {
+    if (!IsObject(parentControl)) {
+        return false
+    }
+
+    try {
+        ; Check if the current control matches what we're looking for
+        controlId := ""
+        try {
+            controlId := parentControl.Id
+        } catch {
+            ; No ID available
+        }
+
+        ; Check if this control's ID contains our target field name
+        if (InStr(controlId, targetFieldName)) {
+            return parentControl
+        }
+
+        ; Try to access children
+        try {
+            children := parentControl.Children
+            if (IsObject(children)) {
+                childCount := children.Count
+
+                Loop childCount {
+                    try {
+                        child := children.ElementAt(A_Index - 1)
+                        childId := child.Id
+                        childPath := currentPath "/" childId
+
+                        ; Check if this child is what we're looking for
+                        if (InStr(childId, targetFieldName)) {
+                            LogMessage(LOG_DEBUG, "Found field at path: " childPath)
+                            return child
+                        }
+
+                        ; Recursively search this child's children
+                        result := SearchFieldRecursive(child, targetFieldName, childPath)
+                        if (result) {
+                            return result
+                        }
+                    } catch Error as e {
+                        ; Skip this child
+                    }
+                }
+            }
+        } catch Error as e {
+            ; No children or can't access them
+        }
+    } catch Error as e {
+        ; Error with this control
+    }
+
+    return false
+}
+
+; Alternative simpler function specifically for your use case
+SetSapFieldDirect(fullPath, value) {
+    try {
+        field := SapSession.findById(fullPath)
+        fieldType := field.Type
+
+        if (fieldType = "GuiComboBox") {
+            field.Key := value
+            LogMessage(LOG_INFO, "Set combo box via direct path to key: " value)
+        } else if (fieldType = "GuiTextField" || fieldType = "GuiCTextField") {
+            field.Text := value
+            LogMessage(LOG_INFO, "Set text field via direct path to: " value)
+        } else if (fieldType = "GuiCheckBox") {
+            if (value = true || value = 1 || value = "X")
+                field.Selected := true
+            else
+                field.Selected := false
+            LogMessage(LOG_INFO, "Set checkbox via direct path")
+        } else {
+            field.Text := value
+            LogMessage(LOG_INFO, "Set field via direct path")
+        }
+        return true
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error setting field via direct path: " e.Message)
+        return false
+    }
+}
+; Function to set a field value by name
+SetSapField(fieldName, value, dynpro := "") {
+    field := FindSapField(fieldName, dynpro)
+    if (!field) {
+        LogMessage(LOG_ERROR, "Could not find field to set: " fieldName)
+        return false
+    }
+
+    try {
+        ; Try to set the value based on field type
+        fieldType := field.Type
+        LogMessage(LOG_DEBUG, "Setting field " fieldName " of type " fieldType " to value: " value)
+
+        if (fieldType = "GuiTextField" || fieldType = "GuiCTextField" || fieldType = "GuiPasswordField") {
+            field.Text := value
+            LogMessage(LOG_INFO, "Set text field " fieldName " to: " value)
+            return true
+        }
+        else if (fieldType = "GuiComboBox") {
+            field.Key := value  ; For combo box, set by key
+            LogMessage(LOG_INFO, "Set combo box " fieldName " to key: " value)
+            return true
+        }
+        else if (fieldType = "GuiCheckBox") {
+            if (value = true || value = 1 || value = "X")
+                field.Selected := true
+            else
+                field.Selected := false
+            LogMessage(LOG_INFO, "Set checkbox " fieldName " to: " (field.Selected ? "checked" : "unchecked"))
+            return true
+        }
+        else if (fieldType = "GuiRadioButton") {
+            field.Selected := true
+            LogMessage(LOG_INFO, "Selected radio button: " fieldName)
+            return true
+        }
+        else if (fieldType = "GuiButton") {
+            field.Press()
+            LogMessage(LOG_INFO, "Pressed button: " fieldName)
+            return true
+        }
+        else {
+            ; For other field types, try generic Text property
+            field.Text := value
+            LogMessage(LOG_INFO, "Set field " fieldName " to: " value)
+            return true
+        }
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error setting field " fieldName ": " e.Message)
+        return false
+    }
+}
+
+; Function to get a field value by name
+GetSapField(fieldName, dynpro := "") {
+    field := FindSapField(fieldName, dynpro)
+    if (!field) {
+        LogMessage(LOG_ERROR, "Could not find field to get: " fieldName)
+        return ""
+    }
+
+    try {
+        ; Try to get the value based on field type
+        fieldType := field.Type
+
+        if (fieldType = "GuiTextField" || fieldType = "GuiCTextField" || fieldType = "GuiPasswordField") {
+            value := field.Text
+            LogMessage(LOG_DEBUG, "Got text field " fieldName " value: " value)
+            return value
+        }
+        else if (fieldType = "GuiComboBox") {
+            value := field.Key  ; For combo box, get the key
+            LogMessage(LOG_DEBUG, "Got combo box " fieldName " key: " value)
+            return value
+        }
+        else if (fieldType = "GuiCheckBox") {
+            value := field.Selected
+            LogMessage(LOG_DEBUG, "Got checkbox " fieldName " value: " (value ? "checked" : "unchecked"))
+            return value ? "X" : ""
+        }
+        else if (fieldType = "GuiRadioButton") {
+            value := field.Selected
+            LogMessage(LOG_DEBUG, "Got radio button " fieldName " value: " (value ? "selected" : "not selected"))
+            return value ? "X" : ""
+        }
+        else {
+            ; For other field types, try generic Text property
+            try {
+                value := field.Text
+                LogMessage(LOG_DEBUG, "Got field " fieldName " value: " value)
+                return value
+            } catch {
+                LogMessage(LOG_WARNING, "Could not get text value from field: " fieldName)
+                return ""
+            }
+        }
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error getting field " fieldName " value: " e.Message)
+        return ""
+    }
+}
+
+; Function to press a button by name
+PressSapButton(buttonName, dynpro := "") {
+    field := FindSapField(buttonName, dynpro)
+    if (!field) {
+        LogMessage(LOG_ERROR, "Could not find button to press: " buttonName)
+        return false
+    }
+
+    try {
+        field.Press()
+        LogMessage(LOG_INFO, "Pressed button: " buttonName)
+        return true
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error pressing button " buttonName ": " e.Message)
+        return false
+    }
+}
+
+; Function to select a tab by name
+SelectSapTab(tabName, tabIndex := 0, dynpro := "") {
+    try {
+        ; First try to find the tab control
+        tabControl := FindSapField(tabName, dynpro)
+
+        if (!tabControl) {
+            ; Try common tab naming patterns
+            try {
+                tabControl := SapSession.findById("wnd[0]/usr/tabsTABSTRIP")
+                LogMessage(LOG_INFO, "Found tab control with default name")
+            } catch Error as e {
+                try {
+                    tabControl := SapSession.findById("wnd[0]/usr/tabpTAB")
+                    LogMessage(LOG_INFO, "Found tab control with TAB name")
+                } catch Error as e {
+                    LogMessage(LOG_ERROR, "Could not find tab control: " e.Message)
+                    return false
+                }
+            }
+        }
+
+        ; Select the tab by index if provided
+        if (tabIndex > 0) {
+            tabControl.Select(tabIndex)
+            LogMessage(LOG_INFO, "Selected tab by index: " tabIndex)
+            return true
+        }
+
+        ; Otherwise, try to find the tab by name
+        LogMessage(LOG_INFO, "Selecting tab: " tabName)
+        tabControl.Select(tabName)
+        return true
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error selecting tab " tabName ": " e.Message)
+        return false
+    }
+}
+
+; Fixed CHECK_SCREENNAME function to properly check SAP window title
+CHECK_SCREENNAME(screenName) {
+    if (!IsSet(SapSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for screen check")
+        return false
+    }
+    try {
+        ; Get window title from SAP status bar which contains the transaction code
+        statusBarText := SapSession.findById("wnd[0]/sbar").Text
+
+        ; Get the transaction name from the toolbar title
+        titlebarText := SapSession.findById("wnd[0]/titl").Text
+
+        ; Log for debugging
+        LogMessage(LOG_DEBUG, "Status bar: " statusBarText)
+        LogMessage(LOG_DEBUG, "Title bar: " titlebarText)
+
+        ; Check if either contains the screen name
+        if (InStr(statusBarText, screenName) || InStr(titlebarText, screenName)) {
+            LogMessage(LOG_INFO, "Screen verified: " screenName)
+            return true
+        }
+        return false
+    } catch Error as e {
+        ; If we can't determine the screen name, provide a helpful message
+        LogMessage(LOG_ERROR, "Error checking screen name: " e.Message)
+        TrayTip("Error checking screen name. Check log for details.", "Screen Error", 0x3)
+        return false
+    }
+}
+
+; Additional function to check window title using Windows API
+WinTitle() {
+    if (!IsSet(SapSession)) {
+        return ""
+    }
+    try {
+        ; Get the SAP GUI window handle
+        winId := WinExist("ahk_class SAP_FRONTEND_SESSION")
+        if (winId) {
+            title := WinGetTitle("ahk_id " winId)
+            LogMessage(LOG_DEBUG, "Window title: " title)
+            return title
+        }
+        return ""
+    } catch Error as e {
+        LogMessage(LOG_WARNING, "Error getting window title: " e.Message)
+        return ""
+    }
+}
+
+CreateDropHandle(fileNames, x := 0, y := 0) {
+    fileNames := RegExReplace(fileNames, "\n$")
+    fileNames := RegExReplace(fileNames, "^\n")
+    dropHandle := DllCall("GlobalAlloc", "UInt", 0x42, "UPtr", 20 + StrLen(fileNames) + 2)
+    pMemory := DllCall("GlobalLock", "UPtr", dropHandle)
+    NumPut("UPtr", 20, pMemory + 0)   ; offset
+    NumPut("UPtr", x, pMemory + 4)    ; pt.x
+    NumPut("UPtr", y, pMemory + 8)    ; pt.y
+    NumPut("UPtr", 0, pMemory + 12)   ; fNC
+    NumPut("UPtr", 0, pMemory + 16)   ; fWide
+    pDestination := pMemory + 20
+    Loop Parse, fileNames, "`n", "`r" {
+        DllCall("RtlMoveMemory", "UPtr", pDestination, "AStr", A_LoopField, "UPtr", StrLen(A_LoopField))
+        pDestination += StrLen(A_LoopField) + 1
+    }
+    DllCall("GlobalUnlock", "UPtr", dropHandle)
+    Return dropHandle
+}
+
+ExecuteSapCommandUnsecure(command) {
+    LogMessage(LOG_DEBUG, "Executing unsecure SAP command: " command)
+    activeWindowId := WinGetID("A")
+    try {
+        FileDelete("C:\Users\" A_UserName "\AppData\debug.sap")
+    } catch Error as e {
+        LogMessage(LOG_WARNING, "Error deleting debug file: " e.Message)
+    }
+
+    configFile := "
+        ( 
+            [System]
+            Name=DE7
+            Description=DE7 - Logistics Development
+            Client=401
+            [User]
+            Name=" A_UserName "
+            Language=EN
+            [Function]
+            Title=debug
+        )"
+
+    configFile := configFile "Command=" command "
+        (
+            Type=SystemCommand
+            [Configuration]
+            Trace=1
+        )"
+
+    configFile := configFile "WorkDir=C:\Users\" A_UserName "\AppData\Local\SAP\SAP GUI\tmp " "
+        (
+            [Options]
+            Reuse=1
+        )"
+
+    FileAppend(configFile, "C:\Users\" A_UserName "\AppData\debug.sap")
+    Sleep 100
+    PostMessage(0x233, CreateDropHandle("C:\Users\" A_UserName "\AppData\debug.sap"), 0, , "ahk_id " activeWindowId)
+}
+
+; === Excel Functions ===
+ExcelOpen(filePath) {
+    try {
+        if (!FileExist(filePath)) {
+            LogMessage(LOG_ERROR, "Excel file does not exist: " filePath)
+            TrayTip("Excel file not found: " filePath, "File Error", 0x3)
+            return false
+        }
+
+        LogMessage(LOG_INFO, "Opening Excel file: " filePath)
+        ; Try to create the Excel application
+        global ExcelApp := ComObject("Excel.Application")
+        if !IsSet(ExcelApp) {
+            LogMessage(LOG_ERROR, "Failed to create Excel application")
+            TrayTip("Failed to create Excel application", "Excel Error", 0x3)
+            return false
+        }
+
+        ExcelApp.Visible := true
+
+        ; Try to open the workbook
+        global ExcelWorkbook := ExcelApp.Workbooks.Open(filePath)
+        if !IsSet(ExcelWorkbook) {
+            LogMessage(LOG_ERROR, "Failed to open workbook")
+            TrayTip("Failed to open workbook", "Excel Error", 0x3)
+            ExcelApp.Quit()
+            ExcelApp := ""
+            return false
+        }
+
+        ; Try to access the worksheet
+        global ExcelWorksheet := ExcelWorkbook.Worksheets(1)
+        if !IsSet(ExcelWorksheet) {
+            LogMessage(LOG_ERROR, "Failed to access worksheet")
+            TrayTip("Failed to access worksheet", "Excel Error", 0x3)
+            ExcelWorkbook.Close(false)  ; Don't save
+            ExcelApp.Quit()
+            ExcelWorkbook := ""
+            ExcelApp := ""
+            return false
+        }
+
+        global ExcelIsOpen := true
+        LogMessage(LOG_INFO, "Excel file opened successfully")
+        return true
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error opening Excel file: " e.Message)
+        TrayTip("Error opening Excel file. Check log for details.", "Excel Error", 0x3)
+        CleanupExcel()  ; Attempt to clean up
+        return false
+    }
+}
+
+ExcelCreate() {
+    try {
+        LogMessage(LOG_INFO, "Creating new Excel workbook")
+        global ExcelApp := ComObject("Excel.Application")
+        ExcelApp.Visible := true
+        global ExcelWorkbook := ExcelApp.Workbooks.Add()
+        global ExcelWorksheet := ExcelWorkbook.Worksheets(1)
+        global ExcelIsOpen := true
+        return true
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error creating Excel file: " e.Message)
+        TrayTip("Error creating Excel file. Check log for details.", "Excel Error", 0x3)
+        CleanupExcel()  ; Attempt to clean up
+        return false
+    }
+}
+
+ExcelSave(filePath := "") {
+    if (!ExcelIsOpen || !IsSet(ExcelWorkbook)) {
+        LogMessage(LOG_WARNING, "Attempted to save Excel but workbook is not open")
+        return false
+    }
+
+    try {
+        if (filePath != "") {
+            LogMessage(LOG_INFO, "Saving Excel file as: " filePath)
+            ExcelWorkbook.SaveAs(filePath)
+        } else {
+            LogMessage(LOG_INFO, "Saving Excel file")
+            ExcelWorkbook.Save()
+        }
+        return true
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error saving Excel file: " e.Message)
+        TrayTip("Error saving Excel file. Check log for details.", "Excel Error", 0x3)
+        return false
+    }
+}
+
+ExcelReadCell(row, col) {
+    if (!ExcelIsOpen || !IsSet(ExcelWorksheet)) {
+        LogMessage(LOG_WARNING, "Attempted to read Excel cell but worksheet is not open")
+        return ""
+    }
+
+    try {
+        value := ExcelWorksheet.Cells(row, col).Value
+        LogMessage(LOG_DEBUG, "Read from cell [" row "," col "]: " value)
+        return value
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error reading cell [" row "," col "]: " e.Message)
+        return ""
+    }
+}
+
+ExcelWriteCell(row, col, value) {
+    if (!ExcelIsOpen || !IsSet(ExcelWorksheet)) {
+        LogMessage(LOG_WARNING, "Attempted to write Excel cell but worksheet is not open")
+        return false
+    }
+
+    try {
+        LogMessage(LOG_DEBUG, "Writing to cell [" row "," col "]: " value)
+        ExcelWorksheet.Cells(row, col).Value := value
+        return true
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error writing to cell [" row "," col "]: " e.Message)
+        return false
+    }
+}
+
+ExcelSelectSheet(sheetNameOrIndex) {
+    if (!ExcelIsOpen || !IsSet(ExcelWorkbook)) {
+        LogMessage(LOG_WARNING, "Attempted to select sheet but workbook is not open")
+        return false
+    }
+
+    try {
+        LogMessage(LOG_INFO, "Selecting worksheet: " sheetNameOrIndex)
+        global ExcelWorksheet := ExcelWorkbook.Worksheets(sheetNameOrIndex)
+        ExcelWorksheet.Activate()
+        return true
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error selecting worksheet: " e.Message)
+        return false
+    }
+}
+
+ExcelGetLastRow(column := "A") {
+    if (!ExcelIsOpen || !IsSet(ExcelWorksheet)) {
+        LogMessage(LOG_WARNING, "Attempted to get last row but worksheet is not open")
+        return 0
+    }
+    ;loop until column cell is empty, then return row number
+    ;this is to prevent functions formats etc from counting as row.
+    try {
+        lastRow := 1
+        while (ExcelWorksheet.Cells(lastRow, column).Value != "") {
+            lastRow++
+        }
+        LogMessage(LOG_INFO, "Last row in column " column ": " (lastRow - 1))
+        return lastRow - 1  ; Return the last filled row
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error finding last row: " e.Message)
+        return 0
+    }
+}
+
+ExcelGetLastColumn(row := 1) {
+    if (!ExcelIsOpen || !IsSet(ExcelWorksheet)) {
+        LogMessage(LOG_WARNING, "Attempted to get last column but worksheet is not open")
+        return 0
+    }
+
+    try {
+        lastCol := ExcelWorksheet.Cells(row, ExcelWorksheet.Columns.Count).End(-4159).Column
+        LogMessage(LOG_INFO, "Last column in row " row ": " lastCol)
+        return lastCol
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error finding last column: " e.Message)
+        return 0
+    }
+}
+
+ExcelReadRange(startRow, startCol, endRow, endCol) {
+    if (!ExcelIsOpen || !IsSet(ExcelWorksheet)) {
+        LogMessage(LOG_WARNING, "Attempted to read range but worksheet is not open")
+        return []
+    }
+
+    try {
+        LogMessage(LOG_DEBUG, "Reading range [" startRow "," startCol "] to [" endRow "," endCol "]")
+        range := ExcelWorksheet.Range(ExcelWorksheet.Cells(startRow, startCol), ExcelWorksheet.Cells(endRow, endCol))
+        data := range.Value
+        return data
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error reading range: " e.Message)
+        return []
+    }
+}
+
+; Enhanced Excel closing function with better error handling
+ExcelClose(saveChanges := false) {
+    if (!ExcelIsOpen) {
+        LogMessage(LOG_INFO, "Excel close requested but Excel is not open")
+        return true  ; Already closed or never opened
+    }
+
+    try {
+        LogMessage(LOG_INFO, "Closing Excel" (saveChanges ? " with save" : " without save"))
+
+        ; Save workbook if requested and if workbook exists
+        if (saveChanges && IsSet(ExcelWorkbook)) {
+            try {
+                ExcelWorkbook.Save()
+                LogMessage(LOG_INFO, "Excel file saved")
+            } catch Error as e {
+                LogMessage(LOG_WARNING, "Could not save Excel file: " e.Message)
+                TrayTip("Could not save Excel file", "Excel Warning", 0x2)
+            }
+        }
+
+        ; Close the workbook if it exists
+        if (IsSet(ExcelWorkbook)) {
+            try {
+                ExcelWorkbook.Close(false)  ; Don't save again
+                LogMessage(LOG_INFO, "Excel workbook closed")
+            } catch Error as e {
+                LogMessage(LOG_WARNING, "Could not close workbook properly: " e.Message)
+            }
+        }
+
+        ; Quit Excel if it exists
+        if (IsSet(ExcelApp)) {
+            try {
+                ExcelApp.Quit()
+                LogMessage(LOG_INFO, "Excel application quit")
+            } catch Error as e {
+                LogMessage(LOG_WARNING, "Could not quit Excel properly: " e.Message)
+            }
+        }
+
+        ; Clean up COM objects regardless of any errors
+        global ExcelWorksheet := ""
+        global ExcelWorkbook := ""
+        global ExcelApp := ""
+        global ExcelIsOpen := false
+
+        return true
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error closing Excel: " e.Message)
+        TrayTip("Error closing Excel. Check log for details.", "Excel Error", 0x3)
+
+        ; Clean up anyway
+        global ExcelWorksheet := ""
+        global ExcelWorkbook := ""
+        global ExcelApp := ""
+        global ExcelIsOpen := false
+
+        return false
+    }
+}
+
+; Additional function to ensure Excel is closed properly
+CleanupExcel() {
+    if (!ExcelIsOpen) {
+        return
+    }
+
+    LogMessage(LOG_INFO, "Performing Excel cleanup")
+
+    ; Try to clean up Excel even if there are errors
+    try {
+        if (IsSet(ExcelWorkbook)) {
+            try {
+                ExcelWorkbook.Close(false)
+                LogMessage(LOG_INFO, "Excel workbook closed during cleanup")
+            } catch Error as e {
+                LogMessage(LOG_WARNING, "Cleanup error closing workbook: " e.Message)
+            }
+        }
+
+        if (IsSet(ExcelApp)) {
+            try {
+                ExcelApp.Quit()
+                LogMessage(LOG_INFO, "Excel application quit during cleanup")
+            } catch Error as e {
+                LogMessage(LOG_WARNING, "Cleanup error quitting Excel: " e.Message)
+            }
+        }
+    } catch Error as e {
+        LogMessage(LOG_WARNING, "Excel cleanup error: " e.Message)
+    }
+
+    ; Clear variables
+    global ExcelWorksheet := ""
+    global ExcelWorkbook := ""
+    global ExcelApp := ""
+    global ExcelIsOpen := false
+}
+; Function to dump all SAP screen elements to a file for debugging
+DumpSapScreen(outputFileName := "") {
+    if (!IsSet(SapSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for screen dump")
+        return false
+    }
+
+    ; Generate default filename if not provided
+    if (outputFileName = "") {
+        outputFileName := A_ScriptDir "\logs\SAPScreenDump_" FormatTime(, "yyyy-MM-dd_HH-mm-ss") ".txt"
+    }
+
+    try {
+        ; Create or clear the output file
+        try {
+            FileDelete(outputFileName)
+        } catch Error as e {
+            ; File doesn't exist, that's fine
+        }
+
+        FileAppend("=== SAP SCREEN DUMP ===`n", outputFileName)
+        FileAppend("Date: " FormatTime(, "yyyy-MM-dd HH:mm:ss") "`n", outputFileName)
+        FileAppend("User: " A_UserName "`n", outputFileName)
+
+        ; Get current screen info
+        try {
+            titleText := SapSession.findById("wnd[0]/titl").Text
+            FileAppend("Screen Title: " titleText "`n", outputFileName)
+        } catch Error as e {
+            FileAppend("Screen Title: [Could not retrieve]`n", outputFileName)
+        }
+
+        try {
+            programInfo := SapSession.Info.Program
+            transactionCode := SapSession.Info.Transaction
+            FileAppend("Program: " programInfo "`n", outputFileName)
+            FileAppend("Transaction: " transactionCode "`n", outputFileName)
+        } catch Error as e {
+            FileAppend("Program/Transaction: [Could not retrieve]`n", outputFileName)
+        }
+
+        FileAppend("`n=== SCREEN ELEMENTS ===`n`n", outputFileName)
+
+        ; Start recursive scan from the main window
+        try {
+            mainWindow := SapSession.findById("wnd[0]")
+            ScanSapControl(mainWindow, "wnd[0]", outputFileName, 0)
+            LogMessage(LOG_INFO, "SAP screen dump created: " outputFileName)
+            TrayTip("Screen dump created: " outputFileName, "Debug Info", 0x1)
+            return true
+        } catch Error as e {
+            LogMessage(LOG_ERROR, "Error starting SAP screen dump: " e.Message)
+            FileAppend("ERROR: " e.Message, outputFileName)
+            return false
+        }
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error creating SAP screen dump: " e.Message)
+        return false
+    }
+}
+
+; Helper function for recursive scanning of SAP controls
+ScanSapControl(control, id, outputFile, depth := 0) {
+    if (!IsObject(control)) {
+        return
+    }
+
+    try {
+        ; Create indent based on depth
+        indent := ""
+        Loop depth {
+            indent .= "    "  ; 4 spaces per level
+        }
+
+        ; Get control properties
+        controlType := "[Unknown]"
+        try {
+            controlType := control.Type
+        } catch Error as e {
+            ; Type property not available
+        }
+
+        ; Write basic control info
+        FileAppend(indent "ID: " id "`n", outputFile)
+        FileAppend(indent "Type: " controlType "`n", outputFile)
+
+        ; Try to get common properties based on control type
+        if (controlType = "GuiTextField" || controlType = "GuiCTextField" || controlType = "GuiPasswordField") {
+            try {
+                FileAppend(indent "Text: " control.Text "`n", outputFile)
+            } catch Error as e {
+                ; Property not available
+            }
+
+            try {
+                FileAppend(indent "Name: " control.Name "`n", outputFile)
+            } catch Error as e {
+                ; Property not available
+            }
+        }
+        else if (controlType = "GuiComboBox") {
+            try {
+                FileAppend(indent "Key: " control.Key "`n", outputFile)
+                FileAppend(indent "Text: " control.Text "`n", outputFile)
+            } catch Error as e {
+                ; Properties not available
+            }
+
+            ; Try to get all entries in the combo box
+            try {
+                entries := []
+                entriesCollection := control.Entries
+                entryCount := entriesCollection.Count
+
+                Loop entryCount {
+                    try {
+                        entry := entriesCollection.Item(A_Index - 1)  ; COM collections are often 0-based
+                        entries.Push(entry.Key " - " entry.Text)
+                    } catch Error as e {
+                        ; Skip this entry
+                    }
+                }
+
+                if (entries.Length > 0) {
+                    FileAppend(indent "Entries:`n", outputFile)
+                    for entryText in entries {
+                        FileAppend(indent "    - " entryText "`n", outputFile)
+                    }
+                }
+            } catch Error as e {
+                ; Can't get entries
+            }
+        }
+        else if (controlType = "GuiCheckBox" || controlType = "GuiRadioButton") {
+            try {
+                FileAppend(indent "Selected: " (control.Selected ? "Yes" : "No") "`n", outputFile)
+            } catch Error as e {
+                ; Property not available
+            }
+        }
+        else if (controlType = "GuiButton") {
+            try {
+                FileAppend(indent "Text: " control.Text "`n", outputFile)
+            } catch Error as e {
+                ; Property not available
+            }
+
+            try {
+                FileAppend(indent "Tooltip: " control.Tooltip "`n", outputFile)
+            } catch Error as e {
+                ; Property not available
+            }
+        }
+        else if (controlType = "GuiLabel") {
+            try {
+                FileAppend(indent "Text: " control.Text "`n", outputFile)
+            } catch Error as e {
+                ; Property not available
+            }
+        }
+        else if (controlType = "GuiTab") {
+            try {
+                FileAppend(indent "Text: " control.Text "`n", outputFile)
+                FileAppend(indent "Selected: " (control.Selected ? "Yes" : "No") "`n", outputFile)
+            } catch Error as e {
+                ; Properties not available
+            }
+        }
+        else if (controlType = "GuiTableControl") {
+            try {
+                rowCount := control.RowCount
+                colCount := control.ColumnCount
+                FileAppend(indent "Rows: " rowCount "`n", outputFile)
+                FileAppend(indent "Columns: " colCount "`n", outputFile)
+
+                ; Optionally dump table headers
+                try {
+                    FileAppend(indent "Column Headers:`n", outputFile)
+                    Loop colCount {
+                        colName := control.GetColumnHeader(A_Index - 1)
+                        FileAppend(indent "    - Column " (A_Index - 1) ": " colName "`n", outputFile)
+                    }
+                } catch Error as e {
+                    ; Can't get column headers
+                }
+            } catch Error as e {
+                ; Properties not available
+            }
+        }
+        else if (controlType = "GuiTree" || (controlType = "GuiShell" && InStr(id, "shell"))) {
+            try {
+                nodeCount := control.NodeCount
+                FileAppend(indent "Node Count: " nodeCount "`n", outputFile)
+
+                if (nodeCount > 0 && nodeCount < 100) {  ; Limit to prevent huge dumps
+                    FileAppend(indent "Nodes:`n", outputFile)
+                    Loop nodeCount {
+                        try {
+                            nodeName := control.GetNodeKeyByIndex(A_Index - 1)  ; SAP uses 0-based indexing
+                            FileAppend(indent "    - " nodeName "`n", outputFile)
+                        } catch Error as e {
+                            ; Skip this node
+                        }
+                    }
+                }
+            } catch Error as e {
+                ; Can't get node information
+            }
+        }
+
+        ; Add more properties that might be useful
+        try {
+            ; Try to get additional properties
+            if HasProp(control, "Visible") {
+                FileAppend(indent "Visible: " (control.Visible ? "Yes" : "No") "`n", outputFile)
+            }
+            if HasProp(control, "Enabled") {
+                FileAppend(indent "Enabled: " (control.Enabled ? "Yes" : "No") "`n", outputFile)
+            }
+            if HasProp(control, "Changeable") {
+                FileAppend(indent "Changeable: " (control.Changeable ? "Yes" : "No") "`n", outputFile)
+            }
+        } catch Error as e {
+            ; Properties not available
+        }
+
+        ; Add a separator line
+        FileAppend(indent "---------------`n", outputFile)
+
+        ; Try to get children - not all controls have a Children property
+        try {
+            children := control.Children
+
+            if (IsObject(children)) {
+                childCount := children.Count
+                FileAppend(indent "Children (" childCount "):`n", outputFile)
+
+                ; Process each child
+                Loop childCount {
+                    try {
+                        child := children.ElementAt(A_Index - 1)
+                        childId := id "/" child.Id
+                        FileAppend("`n", outputFile)
+                        ScanSapControl(child, childId, outputFile, depth + 1)
+                    } catch Error as e {
+                        FileAppend(indent "    [Error getting child " (A_Index - 1) ": " e.Message "]`n", outputFile)
+                    }
+                }
+            }
+        } catch Error as e {
+            ; No children or can't access them
+        }
+
+    } catch Error as e {
+        FileAppend(indent "[Error scanning control: " e.Message "]`n", outputFile)
+    }
+}
+
+
+; Simplified version that just dumps field IDs and types
+DumpSapFieldList(outputFileName := "") {
+    if (!IsSet(SapSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for field list dump")
+        return false
+    }
+
+    ; Generate default filename if not provided
+    if (outputFileName = "") {
+        outputFileName := A_ScriptDir "\logs\SAPFieldList_" FormatTime(, "yyyy-MM-dd_HH-mm-ss") ".txt"
+    }
+
+    try {
+        ; Create or clear the output file
+        try {
+            FileDelete(outputFileName)
+        } catch Error as e {
+            ; File doesn't exist, that's fine
+        }
+
+        FileAppend("=== SAP FIELD LIST ===`n", outputFileName)
+        FileAppend("Date: " FormatTime(, "yyyy-MM-dd HH:mm:ss") "`n", outputFileName)
+        FileAppend("User: " A_UserName "`n`n", outputFileName)
+
+        ; Try to enumerate all controls in the user area
+        try {
+            userArea := SapSession.findById("wnd[0]/usr")
+            ListFieldsRecursive(userArea, "wnd[0]/usr", outputFileName)
+        } catch Error as e {
+            FileAppend("Error accessing user area: " e.Message "`n", outputFileName)
+        }
+
+        LogMessage(LOG_INFO, "SAP field list created: " outputFileName)
+        TrayTip("Field list created: " outputFileName, "Debug Info", 0x1)
+        return true
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error creating field list: " e.Message)
+        return false
+    }
+}
+
+; Helper function to list fields recursively
+ListFieldsRecursive(control, path, outputFile) {
+    if (!IsObject(control)) {
+        return
+    }
+
+    try {
+        ; Check if this is an input field
+        controlType := ""
+        try {
+            controlType := control.Type
+        } catch Error as e {
+            ; Type not available
+        }
+
+        ; Only list interactive controls
+        if (controlType = "GuiTextField" || controlType = "GuiCTextField" ||
+            controlType = "GuiPasswordField" || controlType = "GuiComboBox" ||
+            controlType = "GuiCheckBox" || controlType = "GuiRadioButton" ||
+            controlType = "GuiButton") {
+
+            fieldInfo := path " - " controlType
+
+            try {
+                if HasProp(control, "Name") {
+                    fieldInfo .= " - Name: " control.Name
+                }
+            } catch Error as e {
+                ; Name not available
+            }
+
+            try {
+                if HasProp(control, "Text") {
+                    fieldInfo .= " - Text: " control.Text
+                }
+            } catch Error as e {
+                ; Text not available
+            }
+
+            FileAppend(fieldInfo "`n", outputFile)
+        }
+
+        ; Process children
+        try {
+            children := control.Children
+            if (IsObject(children)) {
+                childCount := children.Count
+                Loop childCount {
+                    try {
+                        child := children.ElementAt(A_Index - 1)
+                        childPath := path "/" child.Id
+                        ListFieldsRecursive(child, childPath, outputFile)
+                    } catch Error as e {
+                        ; Skip this child
+                    }
+                }
+            }
+        } catch Error as e {
+            ; No children or can't access them
+        }
+    } catch Error as e {
+        ; Skip this control
+    }
+}
+; Function to handle SAP message popup and extract text
+HandleSapMessagePopup(rowIndex) {
+    if (!IsSet(SapSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for popup handling")
+        return ""
+    }
+
+    try {
+        ; Check if a popup window exists (usually wnd[1] for popups)
+        popup := SapSession.findById("wnd[1]")
+
+        ; Get popup type and title
+        popupTitle := ""
+        try {
+            popupTitle := popup.Text
+            LogMessage(LOG_INFO, "Found popup: " popupTitle)
+        } catch {
+            LogMessage(LOG_DEBUG, "Could not get popup title")
+        }
+
+        ; Try to extract message text from common popup locations
+        messageText := ""
+
+        ; Try different common paths for message text in popups
+        messagePaths := [
+            "wnd[1]/usr/txtMESSTXT1",
+            "wnd[1]/usr/txtMESSAGE",
+            "wnd[1]/usr/txt*",
+            "wnd[1]/usr/lbl*"
+        ]
+
+        for path in messagePaths {
+            try {
+                msgField := SapSession.findById(path)
+                messageText := msgField.Text
+                if (messageText != "") {
+                    LogMessage(LOG_INFO, "Extracted message: " messageText)
+                    break
+                }
+            } catch {
+                ; Try next path
+            }
+        }
+
+        ; If still no message, try to get all text from the popup
+        if (messageText = "") {
+            try {
+                ; Get user area and scan for text
+                userArea := popup.findById("usr")
+                messageText := ScanPopupForText(userArea)
+            } catch {
+                LogMessage(LOG_DEBUG, "Could not scan popup user area")
+            }
+        }
+
+        ; Write to Excel Sheet 6
+        if (messageText != "") {
+            WriteMessageToExcel(rowIndex, messageText, popupTitle)
+        }
+
+        ; Close the popup (usually with Enter or OK button)
+        try {
+            ; Try OK button first
+            okButton := popup.findById("wnd[1]/tbar[0]/btn[0]")
+            okButton.Press()
+            LogMessage(LOG_INFO, "Closed popup with OK button")
+        } catch {
+            ; If no OK button, try Enter key
+            try {
+                popup.sendVKey(0)  ; Enter key
+                LogMessage(LOG_INFO, "Closed popup with Enter key")
+            } catch {
+                LogMessage(LOG_WARNING, "Could not close popup automatically")
+            }
+        }
+
+        return messageText
+
+    } catch Error as e {
+        LogMessage(LOG_DEBUG, "No popup found or error handling popup: " e.Message)
+        return ""
+    }
+}
+
+; Helper function to scan popup for text
+ScanPopupForText(control) {
+    allText := ""
+
+    if (!IsObject(control)) {
+        return ""
+    }
+
+    try {
+        ; Check if this control has text
+        controlType := control.Type
+
+        if (controlType = "GuiTextField" || controlType = "GuiLabel" || controlType = "GuiTitlebar") {
+            try {
+                text := control.Text
+                if (text != "" && !InStr(text, "___")) {  ; Exclude separator lines
+                    allText .= text . " "
+                }
+            } catch {
+                ; No text available
+            }
+        }
+
+        ; Check children
+        try {
+            children := control.Children
+            if (IsObject(children)) {
+                childCount := children.Count
+                Loop childCount {
+                    try {
+                        child := children.ElementAt(A_Index - 1)
+                        childText := ScanPopupForText(child)
+                        if (childText != "") {
+                            allText .= childText . " "
+                        }
+                    } catch {
+                        ; Skip this child
+                    }
+                }
+            }
+        } catch {
+            ; No children
+        }
+    } catch {
+        ; Skip this control
+    }
+
+    return Trim(allText)
+}
+
+; Function to write message to Excel Sheet 6
+WriteMessageToExcel(rowIndex, messageText, popupTitle := "") {
+    if (!ExcelIsOpen || !IsSet(ExcelWorkbook)) {
+        LogMessage(LOG_WARNING, "Cannot write to Excel - workbook not open")
+        return false
+    }
+
+    try {
+        ; Switch to Sheet 6
+        if (!ExcelSelectSheet(6)) {
+            ; Create Sheet 6 if it doesn't exist
+            try {
+                global ExcelWorksheet := ExcelWorkbook.Worksheets.Add()
+                ExcelWorksheet.Name := "SAP Messages"
+
+                ; Add headers
+                ExcelWriteCell(1, 1, "Row Index")
+                ExcelWriteCell(1, 2, "Timestamp")
+                ExcelWriteCell(1, 3, "Message Type")
+                ExcelWriteCell(1, 4, "Message Text")
+                ExcelWriteCell(1, 5, "Vendor Name")
+
+                LogMessage(LOG_INFO, "Created Sheet 6 for SAP messages")
+            } catch Error as e {
+                LogMessage(LOG_ERROR, "Could not create Sheet 6: " e.Message)
+                return false
+            }
+        }
+
+        ; Find next empty row in Sheet 6
+        lastMessageRow := ExcelGetLastRow("A") + 1
+
+        ; Write message data
+        ExcelWriteCell(lastMessageRow, 1, rowIndex)
+        ExcelWriteCell(lastMessageRow, 2, FormatTime(, "yyyy-MM-dd HH:mm:ss"))
+        ExcelWriteCell(lastMessageRow, 3, popupTitle)
+        ExcelWriteCell(lastMessageRow, 4, messageText)
+
+        ; Get vendor name from Sheet 1 for reference
+        ExcelSelectSheet(1)
+        vendorName := ExcelReadCell(rowIndex, 3)  ; Column C = NAME
+        ExcelSelectSheet(6)
+        ExcelWriteCell(lastMessageRow, 5, vendorName)
+
+        LogMessage(LOG_INFO, "Wrote SAP message to Sheet 6, row " lastMessageRow)
+
+        ; Switch back to Sheet 1
+        ExcelSelectSheet(1)
+
+        return true
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error writing message to Excel: " e.Message)
+        return false
+    }
+}
+; Add this function around line 850 (after other dump functions)
+DumpPopupFields(waitForPopup := true, maxWaitTime := 5000) {
+    if (!IsSet(SapSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for popup field dump")
+        return false
+    }
+    
+    ; Generate output filename
+    outputFile := A_ScriptDir "\logs\PopupFieldDump_" FormatTime(, "yyyy-MM-dd_HH-mm-ss") ".txt"
+    
+    try {
+        ; Wait for popup if requested
+        if (waitForPopup) {
+            startTime := A_TickCount
+            popupFound := false
+            
+            while (A_TickCount - startTime < maxWaitTime) {
+                try {
+                    popup := SapSession.findById("wnd[1]")
+                    popupFound := true
+                    break
+                } catch {
+                    Sleep 100  ; Check every 100ms
+                }
+            }
+            
+            if (!popupFound) {
+                LogMessage(LOG_WARNING, "No popup appeared within " maxWaitTime "ms")
+                return false
+            }
+        } else {
+            ; Try to access popup directly
+            popup := SapSession.findById("wnd[1]")
+        }
+        
+        ; Clear/create the output file
+        try {
+            FileDelete(outputFile)
+        } catch {
+            ; File doesn't exist, that's fine
+        }
+        
+        ; Write header
+        FileAppend("=== SAP POPUP FIELD DUMP ===`n", outputFile)
+        FileAppend("Date: " FormatTime(, "yyyy-MM-dd HH:mm:ss") "`n", outputFile)
+        FileAppend("User: " A_UserName "`n", outputFile)
+        FileAppend("Generated by: anonymusdennis`n`n", outputFile)
+        
+        ; Get popup title
+        popupTitle := ""
+        try {
+            popupTitle := popup.Text
+            FileAppend("Popup Title: " popupTitle "`n", outputFile)
+        } catch {
+            FileAppend("Popup Title: [Could not retrieve]`n", outputFile)
+        }
+        
+        ; Get popup type
+        popupType := ""
+        try {
+            popupType := popup.Type
+            FileAppend("Popup Type: " popupType "`n", outputFile)
+        } catch {
+            FileAppend("Popup Type: [Could not retrieve]`n", outputFile)
+        }
+        
+        FileAppend("`n=== INTERACTIVE FIELDS ONLY ===`n", outputFile)
+        FileAppend("(Fields you can fill/interact with)`n`n", outputFile)
+        
+        ; Scan for interactive fields only
+        interactiveFields := []
+        ScanForInteractiveFields(popup, "wnd[1]", &interactiveFields)  ; Pass by reference
+        
+        ; Sort and write interactive fields
+        if (interactiveFields.Length > 0) {
+            for field in interactiveFields {
+                FileAppend(field "`n", outputFile)
+            }
+        } else {
+            FileAppend("[No interactive fields found]`n", outputFile)
+        }
+        
+        FileAppend("`n=== ALL CONTROLS (DETAILED) ===`n`n", outputFile)
+        
+        ; Do a complete scan
+        ScanPopupControl(popup, "wnd[1]", outputFile, 0)
+        
+        ; Log success
+        LogMessage(LOG_INFO, "Popup field dump created: " outputFile)
+        
+        ; Show notification with file location
+        TrayTip("Popup fields dumped!`nCheck: " outputFile, "Success", 0x1)
+        
+        ; Also create a simplified field list
+        CreateSimplifiedFieldList(outputFile)
+        
+        return true
+        
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error dumping popup fields: " e.Message)
+        FileAppend("`nERROR: " e.Message "`n", outputFile)
+        return false
+    }
+}
+
+; Helper function to scan specifically for interactive fields
+ScanForInteractiveFields(control, path, &fieldArray) {  ; fieldArray is already a reference parameter
+    if (!IsObject(control)) {
+        return
+    }
+    
+    try {
+        ; Check if this is an interactive field
+        controlType := ""
+        try {
+            controlType := control.Type
+        } catch {
+            ; Type not available
+        }
+        
+        ; Interactive field types
+        interactiveTypes := ["GuiTextField", "GuiCTextField", "GuiPasswordField", 
+                           "GuiComboBox", "GuiCheckBox", "GuiRadioButton", "GuiButton"]
+        
+        isInteractive := false
+        for iType in interactiveTypes {
+            if (controlType = iType) {
+                isInteractive := true
+                break
+            }
+        }
+        
+        if (isInteractive) {
+            fieldInfo := "Path: " path "`n"
+            fieldInfo .= "Type: " controlType "`n"
+            
+            ; Get additional properties
+            try {
+                fieldInfo .= "Name: " control.Name "`n"
+            } catch {
+                ; No name
+            }
+            
+            try {
+                if (controlType = "GuiTextField" || controlType = "GuiCTextField") {
+                    fieldInfo .= "Current Value: " control.Text "`n"
+                } else if (controlType = "GuiComboBox") {
+                    fieldInfo .= "Current Key: " control.Key "`n"
+                    fieldInfo .= "Current Text: " control.Text "`n"
+                }
+            } catch {
+                ; No value
+            }
+            
+            try {
+                fieldInfo .= "Changeable: " (control.Changeable ? "Yes" : "No") "`n"
+            } catch {
+                ; Property not available
+            }
+            
+            fieldInfo .= "---`n"
+            fieldArray.Push(fieldInfo)
+        }
+        
+        ; Scan children
+        try {
+            children := control.Children
+            if (IsObject(children)) {
+                childCount := children.Count
+                Loop childCount {
+                    try {
+                        child := children.ElementAt(A_Index - 1)
+                        childPath := path "/" child.Id
+                        ScanForInteractiveFields(child, childPath, &fieldArray)  ; Pass reference
+                    } catch {
+                        ; Skip this child
+                    }
+                }
+            }
+        } catch {
+            ; No children
+        }
+    } catch {
+        ; Skip this control
+    }
+}
+; Enhanced popup control scanner
+ScanPopupControl(control, id, outputFile, depth := 0) {
+    if (!IsObject(control)) {
+        return
+    }
+    
+    try {
+        ; Create indent
+        indent := ""
+        Loop depth {
+            indent .= "  "
+        }
+        
+        ; Get control type
+        controlType := "[Unknown]"
+        try {
+            controlType := control.Type
+        } catch {
+            ; Type not available
+        }
+        
+        ; Write control info
+        FileAppend(indent "ID: " id "`n", outputFile)
+        FileAppend(indent "Type: " controlType "`n", outputFile)
+        
+        ; Get all available properties based on type
+        if (InStr(controlType, "Field") || InStr(controlType, "Combo")) {
+            try {
+                FileAppend(indent "Text: " control.Text "`n", outputFile)
+            } catch {
+                ; Property not available
+            }
+            
+            try {
+                FileAppend(indent "Name: " control.Name "`n", outputFile)
+            } catch {
+                ; Property not available
+            }
+            
+            try {
+                FileAppend(indent "Tooltip: " control.Tooltip "`n", outputFile)
+            } catch {
+                ; Property not available
+            }
+            
+            try {
+                FileAppend(indent "MaxLength: " control.MaxLength "`n", outputFile)
+            } catch {
+                ; Property not available
+            }
+        }
+        
+        ; Check standard properties
+        try {
+            FileAppend(indent "Visible: " (control.Visible ? "Yes" : "No") "`n", outputFile)
+        } catch {
+            ; Property not available
+        }
+        
+        try {
+            FileAppend(indent "Changeable: " (control.Changeable ? "Yes" : "No") "`n", outputFile)
+        } catch {
+            ; Property not available
+        }
+        
+        FileAppend(indent "---`n", outputFile)
+        
+        ; Process children
+        try {
+            children := control.Children
+            if (IsObject(children)) {
+                childCount := children.Count
+                Loop childCount {
+                    try {
+                        child := children.ElementAt(A_Index - 1)
+                        childId := id "/" child.Id
+                        ScanPopupControl(child, childId, outputFile, depth + 1)
+                    } catch {
+                        ; Skip this child
+                    }
+                }
+            }
+        } catch {
+            ; No children
+        }
+    } catch {
+        FileAppend(indent "[Error scanning control]`n", outputFile)
+    }
+}
+
+; Create a simplified field list for easy reference
+CreateSimplifiedFieldList(dumpFile) {
+    simplifiedFile := StrReplace(dumpFile, ".txt", "_SIMPLE.txt")
+    
+    try {
+        FileAppend("=== SIMPLIFIED FIELD REFERENCE ===`n", simplifiedFile)
+        FileAppend("Generated: " FormatTime(, "yyyy-MM-dd HH:mm:ss") "`n", simplifiedFile)
+        FileAppend("Use these paths in SetSapFieldDirect()`n`n", simplifiedFile)
+        
+        ; Read the dump file and extract field paths
+        dumpContent := FileRead(dumpFile)
+        
+        ; Extract paths for common field types
+        Loop Parse, dumpContent, "`n" {
+            if (InStr(A_LoopField, "Path: wnd[1]/usr/")) {
+                nextLine := A_Index + 1
+                if (RegExMatch(dumpContent, "(?<=Type: )(GuiTextField|GuiCTextField|GuiComboBox)", &fieldType)) {
+                    FileAppend(A_LoopField "`n", simplifiedFile)
+                }
+            }
+        }
+        
+        LogMessage(LOG_INFO, "Simplified field list created: " simplifiedFile)
+    } catch Error as e {
+        LogMessage(LOG_WARNING, "Could not create simplified list: " e.Message)
+    }
+}
+; Function to check and log any SAP messages (statusbar or popup)
+CheckAndLogSapMessages(context := "") {
+    if (!IsSet(SapSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for message checking")
+        return ""
+    }
+    
+    messageFound := false
+    allMessages := ""
+    
+    ; First check for popup messages (higher priority)
+    try {
+        popup := SapSession.findById("wnd[1]")
+        popupTitle := ""
+        popupMessage := ""
+        
+        try {
+            popupTitle := popup.Text
+        } catch {
+            popupTitle := "[Unknown Popup]"
+        }
+        
+        ; Try to extract message text
+        try {
+            ; Try common message field paths
+            messagePaths := [
+                "wnd[1]/usr/txtMESSTXT1",
+                "wnd[1]/usr/txtMESSAGE",
+                "wnd[1]/usr/lbl[1]",
+                "wnd[1]/usr/lbl[2]"
+            ]
+            
+            for path in messagePaths {
+                try {
+                    msgField := SapSession.findById(path)
+                    text := msgField.Text
+                    if (text != "" && !InStr(text, "___")) {
+                        popupMessage .= text . " "
+                    }
+                } catch {
+                    ; Continue to next path
+                }
+            }
+            
+            ; If no message found, scan the popup
+            if (popupMessage = "") {
+                userArea := popup.findById("usr")
+                popupMessage := ScanPopupForText(userArea)
+            }
+        } catch {
+            ; Could not extract message
+        }
+        
+        if (popupMessage != "") {
+            LogMessage(LOG_INFO, "POPUP MESSAGE" (context ? " (" context ")" : "") ": " popupTitle " - " popupMessage)
+            allMessages .= "POPUP: " popupMessage . "`n"
+            messageFound := true
+            
+            ; Try to close the popup
+            try {
+                popup.findById("tbar[0]/btn[0]").Press()  ; OK button
+            } catch {
+                try {
+                    popup.sendVKey(0)  ; Enter key
+                } catch {
+                    ; Could not close automatically
+                }
+            }
+        }
+    } catch {
+        ; No popup found
+    }
+    
+    ; Check statusbar for messages
+    try {
+        statusBar := SapSession.findById("wnd[0]/sbar")
+        statusText := statusBar.Text
+        statusMessageType := statusBar.MessageType
+        
+        if (statusText != "") {
+            ; Determine message severity
+            messageSeverity := "INFO"
+            if (statusMessageType = "E") {
+                messageSeverity := "ERROR"
+            } else if (statusMessageType = "W") {
+                messageSeverity := "WARNING"
+            } else if (statusMessageType = "S") {
+                messageSeverity := "SUCCESS"
+            } else if (statusMessageType = "I") {
+                messageSeverity := "INFO"
+            } else if (statusMessageType = "A") {
+                messageSeverity := "ABORT"
+            }
+            
+            LogMessage(LOG_INFO, "STATUSBAR " messageSeverity (context ? " (" context ")" : "") ": " statusText)
+            allMessages .= "STATUSBAR [" messageSeverity "]: " statusText . "`n"
+            messageFound := true
+        }
+    } catch Error as e {
+        LogMessage(LOG_DEBUG, "Could not check statusbar: " e.Message)
+    }
+    
+    return Trim(allMessages)
+}
+
+; Enhanced function to monitor messages continuously
+MonitorSapMessages(duration := 5000, checkInterval := 500) {
+    if (!IsSet(SapSession)) {
+        return ""
+    }
+    
+    startTime := A_TickCount
+    collectedMessages := ""
+    lastStatusMessage := ""
+    
+    while (A_TickCount - startTime < duration) {
+        ; Check statusbar
+        try {
+            statusBar := SapSession.findById("wnd[0]/sbar")
+            currentStatus := statusBar.Text
+            
+            if (currentStatus != "" && currentStatus != lastStatusMessage) {
+                messageType := statusBar.MessageType
+                timestamp := FormatTime(, "HH:mm:ss")
+                
+                LogMessage(LOG_INFO, "SAP Message at " timestamp " [" messageType "]: " currentStatus)
+                collectedMessages .= timestamp " [" messageType "]: " currentStatus . "`n"
+                lastStatusMessage := currentStatus
+            }
+        } catch {
+            ; Statusbar not accessible
+        }
+        
+        ; Check for popups
+        try {
+            popup := SapSession.findById("wnd[1]")
+            ; Popup found, handle it
+            CheckAndLogSapMessages("Monitor detected popup")
+            break  ; Exit loop if popup found
+        } catch {
+            ; No popup
+        }
+        
+        Sleep checkInterval
+    }
+    
+    return collectedMessages
+}
+
+; Function to get just the current message without closing popups
+GetCurrentSapMessage() {
+    if (!IsSet(SapSession)) {
+        return ""
+    }
+    
+    ; Check popup first
+    try {
+        popup := SapSession.findById("wnd[1]")
+        userArea := popup.findById("usr")
+        popupText := ScanPopupForText(userArea)
+        if (popupText != "") {
+            return "POPUP: " popupText
+        }
+    } catch {
+        ; No popup
+    }
+    
+    ; Check statusbar
+    try {
+        statusBar := SapSession.findById("wnd[0]/sbar")
+        statusText := statusBar.Text
+        if (statusText != "") {
+            return "STATUSBAR: " statusText
+        }
+    } catch {
+        ; No statusbar message
+    }
+    
+ 
+    return ""
+}
+; Function to handle document attachment popup
+HandleDocumentAttachment(rowIndex) {
+    if (!IsSet(SapSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for document attachment")
+        return false
+    }
+    
+    try {
+        ; Read Sheet 4 data
+        if (!ExcelSelectSheet(4)) {
+            LogMessage(LOG_WARNING, "Sheet 3 not found, skipping document attachment")
+            return false
+        }
+        
+        ; Read document data
+        DocData_structured := DocData_structured_empty
+        DocData_structured.DOKUMENTART := ExcelReadCell(rowIndex, 1)  ; Column A
+        DocData_structured.PFAD := ExcelReadCell(rowIndex, 2)  ; Column B
+        DocData_structured.KOMMENTAR := ExcelReadCell(rowIndex, 3)  ; Column C
+        
+        ; Check if we have document data
+        if (DocData_structured.DOKUMENTART = "" || DocData_structured.PFAD = "") {
+            LogMessage(LOG_INFO, "No document data for row " rowIndex)
+            ExcelSelectSheet(1)  ; Switch back to Sheet 1
+            return false
+        }
+        
+        ; Handle relative paths - if path starts with . replace with script directory
+        originalPath := DocData_structured.PFAD
+        if (SubStr(originalPath, 1, 1) = ".") {
+            ; Remove the leading . and combine with script directory
+            relativePath := SubStr(originalPath, 2)
+            originalPath := A_ScriptDir . relativePath
+            LogMessage(LOG_DEBUG, "Converted relative path to: " originalPath)
+        }
+        
+        ; Check if source file exists
+        if (!FileExist(originalPath)) {
+            LogMessage(LOG_ERROR, "Source file does not exist: " originalPath)
+            ExcelSelectSheet(1)
+            return false
+        }
+        
+        ; Create SAP temp directory path dynamically for current user
+        sapTempDir := "C:\Users\" A_UserName "\AppData\Local\SAP\SAP GUI\tmp\"
+        
+        ; Create directory if it doesn't exist
+        if (!DirExist(sapTempDir)) {
+            try {
+                DirCreate(sapTempDir)
+                LogMessage(LOG_INFO, "Created SAP temp directory: " sapTempDir)
+            } catch Error as e {
+                LogMessage(LOG_ERROR, "Could not create SAP temp directory: " e.Message)
+                ExcelSelectSheet(1)
+                return false
+            }
+        }
+        
+        ; Define target path with fixed filename
+        targetPath := sapTempDir "upload.xlsx"
+        
+        ; Copy file to SAP temp directory
+        try {
+            FileCopy(originalPath, targetPath, true)  ; true = overwrite if exists
+            LogMessage(LOG_INFO, "Copied file from: " originalPath " to: " targetPath)
+        } catch Error as e {
+            LogMessage(LOG_ERROR, "Failed to copy file: " e.Message)
+            ExcelSelectSheet(1)
+            return false
+        }
+        
+        LogMessage(LOG_INFO, "Attaching document for row " rowIndex)
+        LogMessage(LOG_DEBUG, "Document type: " DocData_structured.DOKUMENTART)
+        LogMessage(LOG_DEBUG, "Using temp path: " targetPath)
+        LogMessage(LOG_DEBUG, "Comment: " DocData_structured.KOMMENTAR)
+        
+        ; Wait for popup to appear
+        Sleep SleepTimeMedium
+        
+        ; Fill popup fields with the temp file path
+        if (DocData_structured.DOKUMENTART != "")
+            SetSapFieldDirect("wnd[1]/usr/ctxt/BUP/AQ0VBDOKUME-DOKART", DocData_structured.DOKUMENTART)
+        
+        ; Use the temp path instead of original
+        SetSapFieldDirect("wnd[1]/usr/ctxt/BUP/AQ0VBDOKUME-DNAME", targetPath)
+        
+        if (DocData_structured.KOMMENTAR != "")
+            SetSapFieldDirect("wnd[1]/usr/txt/BUP/AQ0VBDOKUME-DTEXT", DocData_structured.KOMMENTAR)
+        
+        ; Confirm the popup using the OK button
+        try {
+            ; Press OK button
+            SapSession.findById("wnd[1]/usr/btnBTN_OK").Press()
+            LogMessage(LOG_INFO, "Document attachment confirmed with OK button")
+            
+            ; Optional: Delete temp file after successful upload
+            Sleep SleepTimeMedium  ; Give SAP time to process
+            try {
+                FileDelete(targetPath)
+                LogMessage(LOG_DEBUG, "Deleted temp file: " targetPath)
+            } catch {
+                LogMessage(LOG_DEBUG, "Could not delete temp file (may still be in use)")
+            }
+            
+        } catch Error as e {
+            LogMessage(LOG_ERROR, "Could not confirm document attachment: " e.Message)
+            
+            ; Try to clean up temp file on error
+            try {
+                FileDelete(targetPath)
+            } catch {
+                ; Ignore cleanup errors
+            }
+            
+            ExcelSelectSheet(1)
+            return false
+        }
+        
+        ExcelSelectSheet(1)  ; Switch back to Sheet 1
+        return true
+        
+    } catch Error as e {
+        LogMessage(LOG_ERROR, "Error in document attachment: " e.Message)
+        ExcelSelectSheet(1)  ; Switch back to Sheet 1
+        return false
+    }
+}
+; ==================== MAIN CODE ====================
+; Initial notification
+TrayTip("Open SAP Easy Access and accept the popup.`nTo exit this program at any time press Ctrl+Esc", "SAP Automation Started", 0x1)
+
+; Check if Excel file exists before starting
+if (!FileExist(ExcelFilePath)) {
+    LogMessage(LOG_ERROR, "Excel file not found: " ExcelFilePath)
+    TrayTip("Excel file not found: " ExcelFilePath, "File Error", 0x3)
+    ExitApp()
+}
+
+; Connect to SAP (only once)
+ConnectSAP()
+
+; Open Specified excel file
+if (!ExcelOpen(ExcelFilePath)) {
+    LogMessage(LOG_ERROR, "Failed to open Excel file: " ExcelFilePath)
+    ExitApp()
+}
+
+; Process the Excel data
+if (!ExcelSelectSheet(1)) {  ; Select the first worksheet
+    LogMessage(LOG_ERROR, "Failed to select the first worksheet")
+    ExcelClose()
+    ExitApp()
+}
+
+lastRow := ExcelGetLastRow("A")  ; Get the last used row in column A
+lastCol := ExcelGetLastColumn(1)  ; Get the last used column in row 1
+
+if (lastRow <= 1) {
+    LogMessage(LOG_ERROR, "No data found in the Excel file or only header row exists")
+    TrayTip("No data found in Excel file", "Data Error", 0x3)
+    ExcelClose()
+    ExitApp()
+}
+
+LogMessage(LOG_INFO, "Found " (lastRow - 1) " data rows to process")
+TrayTip("Found " (lastRow - 1) " data rows to process", "Processing Started", 0x1)
+
+; Loop through each row in the Excel file
+Loop (lastRow - 1) {
+    rowIndex := A_Index + 1  ; Skip header row (start from row 2)
+    LogMessage(LOG_INFO, "Processing row " rowIndex)
+
+    ; Read Sheet 1 data
+    Row_structured := Row_structured_empty  ; Reset structure for each row
+    Row_structured.ANREDE := ExcelReadCell(rowIndex, 1)  ; Column A
+    Row_structured.ANREDETEXT := ExcelReadCell(rowIndex, 2)  ; Column B
+    Row_structured.NAME := ExcelReadCell(rowIndex, 3)  ; Column C
+    Row_structured.NAME2 := ExcelReadCell(rowIndex, 4)  ; Column D
+    Row_structured.SUCHBEGRIFF1 := ExcelReadCell(rowIndex, 5)  ; Column E
+    Row_structured.SUCHBEGRIFF2 := ExcelReadCell(rowIndex, 6)  ; Column F
+    Row_structured.STRASSE := ExcelReadCell(rowIndex, 7)  ; Column G
+    Row_structured.HAUSNUMMER := ExcelReadCell(rowIndex, 8)  ; Column H
+    Row_structured.STRASSE2 := ExcelReadCell(rowIndex, 9)  ; Column I
+    Row_structured.STRASSE3 := ExcelReadCell(rowIndex, 10)  ; Column J
+    Row_structured.STRASSE4 := ExcelReadCell(rowIndex, 11)  ; Column K
+    Row_structured.PLZ := ExcelReadCell(rowIndex, 12)  ; Column L
+    Row_structured.ORT := ExcelReadCell(rowIndex, 13)  ; Column M
+    Row_structured.ORTSTEIL := ExcelReadCell(rowIndex, 14)  ; Column N
+    Row_structured.LAND := ExcelReadCell(rowIndex, 15)  ; Column O
+    Row_structured.LAND_TEXT := ExcelReadCell(rowIndex, 16)  ; Column P (skip - auto-filled)
+    Row_structured.BUNDESLAND := ExcelReadCell(rowIndex, 17)  ; Column Q
+    Row_structured.BUNDESLAND_TEXT := ExcelReadCell(rowIndex, 18)  ; Column R (skip - auto-filled)
+    Row_structured.ZEITZONE := ExcelReadCell(rowIndex, 19)  ; Column S
+    Row_structured.POSTFACH := ExcelReadCell(rowIndex, 20)  ; Column T
+    Row_structured.FIRMEN_PLZ := ExcelReadCell(rowIndex, 21)  ; Column U
+    Row_structured.POSTFACH_PLZ := ExcelReadCell(rowIndex, 22)  ; Column V
+    Row_structured.SPRACHE := ExcelReadCell(rowIndex, 23)  ; Column W
+    Row_structured.TELEFON := ExcelReadCell(rowIndex, 24)  ; Column X
+    Row_structured.DURCHWAHL := ExcelReadCell(rowIndex, 25)  ; Column Y
+    Row_structured.MOBILTELEFON := ExcelReadCell(rowIndex, 26)  ; Column Z
+    Row_structured.FAX := ExcelReadCell(rowIndex, 27)  ; Column AA
+    Row_structured.GEBAEUDE := ExcelReadCell(rowIndex, 28)  ; Column AB
+    Row_structured.RAUM := ExcelReadCell(rowIndex, 29)  ; Column AC
+    Row_structured.STOCKWERK := ExcelReadCell(rowIndex, 30)  ; Column AD
+
+
+    ;first step: reset users tx:
+    LogMessage(LOG_INFO, "Resetting SAP session")
+    ExecuteSapCommand("/n", " ")  ; reset session
+    Sleep SleepTimeMedium
+
+    ;second step: open tx /BUP/AQZ_ZLS_SESTART
+    LogMessage(LOG_INFO, "Opening transaction /BUP/AQZ_ZLS_SESTART")
+    ExecuteSapCommand("/n/BUP/AQZ_ZLS_SESTART", " ")  ; open transaction
+    Sleep SleepTimeLong  ; Give more time for the transaction to load
+
+    ; Check if the screen is correct - try simplified approach first
+    if (!CHECK_SCREENNAME("Einstieg Schnellerfassung")) {
+        LogMessage(LOG_WARNING, "Cannot confirm correct transaction screen")
+        if (MsgBox("Cannot confirm correct transaction screen. Continue anyway?", "Screen Check", 4) != "Yes") {
+            LogMessage(LOG_INFO, "User chose to skip row " rowIndex)
+            continue  ; Skip to the next row
+        }
+        LogMessage(LOG_INFO, "User chose to continue processing row " rowIndex " despite screen check failure")
+    }
+
+    ; Example of using the tree control functions
+    treeNodeName := "CENTR0001"  ; This would typically come from your Excel data
+    ExecuteSapCommand("GRAN") ;CREATE VENDOR
+     ; Execute ANLAGE command
+     ExecuteSapCommand("ANLAGE")  ; Add document
+ 
+     ; Handle the document attachment popup
+     if (HandleDocumentAttachment(rowIndex)) {
+         LogMessage(LOG_INFO, "Document attached successfully for row " rowIndex)
+     } else {
+         LogMessage(LOG_WARNING, "No document to attach or attachment failed for row " rowIndex)
+     }
+     CheckAndLogSapMessages("Dokumentanlage")
+     Sleep SleepTimeMedium
+     
+    ; Select and double-click the node
+    if (SelectTreeNode(treeNodeName)) {
+        Sleep SleepTimeShort
+        DoubleClickTreeNode(treeNodeName)
+        Sleep SleepTimeMedium
+
+        ;SET CENTRAL DATA (SCREEN 1):
+        ; Set all fields from Excel row with CORRECT mapping
+        if (Row_structured.ANREDE != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/cmbBUT000-TITLE", Row_structured.ANREDE)
+
+        if (Row_structured.NAME != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR1_DATA-NAME1", Row_structured.NAME)
+
+        if (Row_structured.NAME2 != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR1_DATA-NAME2", Row_structured.NAME2)
+
+        if (Row_structured.SUCHBEGRIFF1 != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR1_DATA-SORT1", Row_structured.SUCHBEGRIFF1)
+
+        if (Row_structured.SUCHBEGRIFF2 != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR1_DATA-SORT2", Row_structured.SUCHBEGRIFF2)
+
+        if (Row_structured.GEBAEUDE != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR2_DATA-BUILDING", Row_structured.GEBAEUDE)
+
+        if (Row_structured.RAUM != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR2_DATA-ROOMNUMBER", Row_structured.RAUM)
+
+        if (Row_structured.STOCKWERK != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR2_DATA-FLOOR", Row_structured.STOCKWERK)
+
+        if (Row_structured.STRASSE != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/ctxtADDR2_DATA-STREET", Row_structured.STRASSE)
+
+        if (Row_structured.HAUSNUMMER != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR2_DATA-HOUSE_NUM1", Row_structured.HAUSNUMMER)
+
+        if (Row_structured.STRASSE2 != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR2_DATA-STR_SUPPL1", Row_structured.STRASSE2)
+
+        if (Row_structured.STRASSE3 != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR2_DATA-STR_SUPPL2", Row_structured.STRASSE3)
+
+        if (Row_structured.STRASSE4 != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR2_DATA-STR_SUPPL3", Row_structured.STRASSE4)
+
+        if (Row_structured.PLZ != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR2_DATA-POST_CODE1", Row_structured.PLZ)
+
+        if (Row_structured.ORT != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/ctxtADDR2_DATA-CITY1", Row_structured.ORT)
+
+        if (Row_structured.ORTSTEIL != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/ctxtADDR2_DATA-CITY2", Row_structured.ORTSTEIL)
+
+        if (Row_structured.LAND != "") {
+            ; Convert to uppercase for country codes
+            landCode := StrUpper(Row_structured.LAND)
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/ctxtADDR2_DATA-COUNTRY", landCode)
+        }
+
+        if (Row_structured.BUNDESLAND != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/ctxtADDR2_DATA-REGION", Row_structured.BUNDESLAND)
+
+        if (Row_structured.ZEITZONE != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/ctxtADDR1_DATA-TIME_ZONE", Row_structured.ZEITZONE)
+
+        if (Row_structured.POSTFACH != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR2_DATA-PO_BOX", Row_structured.POSTFACH)
+
+        if (Row_structured.FIRMEN_PLZ != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR2_DATA-POST_CODE3", Row_structured.FIRMEN_PLZ)
+
+        if (Row_structured.POSTFACH_PLZ != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR2_DATA-POST_CODE2", Row_structured.POSTFACH_PLZ)
+
+        if (Row_structured.SPRACHE != "") {
+            ; Convert language code to uppercase
+            spracheCode := StrUpper(Row_structured.SPRACHE)
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/cmbADDR1_DATA-LANGU", spracheCode)
+        }
+
+        if (Row_structured.TELEFON != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtSZA7_D0400-TEL_NUMBER", Row_structured.TELEFON)
+
+        if (Row_structured.DURCHWAHL != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtSZA7_D0400-TEL_EXTENS", Row_structured.DURCHWAHL)
+
+        if (Row_structured.MOBILTELEFON != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtSZA7_D0400-MOB_NUMBER", Row_structured.MOBILTELEFON)
+
+        ; Add debug logging
+        LogMessage(LOG_DEBUG, "=== Excel Data for Row " rowIndex " ===")
+        LogMessage(LOG_DEBUG, "ANREDE (Col 1): " Row_structured.ANREDE)
+        LogMessage(LOG_DEBUG, "NAME (Col 3): " Row_structured.NAME)
+        LogMessage(LOG_DEBUG, "PLZ (Col 12): " Row_structured.PLZ)
+        LogMessage(LOG_DEBUG, "ORT (Col 13): " Row_structured.ORT)
+        LogMessage(LOG_DEBUG, "LAND (Col 15): " Row_structured.LAND)
+        LogMessage(LOG_DEBUG, "=================================")
+
+        ;ENDCENTRALDATA
+
+        ;KREDDATA0002 kreditor daten treenode (SCREEN 2)
+        treeNodeName := "KREDDATA0002"
+        if (SelectTreeNode(treeNodeName)) {
+            Sleep SleepTimeShort
+            DoubleClickTreeNode(treeNodeName)
+            Sleep SleepTimeMedium
+            ; we get 2 error messages we can ignore with ucomm WEIT
+            ExecuteSapCommand("WEIT")  ; Continue to next screen
+            Sleep SleepTimeShort
+            ExecuteSapCommand("WEIT")  ; Continue to next screen
+            Sleep SleepTimeMedium
+            if (!CHECK_SCREENNAME("Anlage Golden Record Neuantrag")) {
+                LogMessage(LOG_WARNING, "Cannot confirm correct transaction screen")
+                if (MsgBox("Cannot confirm correct transaction screen. Continue anyway?", "Screen Check", 4) != "Yes") {
+                    LogMessage(LOG_INFO, "User chose to skip row " rowIndex)
+                    continue  ; Skip to the next row
+                }
+                LogMessage(LOG_INFO, "User chose to continue processing row " rowIndex " despite screen check failure")
+            }
+            ; Read Sheet 2 data
+            if (!ExcelSelectSheet(2)) {
+                LogMessage(LOG_WARNING, "Sheet 2 not found, using empty KREDDATA values")
+                KredData_structured := KredData_structured_empty
+            } else {
+                KredData_structured := KredData_structured_empty  ; Reset structure
+                KredData_structured.STEUERNUMMER := ExcelReadCell(rowIndex, 1)  ; Column A
+                KredData_structured.STEUERNUMMER1 := ExcelReadCell(rowIndex, 2)  ; Column B
+                KredData_structured.STEUERNUMMER3 := ExcelReadCell(rowIndex, 3)  ; Column C
+                KredData_structured.STEUERNUMMER4 := ExcelReadCell(rowIndex, 4)  ; Column D
+                KredData_structured.STEUERNUMMER5 := ExcelReadCell(rowIndex, 5)  ; Column E
+                KredData_structured.UST_ID_NR := ExcelReadCell(rowIndex, 6)  ; Column F
+                KredData_structured.LOKATIONSNR1 := ExcelReadCell(rowIndex, 7)  ; Column G
+                KredData_structured.LOKATIONSNR2 := ExcelReadCell(rowIndex, 8)  ; Column H
+                KredData_structured.PRUEFZIFFER := ExcelReadCell(rowIndex, 9)  ; Column I
+                KredData_structured.DUNS_NUMMER := ExcelReadCell(rowIndex, 10)  ; Column J
+                KredData_structured.PARTNERGESELLSCHAFT := ExcelReadCell(rowIndex, 11)  ; Column K
+                KredData_structured.BRANCHE := ExcelReadCell(rowIndex, 12)  ; Column L
+                KredData_structured.SPERRFUNKTION := ExcelReadCell(rowIndex, 13)  ; Column M
+                KredData_structured.SPERRGRUND := ExcelReadCell(rowIndex, 14)  ; Column N
+                KredData_structured.ZUSTAENDIGES_FINANZAMT := ExcelReadCell(rowIndex, 15)  ; Column O
+
+
+            }
+
+            ; Fill KREDDATA0002 fields from Sheet 2 data
+            LogMessage(LOG_INFO, "Filling KREDDATA0002 fields")
+
+            ; Tax numbers
+            if (KredData_structured.STEUERNUMMER != "")
+                SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/txtLFA1-STENR", KredData_structured.STEUERNUMMER)
+
+            if (KredData_structured.STEUERNUMMER1 != "")
+                SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/txtLFA1-STCD1", KredData_structured.STEUERNUMMER1)
+
+            if (KredData_structured.STEUERNUMMER3 != "")
+                SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/txtLFA1-STCD3", KredData_structured.STEUERNUMMER3)
+
+            if (KredData_structured.STEUERNUMMER4 != "")
+                SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/txtLFA1-STCD4", KredData_structured.STEUERNUMMER4)
+
+            if (KredData_structured.STEUERNUMMER5 != "")
+                SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/txtLFA1-STCD5", KredData_structured.STEUERNUMMER5)
+
+            ; VAT ID
+            if (KredData_structured.UST_ID_NR != "")
+                SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/txtLFA1-STCEG", KredData_structured.UST_ID_NR)
+
+            ; Location numbers
+            if (KredData_structured.LOKATIONSNR1 != "")
+                SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/txtLFA1-BBBNR", KredData_structured.LOKATIONSNR1)
+
+            if (KredData_structured.LOKATIONSNR2 != "")
+                SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/txtLFA1-BBSNR", KredData_structured.LOKATIONSNR2)
+
+            if (KredData_structured.PRUEFZIFFER != "")
+                SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/txtLFA1-BUBKZ", KredData_structured.PRUEFZIFFER)
+
+            ; DUNS number
+            if (KredData_structured.DUNS_NUMMER != "")
+                SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/txtGS_IDS-BUP001", KredData_structured.DUNS_NUMMER)
+
+            ; Partner company
+            if (KredData_structured.PARTNERGESELLSCHAFT != "")
+                SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/ctxtLFA1-VBUND", KredData_structured.PARTNERGESELLSCHAFT)
+
+            ; Industry
+            if (KredData_structured.BRANCHE != "")
+                SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/ctxtBAPIINDUSTRYDETAILS-IND_SECTOR", KredData_structured.BRANCHE)
+
+            ; Blocking function
+            if (KredData_structured.SPERRFUNKTION != "")
+                SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/ctxtLFA1-SPERQ", KredData_structured.SPERRFUNKTION)
+
+            ; Blocking reason
+            if (KredData_structured.SPERRGRUND != "")
+                SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/ctxtGS_ZUSATZFELDER-SPRGRD", KredData_structured.SPERRGRUND)
+
+            ; Tax office
+            if (KredData_structured.ZUSTAENDIGES_FINANZAMT != "")
+                SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/ctxtLFA1-FISKU", KredData_structured.ZUSTAENDIGES_FINANZAMT)
+
+            LogMessage(LOG_DEBUG, "=== KREDDATA for Row " rowIndex " ===")
+            LogMessage(LOG_DEBUG, "UST_ID_NR: " KredData_structured.UST_ID_NR)
+            LogMessage(LOG_DEBUG, "DUNS_NUMMER: " KredData_structured.DUNS_NUMMER)
+            LogMessage(LOG_DEBUG, "BRANCHE: " KredData_structured.BRANCHE)
+            LogMessage(LOG_DEBUG, "=================================")
+             ;next step: append documents:
+             Sleep SleepTimeShort
+            
+            
+             ;when all is done:
+             ; Execute save command
+             ExecuteSapCommand("SAV")
+             Sleep SleepTimeMedium
+
+            ; Check for and handle any popup messages
+            messageText := HandleSapMessagePopup(rowIndex)
+            if (messageText != "") {
+                LogMessage(LOG_INFO, "Captured SAP message for row " rowIndex ": " messageText)
+            }
+
+            Sleep SleepTimeMedium
+
+        } else {
+            LogMessage(LOG_WARNING, "Could not select tree node: " treeNodeName)
+            continue  ; Skip to next row if we can't select the node
+        }
+
+    } else {
+        LogMessage(LOG_WARNING, "Could not select tree node: " treeNodeName)
+        continue  ; Skip to next row if we can't select the node
+    }
+
+    ; Here you could add more tree nodes processing if needed
+
+    ; Save the vendor data
+    LogMessage(LOG_INFO, "Saving vendor data for row " rowIndex)
+    ; You might need to press a save button or execute a save command here
+    ; ExecuteSapCommand("SAVE") or press save button
+
+    Sleep SleepTimeMedium
+}
+
+; Close Excel when done and show completion message
+LogMessage(LOG_INFO, "Processing complete, closing Excel")
+if (ExcelClose(true)) {
+    LogMessage(LOG_INFO, "Excel closed successfully")
+    TrayTip("Processing complete!", "Success", 0x1)
+} else {
+    LogMessage(LOG_WARNING, "Processing complete, but there was an issue closing Excel")
+    TrayTip("Processing complete, but there was an issue closing Excel", "Warning", 0x2)
+}
+
+LogMessage(LOG_INFO, "=== Script Finished ===")

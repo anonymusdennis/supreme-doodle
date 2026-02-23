@@ -1,0 +1,9 @@
+{
+  "id": "1",
+  "timestamp": "20250806172855",
+  "type": "worker",
+  "updates": {
+    "current_status": "Selecting table mode in SE16XXL"
+  },
+  "workerId": "1"
+}

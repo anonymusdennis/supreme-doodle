@@ -1,424 +1,153 @@
 === ADVANCED SAP SCREEN DUMP ===
-Date: 2025-09-09 10:13:13
+Date: 2026-02-20 16:26:39
 User: wn00224895
-Screen Title: Allgemeine Tabellenanzeige
-Program: SAPLSE16N
-Transaction: SE16N
+Screen Title: SAP
+Program: SAPMSSY0
+Transaction: /TFTO/SE16XXL
 System: DEX
 Client: 401
 User: WN00224895
 Language: DE
-Screen Number: 100
+Screen Number: 120
 
 === SCREEN ELEMENT HIERARCHY ===
 
-ID: wnd[0]
-Type: GuiMainWindow
-Name: wnd[0]
-Full Path: wnd[0]
-Position: Left=1, Top=1
-Size: Width=4000, Height=1220
+ID: wnd[1]
+Type: GuiModalWindow
+Name: wnd[1]
+Full Path: wnd[1]
+Position: Left=2047, Top=309
+Size: Width=602, Height=142
 Changeable: Yes
 ---------------
-Children (6):
-  ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar
-  Type: GuiMenubar
-  Name: mbar
-  Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar
-  Position: Left=45, Top=26
-  Size: Width=3674, Height=18
-  Changeable: No
-  ---------------
-  Children (6):
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]
-    Type: GuiMenu
-    Name: Tabellenanzeige
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]
-    Position: Left=-1, Top=-1
-    Size: Width=-1, Height=-1
-    ---------------
-    Children (3):
-      ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]/menu[0]
-      Type: GuiMenu
-      Name: Ausführen
-      Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]/menu[0]
-      Position: Left=-1, Top=-1
-      Size: Width=-1, Height=-1
-      Changeable: Yes
-      ---------------
-      [Children error: (0x8004046D) 
-The object invoked has disconnected from its clients.
-Source:	SAP Frontend Server]
-      ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]//app/con[0]/ses[1]/wnd[0]/mbar/menu[-1]
-      Type: GuiMenu
-      Name: menu[-1]
-      Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]//app/con[0]/ses[1]/wnd[0]/mbar/menu[-1]
-      Position: Left=-1, Top=-1
-      Size: Width=-1, Height=-1
-      Changeable: No
-      ---------------
-      [Children error: (0x8004046D) 
-The object invoked has disconnected from its clients.
-Source:	SAP Frontend Server]
-      ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]//app/con[0]/ses[1]/wnd[0]/mbar/menu[-1]
-      Type: GuiMenu
-      Name: menu[-1]
-      Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[0]//app/con[0]/ses[1]/wnd[0]/mbar/menu[-1]
-      Position: Left=-1, Top=-1
-      Size: Width=-1, Height=-1
-      Changeable: No
-      ---------------
-      [Children error: (0x8004046D) 
-The object invoked has disconnected from its clients.
-Source:	SAP Frontend Server]
-    [Error getting child 1: (0x80010105) Ausnahmefehler des Servers.]
-    [Error getting child 2: (0x80010105) Ausnahmefehler des Servers.]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[-1]
-    Type: GuiMenu
-    Name: menu[-1]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[-1]
-    Position: Left=-1, Top=-1
-    Size: Width=-1, Height=-1
-    Changeable: No
-    ---------------
-    [Children error: (0x8004046D) 
-The object invoked has disconnected from its clients.
-Source:	SAP Frontend Server]
-    [Error getting child 4: (0x80010105) Ausnahmefehler des Servers.]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[-1]
-    Type: GuiMenu
-    Name: menu[-1]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/mbar//app/con[0]/ses[1]/wnd[0]/mbar/menu[-1]
-    Position: Left=-1, Top=-1
-    Size: Width=-1, Height=-1
-    Changeable: No
-    ---------------
-    [Children error: (0x8004046D) 
-The object invoked has disconnected from its clients.
-Source:	SAP Frontend Server]
-  ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]
+Children (2):
+  ID: wnd[1]//app/con[0]/ses[0]/wnd[1]/tbar[0]
   Type: GuiToolbar
   Name: tbar[0]
-  Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]
-  Position: Left=28, Top=44
-  Size: Width=461, Height=31
-  ---------------
-  Children (18):
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[0]
-    Type: GuiButton
-    Name: btn[0]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[0]
-    Position: Left=36, Top=48
-    Size: Width=22, Height=22
-    Button Text: 
-    Tooltip: Weiter
-    Sample: local_session.findById('wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[0]').Press()
-    ---------------
-    [Children error: This value of type "GuiButton" has no property named "Children".]
-    [Error getting child 1: (0x8000000A) Die für diesen Vorgang erforderlichen Daten sind noch nicht verfügbar.]
-    [Error getting child 2: (0x8000000A) Die für diesen Vorgang erforderlichen Daten sind noch nicht verfügbar.]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[3]
-    Type: GuiButton
-    Name: btn[3]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[3]
-    Size: Width=22, Height=22
-    Button Text: 
-    Tooltip: Zurück   (F3)
-    Sample: local_session.findById('wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[3]').Press()
-    ---------------
-    [Children error: This value of type "GuiButton" has no property named "Children".]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[15]
-    Type: GuiButton
-    Name: btn[15]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[15]
-    Position: Left=292, Top=48
-    Changeable: Yes
-    Button Text: 
-    Tooltip: Beenden   (Umsch+F3)
-    Sample: local_session.findById('wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[15]').Press()
-    ---------------
-    [Children error: This value of type "GuiButton" has no property named "Children".]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[12]
-    Type: GuiButton
-    Name: btn[12]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[12]
-    Position: Left=314, Top=48
-    Size: Width=22, Height=22
-    Changeable: Yes
-    Button Text: 
-    Tooltip: Abbrechen   (F12)
-    Sample: local_session.findById('wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[12]').Press()
-    ---------------
-    [Children error: This value of type "GuiButton" has no property named "Children".]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[86]
-    Type: GuiButton
-    Name: btn[86]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[86]
-    Position: Left=348, Top=48
-    Size: Width=22, Height=22
-    Changeable: No
-    Button Text: 
-    Tooltip: 
-    Sample: local_session.findById('wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[86]').Press()
-    ---------------
-    [Children error: This value of type "GuiButton" has no property named "Children".]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[71]
-    Type: GuiButton
-    Name: btn[71]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[71]
-    Position: Left=370, Top=48
-    Size: Width=22, Height=22
-    Changeable: Yes
-    Button Text: 
-    Tooltip: Suchen   (Strg+F)
-    Sample: local_session.findById('wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[71]').Press()
-    ---------------
-    [Children error: This value of type "GuiButton" has no property named "Children".]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[84]
-    Type: GuiButton
-    Name: btn[84]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[84]
-    Position: Left=392, Top=48
-    Size: Width=22, Height=22
-    Changeable: Yes
-    Button Text: 
-    Tooltip: Weiter suchen   (Strg+G)
-    Sample: local_session.findById('wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[84]').Press()
-    ---------------
-    [Children error: This value of type "GuiButton" has no property named "Children".]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[80]
-    Type: GuiButton
-    Name: btn[80]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[80]
-    Position: Left=426, Top=48
-    Size: Width=22, Height=22
-    Changeable: Yes
-    Button Text: 
-    Tooltip: Erste Seite   (Strg+Bild hoch)
-    Sample: local_session.findById('wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[80]').Press()
-    ---------------
-    [Children error: This value of type "GuiButton" has no property named "Children".]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[81]
-    Type: GuiButton
-    Name: btn[81]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[81]
-    Position: Left=448, Top=48
-    Size: Width=22, Height=22
-    Changeable: Yes
-    Button Text: 
-    Tooltip: Vorige Seite   (Bild hoch)
-    Sample: local_session.findById('wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[81]').Press()
-    ---------------
-    [Children error: This value of type "GuiButton" has no property named "Children".]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[82]
-    Type: GuiButton
-    Name: btn[82]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[82]
-    Position: Left=470, Top=48
-    Size: Width=22, Height=22
-    Changeable: Yes
-    Button Text: 
-    Tooltip: Nächste Seite   (Bild runt)
-    Sample: local_session.findById('wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[82]').Press()
-    ---------------
-    [Children error: This value of type "GuiButton" has no property named "Children".]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[83]
-    Type: GuiButton
-    Name: btn[83]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[83]
-    Position: Left=492, Top=48
-    Size: Width=22, Height=22
-    Changeable: Yes
-    Button Text: 
-    Tooltip: Letzte Seite   (Strg+Bild runt)
-    Sample: local_session.findById('wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[83]').Press()
-    ---------------
-    [Children error: This value of type "GuiButton" has no property named "Children".]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[419]
-    Type: GuiButton
-    Name: btn[419]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[419]
-    Position: Left=526, Top=48
-    Size: Width=22, Height=22
-    Changeable: Yes
-    Button Text: 
-    Tooltip: Neues GUI-Fenster
-    Sample: local_session.findById('wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[419]').Press()
-    ---------------
-    [Children error: This value of type "GuiButton" has no property named "Children".]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[418]
-    Type: GuiButton
-    Name: btn[418]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[418]
-    Position: Left=548, Top=48
-    Size: Width=22, Height=22
-    Changeable: Yes
-    Button Text: 
-    Tooltip: Erstellt eine Verknüpfung
-    Sample: local_session.findById('wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[418]').Press()
-    ---------------
-    [Children error: This value of type "GuiButton" has no property named "Children".]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[1]
-    Type: GuiButton
-    Name: btn[1]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[1]
-    Position: Left=582, Top=48
-    Size: Width=22, Height=22
-    Changeable: Yes
-    Button Text: 
-    Tooltip: Hilfe   (F1)
-    Sample: local_session.findById('wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[1]').Press()
-    ---------------
-    [Children error: This value of type "GuiButton" has no property named "Children".]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[446]
-    Type: GuiButton
-    Name: btn[446]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[446]
-    Position: Left=604, Top=48
-    Size: Width=22, Height=22
-    Changeable: Yes
-    Button Text: 
-    Tooltip: Lok. Layout anpassen (Alt+F12)
-    Sample: local_session.findById('wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/btn[446]').Press()
-    ---------------
-    [Children error: This value of type "GuiButton" has no property named "Children".]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/okcd
-    Type: GuiOkCodeField
-    Name: okcd
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]//app/con[0]/ses[1]/wnd[0]/tbar[0]/okcd
-    Position: Left=68, Top=49
-    Size: Width=142, Height=22
-    Changeable: Yes
-    ---------------
-    [Children error: This value of type "GuiOkCodeField" has no property named "Children".]
-  ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/titl
-  Type: GuiTitlebar
-  Name: titl
-  Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/titl
-  Position: Left=28, Top=84
-  Size: Width=3946, Height=31
-  ---------------
-  Children (0):
-  ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]
-  Type: GuiToolbar
-  Name: tbar[1]
-  Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]
-  Position: Left=28, Top=115
-  Size: Width=3946, Height=34
+  Full Path: wnd[1]//app/con[0]/ses[0]/wnd[1]/tbar[0]
+  Position: Left=2048, Top=414
+  Size: Width=600, Height=36
   Changeable: Yes
   ---------------
-  Children (17):
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[8]
+  Children (2):
+    ID: wnd[1]//app/con[0]/ses[0]/wnd[1]/tbar[0]//app/con[0]/ses[0]/wnd[1]/tbar[0]/btn[0]
     Type: GuiButton
-    Name: btn[8]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[8]
-    Position: Left=38, Top=121
+    Name: btn[0]
+    Full Path: wnd[1]//app/con[0]/ses[0]/wnd[1]/tbar[0]//app/con[0]/ses[0]/wnd[1]/tbar[0]/btn[0]
+    Position: Left=2526, Top=423
     Size: Width=20, Height=20
     Changeable: Yes
     Button Text: 
-    Tooltip: Online   (F8)
-    Sample: local_session.findById('wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[8]').Press()
+    Tooltip: Weiter   (Enter)
+    Sample: local_session.FindById('wnd[1]//app/con[0]/ses[0]/wnd[1]/tbar[0]//app/con[0]/ses[0]/wnd[1]/tbar[0]/btn[0]').Press()
     ---------------
-    [Children error: This value of type "GuiButton" has no property named "Children".]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[32]
+    [Children error: ]
+    ID: wnd[1]//app/con[0]/ses[0]/wnd[1]/tbar[0]//app/con[0]/ses[0]/wnd[1]/tbar[0]/btn[2]
     Type: GuiButton
-    Name: btn[32]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[32]
-    Position: Left=62, Top=121
-    Size: Width=79, Height=20
+    Name: btn[2]
+    Full Path: wnd[1]//app/con[0]/ses[0]/wnd[1]/tbar[0]//app/con[0]/ses[0]/wnd[1]/tbar[0]/btn[2]
+    Position: Left=2548, Top=423
+    Size: Width=93, Height=20
     Changeable: Yes
-    Button Text: Hintergrund
-    Tooltip: Hintergrundverarbeitung   (Strg+F8)
-    Sample: local_session.findById('wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[32]').Press()
+    Button Text: Auswählen
+    Tooltip: Auswählen   (F2)
+    Sample: local_session.FindById('wnd[1]//app/con[0]/ses[0]/wnd[1]/tbar[0]//app/con[0]/ses[0]/wnd[1]/tbar[0]/btn[2]').Press()
     ---------------
-    [Children error: This value of type "GuiButton" has no property named "Children".]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[7]
-    Type: GuiButton
-    Name: btn[7]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[7]
-    Position: Left=145, Top=121
-    Size: Width=98, Height=20
-    Changeable: Yes
-    Button Text: Anzahl Einträge
-    Tooltip: Anzahl Einträge   (F7)
-    Sample: local_session.findById('wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[7]').Press()
+    [Children error: ]
+  ID: wnd[1]//app/con[0]/ses[0]/wnd[1]/usr
+  Type: GuiUserArea
+  Name: usr
+  Full Path: wnd[1]//app/con[0]/ses[0]/wnd[1]/usr
+  Position: Left=2048, Top=334
+  Size: Width=600, Height=80
+  Changeable: Yes
+  ---------------
+  Children (5):
+    ID: wnd[1]//app/con[0]/ses[0]/wnd[1]/usr//app/con[0]/ses[0]/wnd[1]/usr/lbl[0,0]
+    Type: GuiLabel
+    Name: 
+    Full Path: wnd[1]//app/con[0]/ses[0]/wnd[1]/usr//app/con[0]/ses[0]/wnd[1]/usr/lbl[0,0]
+    Position: Left=2052, Top=342
+    Size: Width=525, Height=15
+    Changeable: No
+    Text: 
+    MaxLength: 75
+    Tooltip: 
+    Sample Set: SetSapFieldDirect('wnd[1]//app/con[0]/ses[0]/wnd[1]/usr//app/con[0]/ses[0]/wnd[1]/usr/lbl[0,0]', 'value')
     ---------------
-    [Children error: This value of type "GuiButton" has no property named "Children".]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[13]
-    Type: GuiButton
-    Name: btn[13]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[13]
-    Position: Left=257, Top=121
-    Size: Width=20, Height=20
-    Changeable: Yes
-    Button Text: 
-    Tooltip: Alle markieren   (Umsch+F1)
-    Sample: local_session.findById('wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[13]').Press()
+    [Children error: ]
+    ID: wnd[1]//app/con[0]/ses[0]/wnd[1]/usr//app/con[0]/ses[0]/wnd[1]/usr/lbl[0,1]
+    Type: GuiLabel
+    Name: 
+    Full Path: wnd[1]//app/con[0]/ses[0]/wnd[1]/usr//app/con[0]/ses[0]/wnd[1]/usr/lbl[0,1]
+    Position: Left=2052, Top=358
+    Size: Width=16, Height=15
+    Changeable: No
+    Text: 
+    MaxLength: 0
+    Tooltip: Führt die Expressinformation aus
+    Sample Set: SetSapFieldDirect('wnd[1]//app/con[0]/ses[0]/wnd[1]/usr//app/con[0]/ses[0]/wnd[1]/usr/lbl[0,1]', 'value')
     ---------------
-    [Children error: This value of type "GuiButton" has no property named "Children".]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[30]
-    Type: GuiButton
-    Name: btn[30]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[30]
-    Position: Left=281, Top=121
-    Size: Width=20, Height=20
-    Changeable: Yes
-    Button Text: 
-    Tooltip: Schlüsselfelder für Ausgabe markieren   (Strg+F6)
-    Sample: local_session.findById('wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[30]').Press()
+    [Children error: ]
+    ID: wnd[1]//app/con[0]/ses[0]/wnd[1]/usr//app/con[0]/ses[0]/wnd[1]/usr/lbl[2,1]
+    Type: GuiLabel
+    Name: 
+    Full Path: wnd[1]//app/con[0]/ses[0]/wnd[1]/usr//app/con[0]/ses[0]/wnd[1]/usr/lbl[2,1]
+    Position: Left=2066, Top=358
+    Size: Width=14, Height=15
+    Changeable: No
+    Text: 
+    MaxLength: 2
+    Tooltip: 
+    Sample Set: SetSapFieldDirect('wnd[1]//app/con[0]/ses[0]/wnd[1]/usr//app/con[0]/ses[0]/wnd[1]/usr/lbl[2,1]', 'value')
     ---------------
-    [Children error: This value of type "GuiButton" has no property named "Children".]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[18]
-    Type: GuiButton
-    Name: btn[18]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[18]
-    Position: Left=305, Top=121
-    Size: Width=20, Height=20
-    Changeable: Yes
-    Button Text: 
-    Tooltip: Alle Mark. löschen   (Umsch+F6)
-    Sample: local_session.findById('wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[18]').Press()
+    [Children error: ]
+    ID: wnd[1]//app/con[0]/ses[0]/wnd[1]/usr//app/con[0]/ses[0]/wnd[1]/usr/lbl[4,1]
+    Type: GuiLabel
+    Name: 
+    Full Path: wnd[1]//app/con[0]/ses[0]/wnd[1]/usr//app/con[0]/ses[0]/wnd[1]/usr/lbl[4,1]
+    Position: Left=2080, Top=358
+    Size: Width=7, Height=15
+    Changeable: No
+    Text: <
+    MaxLength: 1
+    Tooltip: 
+    Sample Set: SetSapFieldDirect('wnd[1]//app/con[0]/ses[0]/wnd[1]/usr//app/con[0]/ses[0]/wnd[1]/usr/lbl[4,1]', 'value')
     ---------------
-    [Children error: This value of type "GuiButton" has no property named "Children".]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[14]
-    Type: GuiButton
-    Name: btn[14]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[14]
-    Position: Left=329, Top=121
-    Size: Width=20, Height=20
-    Changeable: Yes
-    Button Text: 
-    Tooltip: Zeile löschen   (Umsch+F2)
-    Sample: local_session.findById('wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[14]').Press()
+    [Children error: ]
+    ID: wnd[1]//app/con[0]/ses[0]/wnd[1]/usr//app/con[0]/ses[0]/wnd[1]/usr/lbl[10,1]
+    Type: GuiLabel
+    Name: 
+    Full Path: wnd[1]//app/con[0]/ses[0]/wnd[1]/usr//app/con[0]/ses[0]/wnd[1]/usr/lbl[10,1]
+    Position: Left=2122, Top=358
+    Size: Width=455, Height=15
+    Changeable: No
+    Text:  Drücken, um die Ergebnisse von Script '$3127BKPF_MSEG' zu sehen
+    MaxLength: 66
+    Tooltip: 
+    Sample Set: SetSapFieldDirect('wnd[1]//app/con[0]/ses[0]/wnd[1]/usr//app/con[0]/ses[0]/wnd[1]/usr/lbl[10,1]', 'value')
     ---------------
-    [Children error: This value of type "GuiButton" has no property named "Children".]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[25]
-    Type: GuiButton
-    Name: btn[25]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[25]
-    Position: Left=353, Top=121
-    Size: Width=107, Height=20
-    Changeable: Yes
-    Button Text: Alle Eingaben
-    Tooltip: Alle Eingaben löschen   (Strg+F1)
-    Sample: local_session.findById('wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[25]').Press()
-    ---------------
-    [Children error: This value of type "GuiButton" has no property named "Children".]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[28]
-    Type: GuiButton
-    Name: btn[28]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[28]
-    Position: Left=464, Top=121
-    Size: Width=20, Height=20
-    Changeable: Yes
-    Button Text: 
-    Tooltip: Schmale Spaltenbreite   (Strg+F4)
-    Sample: local_session.findById('wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[28]').Press()
-    ---------------
-    [Children error: This value of type "GuiButton" has no property named "Children".]
-    ID: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[29]
-    Type: GuiButton
-    Name: btn[29]
-    Full Path: wnd[0]//app/con[0]/ses[1]/wnd[0]/tbar[1]//app/con[0]/ses[1]/wnd[0]/tbar[1]/btn[29]
-    Position: Left=488, Top=121
-    Size: Width=20, Height=20
+    [Children error: ]
+
+=== INPUT FIELDS SUMMARY ===
+
+
+=== BUTTONS SUMMARY ===
+
+• Path: wnd[1]//app/con[0]/ses[0]/wnd[1]/tbar[0]//app/con[0]/ses[0]/wnd[1]/tbar[0]/btn[0]
+  Sample: local_session.FindById('wnd[1]//app/con[0]/ses[0]/wnd[1]/tbar[0]//app/con[0]/ses[0]/wnd[1]/tbar[0]/btn[0]').Press()
+
+• Path: wnd[1]//app/con[0]/ses[0]/wnd[1]/tbar[0]//app/con[0]/ses[0]/wnd[1]/tbar[0]/btn[2]
+  Text: Auswählen
+  Sample: local_session.FindById('wnd[1]//app/con[0]/ses[0]/wnd[1]/tbar[0]//app/con[0]/ses[0]/wnd[1]/tbar[0]/btn[2]').Press()
+
+
+=== TABLES AND GRIDS SUMMARY ===
+
+
+=== SAMPLE SCRIPTS ===
+
+// Sample: Set a text field
+local_session.FindById('wnd[0]/usr/txtFIELD').Text := 'value'
+// Sample: Press a button
+local_session.FindById('wnd[0]/tbar[0]/btn[0]').Press()

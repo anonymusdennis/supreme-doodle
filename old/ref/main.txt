@@ -1,0 +1,159 @@
+#Requires AutoHotkey v2.0
+#SingleInstance Force
+
+; ==================== INCLUDES ====================
+#Include "declarations.ahk2"
+#Include "excel_functions.ahk2"
+#Include "sap_functions.ahk2"
+#Include "transaction_specific.ahk2"
+
+; ==================== INITIAL SETUP ====================
+ProcessSetPriority("High")
+SetWorkingDir(A_ScriptDir)
+SetKeyDelay(100, 100)
+SetTitleMatchMode(2)
+
+; Create logs directory
+if (!DirExist(A_ScriptDir "\logs"))
+    DirCreate(A_ScriptDir "\logs")
+
+; Delete existing log file for fresh start
+if (FileExist(LogFile))
+    FileDelete LogFile
+
+; ==================== LOGGING FUNCTION ====================
+LogMessage(level, message) {
+    timestamp := FormatTime(, "yyyy-MM-dd HH:mm:ss")
+    logEntry := timestamp " [" level "] " message "`n"
+    
+    try {
+        FileAppend(logEntry, LogFile)
+    } catch Error as e {
+        OutputDebug("Log Error: " e.Message " - Original message: " logEntry)
+    }
+    
+    ; Set error flag for warnings and errors
+    if (level = LOG_ERROR || level = LOG_WARNING) {
+        global Error_while_running := true
+    }
+}
+
+; ==================== HOTKEYS ====================
+^Esc:: {
+    LogMessage(LOG_INFO, "Script terminated by user (Ctrl+Esc)")
+    CleanupExcel()
+    ExitApp
+}
+
+; ==================== MAIN EXECUTION ====================
+Main() {
+    ; Initialize
+    LogMessage(LOG_INFO, "=== Script Started ===")
+    LogMessage(LOG_INFO, "Current User: " A_UserName)
+    LogMessage(LOG_INFO, "Current Date: " FormatTime(, "yyyy-MM-dd HH:mm:ss"))
+    LogMessage(LOG_INFO, "Excel File: " ExcelFilePath)
+    
+    ; Clean up previous session
+    if FileExist("clip.txt")
+        FileDelete "clip.txt"
+    
+    ; Initial notification
+    TrayTip("SAP Vendor Creation Started", "Open SAP and login. Press Ctrl+Esc to stop.", 0x1)
+    
+    ; Check Excel file exists
+    if (!FileExist(ExcelFilePath)) {
+        LogMessage(LOG_ERROR, "Excel file not found: " ExcelFilePath)
+        MsgBox("Excel file not found: " ExcelFilePath, "File Error", 0x10)
+        ExitApp()
+    }
+    
+    ; Connect to SAP
+    LogMessage(LOG_INFO, "Connecting to SAP...")
+    if (!ConnectSAP()) {
+        LogMessage(LOG_ERROR, "Failed to connect to SAP")
+        MsgBox("Failed to connect to SAP. Make sure SAP is open and logged in.", "Connection Error", 0x10)
+        ExitApp()
+    }
+    
+    ; Open Excel
+    LogMessage(LOG_INFO, "Opening Excel file...")
+    if (!ExcelOpen(ExcelFilePath)) {
+        LogMessage(LOG_ERROR, "Failed to open Excel file")
+        MsgBox("Failed to open Excel file", "Excel Error", 0x10)
+        ExitApp()
+    }
+    
+    ; Ensure error sheet exists
+    EnsureErrorSheet()
+    
+    ; Select first worksheet
+    if (!ExcelSelectSheet(1)) {
+        LogMessage(LOG_ERROR, "Failed to select first worksheet")
+        ExcelClose()
+        ExitApp()
+    }
+    
+    ; Get data range
+    lastRow := ExcelGetLastRow("A")
+    
+    if (lastRow <= 1) {
+        LogMessage(LOG_ERROR, "No data found in Excel file")
+        MsgBox("No data found in Excel file", "Data Error", 0x10)
+        ExcelClose()
+        ExitApp()
+    }
+    
+    LogMessage(LOG_INFO, "Found " (lastRow - 1) " data rows to process")
+    TrayTip("Processing " (lastRow - 1) " vendors", "Processing Started", 0x1)
+    
+    ; Process each row
+    successCount := 0
+    errorCount := 0
+    
+    Loop (lastRow - 1) {
+        rowIndex := A_Index + 1  ; Skip header row
+        
+        ; Reset error flag for each row
+        global Error_while_running := false
+        
+        try {
+            if (ProcessVendorRow(rowIndex)) {
+                if (!Error_while_running) {
+                    successCount++
+                } else {
+                    errorCount++
+                    LogMessage(LOG_INFO, "Row " rowIndex " completed with warnings/errors")
+                }
+            } else {
+                errorCount++
+            }
+        } catch Error as e {
+            LogMessage(LOG_ERROR, "Unhandled error in row " rowIndex ": " e.Message)
+            LogErrorToExcel(rowIndex, "UNHANDLED_ERROR", e.Message, "Main Loop", "")
+            errorCount++
+        }
+        
+        ; Continue to next row regardless of errors
+    }
+    
+    ; Completion
+    LogMessage(LOG_INFO, "Processing complete. Success: " successCount ", Errors: " errorCount)
+    
+    ; Save and close Excel
+    LogMessage(LOG_INFO, "Closing Excel...")
+    if (ExcelClose(true)) {
+        LogMessage(LOG_INFO, "Excel closed successfully")
+    }
+    
+    ; Final notification
+    completionMsg := "Processing complete!`nSuccess: " successCount "`nErrors: " errorCount
+    if (errorCount > 0) {
+        completionMsg .= "`n`nCheck Sheet 5 for error details."
+    }
+    
+    MsgBox(completionMsg, "Completion", 0x40)
+    LogMessage(LOG_INFO, "=== Script Finished ===")
+}
+
+; Run main function
+Main()

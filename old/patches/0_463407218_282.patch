@@ -1,0 +1,9 @@
+{
+  "id": "0",
+  "timestamp": "20250806172346",
+  "type": "worker",
+  "updates": {
+    "current_status": "Waiting for tasks"
+  },
+  "workerId": "0"
+}
