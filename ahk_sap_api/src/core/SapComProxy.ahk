@@ -77,13 +77,14 @@ class SapComProxy {
         this._EnsureMemberAllowed(member)
         args := [value]
         this._CallPolicy("On_Call", "set", member, args)
+        comValue := this._NormalizeComValue(value)
 
         retries := 0
         maxRetries := this._GetMaxRetries()
 
         while true {
             try {
-                this._com.%member% := value
+                this._com.%member% := comValue
                 break
             } catch {
                 retries += 1
@@ -101,13 +102,14 @@ class SapComProxy {
     InvokeCall(member, args*) {
         this._EnsureMemberAllowed(member)
         this._CallPolicy("On_Call", "call", member, args)
+        comArgs := this._NormalizeComArgs(args)
 
         retries := 0
         maxRetries := this._GetMaxRetries()
 
         while true {
             try {
-                result := this._com.%member%(args*)
+                result := this._com.%member%(comArgs*)
                 break
             } catch {
                 retries += 1
@@ -130,8 +132,8 @@ class SapComProxy {
         }
         return 25
     }
-     ; now returns boolean: true=retry, false=stop
-     _HandleError(op, member, args, retries := 0, maxRetries := 0) {
+    ; now returns boolean: true=retry, false=stop
+    _HandleError(op, member, args, retries := 0, maxRetries := 0) {
         if (maxRetries && retries > maxRetries) {
             ; stop retrying
             return false
@@ -145,6 +147,21 @@ class SapComProxy {
             retry := true
         }
         return retry
+    }
+
+    _NormalizeComArgs(args) {
+        normalized := []
+        for _, value in args {
+            normalized.Push(this._NormalizeComValue(value))
+        }
+        return normalized
+    }
+
+    _NormalizeComValue(value) {
+        if (value is SapComProxy) {
+            return value.Raw()
+        }
+        return value
     }
 
     _WrapResult(member, op, value, args) {
