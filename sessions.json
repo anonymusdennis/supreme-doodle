@@ -6,30 +6,74 @@
   "statistics": {
     "completedTasks": 0,
     "failedTasks": 0,
-    "startTime": "20260306124924",
+    "startTime": "20260306165841",
     "totalTasks": 520
   },
   "tasks": [
     {
       "assignedWorker": 0,
       "destination": "NONE",
-      "endTime": "20260306125253",
+      "endTime": "",
       "error": "",
-      "id": 6,
-      "startTime": "20260306125203",
+      "id": 1,
+      "startTime": "20260306165943",
+      "status": "pending",
+      "tableName": "\/WUE\/KOBE_C",
+      "working": 1
+    },
+    {
+      "assignedWorker": 1,
+      "destination": "NONE",
+      "endTime": "20260306170105",
+      "error": "",
+      "id": 2,
+      "startTime": "20260306165951",
       "status": "completed",
-      "tableName": "\/SAPLOM\/FMO_PROP",
+      "tableName": "\/SAPLOM\/FMO_ATTR",
       "working": 0
     },
     {
       "assignedWorker": 0,
       "destination": "NONE",
-      "endTime": "20260306125306",
+      "endTime": "20260306170132",
+      "error": "SE16XXL processing failed",
+      "id": 3,
+      "startTime": "20260306170105",
+      "status": "failed",
+      "tableName": "\/SAPLOM\/FMO_DTL",
+      "working": 0
+    },
+    {
+      "assignedWorker": 1,
+      "destination": "NONE",
+      "endTime": "",
       "error": "",
-      "id": 7,
-      "startTime": "20260306125253",
-      "status": "completed",
-      "tableName": "\/SAPLOM\/FMO_RSLH",
+      "id": 4,
+      "startTime": "20260306170133",
+      "status": "pending",
+      "tableName": "\/SAPLOM\/FMO_FLEX",
+      "working": 1
+    },
+    {
+      "assignedWorker": 0,
+      "destination": "NONE",
+      "endTime": "",
+      "error": "",
+      "id": 5,
+      "startTime": "",
+      "status": "pending",
+      "tableName": "\/SAPLOM\/FMO_INT",
+      "working": 0
+    },
+    {
+      "assignedWorker": 1,
+      "destination": "NONE",
+      "endTime": "",
+      "error": "",
+      "id": 6,
+      "startTime": "",
+      "status": "pending",
+      "tableName": "\/SAPLOM\/FMO_PROP",
       "working": 0
     },
     {
@@ -37,11 +81,22 @@
       "destination": "NONE",
       "endTime": "",
       "error": "",
+      "id": 7,
+      "startTime": "",
+      "status": "pending",
+      "tableName": "\/SAPLOM\/FMO_RSLH",
+      "working": 0
+    },
+    {
+      "assignedWorker": 1,
+      "destination": "NONE",
+      "endTime": "",
+      "error": "",
       "id": 8,
-      "startTime": "20260306125307",
+      "startTime": "",
       "status": "pending",
       "tableName": "\/SAPLOM\/FMO_RSLT",
-      "working": 1
+      "working": 0
     },
     {
       "assignedWorker": 0,
@@ -55,7 +110,7 @@
       "working": 0
     },
     {
-      "assignedWorker": 0,
+      "assignedWorker": 1,
       "destination": "NONE",
       "endTime": "",
       "error": "",
@@ -68,14 +123,24 @@
   ],
   "workers": [
     {
-      "completedTasks": 7,
+      "completedTasks": 1,
       "connectionIndex": 0,
-      "currentTask": "\/SAPLOM\/FMO_RSLT -> NONE",
-      "current_status": "No cached script found for \/SAPLOM\/FMO_RSLT - using DD03L flow",
+      "currentTask": "\/SAPLOM\/FMO_FLEX -> NONE",
+      "current_status": "Inserting script and syntax check (attempt 1)",
       "id": 0,
-      "lastUpdate": "20260306125307",
-      "sessionIndex": 1,
+      "lastUpdate": "20260306170133",
+      "sessionIndex": 0,
       "status": "working"
+    },
+    {
+      "completedTasks": 0,
+      "connectionIndex": 0,
+      "currentTask": "",
+      "current_status": "Batch 1\/52 - Starting",
+      "id": 1,
+      "lastUpdate": "20260306165847",
+      "sessionIndex": 1,
+      "status": "starting"
     }
   ]
 }

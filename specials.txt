@@ -1,6 +1,2 @@
 
-/WUE/KOBE_C _ NONE Could not find any entries for this table.
-
 /SAPLOM/FMO_DTL _ NONE Could not find any entries for this table.
-
-/SAPLOM/FMO_RSLH _ NONE Could not find any entries for this table.
