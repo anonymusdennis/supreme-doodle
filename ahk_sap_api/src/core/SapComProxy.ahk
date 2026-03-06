@@ -2,9 +2,7 @@
 
 class SapComProxy {
     __New(comObj, typeName := "GuiUnknown", path := "", policy := "", strict := false) {
-        if (comObj is SapComProxy) {
-            comObj := comObj.Raw()
-        }
+        comObj := this._UnwrapComTarget(comObj)
         this.DefineProp("_com", {Value: comObj})
         this.DefineProp("_typeName", {Value: typeName})
         this.DefineProp("_path", {Value: path == "" ? typeName : path})
@@ -57,7 +55,7 @@ class SapComProxy {
 
         while true {
             try {
-                result := this._com.%member%
+                result := this._GetComTarget().%member%
                 break
             } catch {
                 retries += 1
@@ -84,7 +82,7 @@ class SapComProxy {
 
         while true {
             try {
-                this._com.%member% := comValue
+                this._GetComTarget().%member% := comValue
                 break
             } catch {
                 retries += 1
@@ -109,7 +107,7 @@ class SapComProxy {
 
         while true {
             try {
-                result := this._com.%member%(comArgs*)
+                result := this._GetComTarget().%member%(comArgs*)
                 break
             } catch {
                 retries += 1
@@ -158,8 +156,17 @@ class SapComProxy {
     }
 
     _NormalizeComValue(value) {
-        if (value is SapComProxy) {
-            return value.Raw()
+        return this._UnwrapComTarget(value)
+    }
+
+    _GetComTarget() {
+        this._com := this._UnwrapComTarget(this._com)
+        return this._com
+    }
+
+    _UnwrapComTarget(value) {
+        while (value is SapComProxy) {
+            value := value.Raw()
         }
         return value
     }
