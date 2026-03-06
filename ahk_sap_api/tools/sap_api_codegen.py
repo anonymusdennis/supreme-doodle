@@ -24,6 +24,17 @@ METHOD_RE = re.compile(r"^\s*([A-Za-z0-9_]+)\s*\(")
 PROPERTY_RE = re.compile(r"^\s*(?:readonly\s+)?([A-Za-z0-9_]+)\s*:")
 INVOKE_RE = re.compile(r'Invoke(?:Call|Get|Set)\("([A-Za-z0-9_]+)"')
 CLASS_RE = re.compile(r"^\s*class\s+([A-Za-z0-9_]+)\s+extends\s+SapComProxy")
+DOC_BASENAME = "sap_gui_scripting_api_760_condensed_index.md"
+
+def find_repo_root(script_path: Path) -> Path:
+    for current in [script_path.parent, *script_path.parents]:
+        # Both checks ensure we found ahk_sap_api (not a parent monorepo folder):
+        # the API document and the wrapper source directory must exist together.
+        if (current / DOC_BASENAME).exists() and (current / "src").is_dir():
+            return current
+    raise FileNotFoundError(
+        f"Could not locate ahk_sap_api repository root. Expected '{DOC_BASENAME}' and 'src/' in the same folder."
+    )
 
 
 def parse_interfaces(doc_path: Path) -> dict[str, InterfaceDef]:
@@ -71,6 +82,13 @@ def parse_interfaces(doc_path: Path) -> dict[str, InterfaceDef]:
 
 
 def merged_members(type_name: str, interfaces: dict[str, InterfaceDef], stack: set[str] | None = None) -> tuple[set[str], set[str]]:
+    """Resolve all members for an interface, including inherited members.
+
+    The stack set tracks the current recursion chain to avoid cycles in inheritance
+    definitions and to keep traversal safe if malformed docs introduce loops.
+
+    Returns a tuple of (methods, properties) merged with inherited interfaces.
+    """
     if stack is None:
         stack = set()
     if type_name in stack or type_name not in interfaces:
@@ -119,7 +137,8 @@ def lint_wrapper_members(repo_root: Path, interfaces: dict[str, InterfaceDef]) -
 
     for file_path in sorted(types_dir.glob("*.ahk")):
         type_name = ""
-        for line in file_path.read_text(encoding="utf-8").splitlines():
+        lines = file_path.read_text(encoding="utf-8").splitlines()
+        for line in lines:
             m_class = CLASS_RE.match(line)
             if m_class:
                 type_name = m_class.group(1)
@@ -131,7 +150,7 @@ def lint_wrapper_members(repo_root: Path, interfaces: dict[str, InterfaceDef]) -
         methods, properties = merged_members(type_name, interfaces)
         allowed = methods | properties
 
-        for idx, line in enumerate(file_path.read_text(encoding="utf-8").splitlines(), start=1):
+        for idx, line in enumerate(lines, start=1):
             if "sap-lint:ignore" in line:
                 continue
             for m_call in INVOKE_RE.finditer(line):
@@ -154,8 +173,8 @@ def main() -> int:
     parser.add_argument("--lint-wrappers", action="store_true", help="lint src/types wrappers against API docs")
     args = parser.parse_args()
 
-    repo_root = Path(__file__).resolve().parents[1]
-    doc_path = repo_root / "sap_gui_scripting_api_760_condensed_index.md"
+    repo_root = find_repo_root(Path(__file__).resolve())
+    doc_path = repo_root / DOC_BASENAME
     interfaces = parse_interfaces(doc_path)
 
     exit_code = 0

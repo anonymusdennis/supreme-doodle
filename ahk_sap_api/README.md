@@ -27,15 +27,15 @@ See `/examples/demo_rot_attach.ahk` for a runnable example.
 Generate snippets (all interfaces/members from SAP docs):
 
 ```bash
-python /home/runner/work/supreme-doodle/supreme-doodle/ahk_sap_api/tools/sap_api_codegen.py --generate-snippets
+python ahk_sap_api/tools/sap_api_codegen.py --generate-snippets
 ```
 
 This writes:
 
-- `/home/runner/work/supreme-doodle/supreme-doodle/ahk_sap_api/vscode/sap-gui-scripting.code-snippets`
+- `ahk_sap_api/vscode/sap-gui-scripting.code-snippets`
 
 Lint typed wrappers (`src/types/*.ahk`) against the SAP API docs:
 
 ```bash
-python /home/runner/work/supreme-doodle/supreme-doodle/ahk_sap_api/tools/sap_api_codegen.py --lint-wrappers
+python ahk_sap_api/tools/sap_api_codegen.py --lint-wrappers
 ```

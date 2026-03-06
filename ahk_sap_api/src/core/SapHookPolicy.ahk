@@ -34,8 +34,8 @@ class SapHookPolicy {
     _TryCloseExpressPopup(proxy, setNoMore := false) {
         try {
             if (setNoMore) {
-                noMore := proxy.InvokeCall("FindById", "wnd[1]/usr/chkG_NO_MORE")
-                noMore.InvokeSet("Selected", true)
+                noMoreCheckbox := proxy.InvokeCall("FindById", "wnd[1]/usr/chkG_NO_MORE")
+                noMoreCheckbox.InvokeSet("Selected", true)
             }
 
             okButton := proxy.InvokeCall("FindById", "wnd[1]/tbar[0]/btn[0]")
