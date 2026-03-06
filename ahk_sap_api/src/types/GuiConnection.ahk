@@ -1,13 +1,25 @@
 #Requires AutoHotkey v2.0
 
-class GuiConnection extends SapComProxy {
+class GuiConnection extends GuiContainer {
     __New(comObj, policy := "", strict := false, path := "/app/con[0]") {
-        super.__New(comObj, "GuiConnection", path, policy, strict)
+        super.__New(comObj, policy, strict, path)
     }
 
-    Children {
+    ConnectionString {
         get {
-            return this.InvokeGet("Children")
+            return this.InvokeGet("ConnectionString")
+        }
+    }
+
+    Description {
+        get {
+            return this.InvokeGet("Description")
+        }
+    }
+
+    DisabledByServer {
+        get {
+            return this.InvokeGet("DisabledByServer")
         }
     }
 
@@ -15,5 +27,13 @@ class GuiConnection extends SapComProxy {
         get {
             return this.InvokeGet("Sessions")
         }
+    }
+
+    CloseConnection() {
+        return this.InvokeCall("CloseConnection")
+    }
+
+    CloseSession(sessionId) {
+        return this.InvokeCall("CloseSession", sessionId)
     }
 }

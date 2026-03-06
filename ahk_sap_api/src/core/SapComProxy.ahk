@@ -1,12 +1,10 @@
 #Requires AutoHotkey v2.0
 
 class SapComProxy {
-    static _typeClassMap := ""
-
     __New(comObj, typeName := "GuiUnknown", path := "", policy := "", strict := false) {
         this.DefineProp("_com", {Value: comObj})
         this.DefineProp("_typeName", {Value: typeName})
-        this.DefineProp("_path", {Value: path = "" ? typeName : path})
+        this.DefineProp("_path", {Value: path == "" ? typeName : path})
         this.DefineProp("_policy", {Value: IsObject(policy) ? policy : SapHookPolicy()})
         this.DefineProp("_strict", {Value: strict})
         this.DefineProp("_allow", {Value: SapTypeRegistry.GetAllowlist(typeName)})
@@ -153,19 +151,8 @@ class SapComProxy {
 
         typeName := SapTypeRegistry.DetectTypeName(value)
         childPath := this._BuildPath(member, op, args)
-        if (!IsObject(SapComProxy._typeClassMap)) {
-            SapComProxy._typeClassMap := Map(
-                "GuiCollection", GuiCollection,
-                "GuiComponentCollection", GuiComponentCollection,
-                "GuiApplication", GuiApplication,
-                "GuiConnection", GuiConnection,
-                "GuiSession", GuiSession,
-                "GuiFrameWindow", GuiFrameWindow,
-                "GuiVComponent", GuiVComponent
-            )
-        }
-        if (SapComProxy._typeClassMap.Has(typeName)) {
-            proxyClass := SapComProxy._typeClassMap[typeName]
+        proxyClass := SapTypeRegistry.GetProxyClass(typeName)
+        if (proxyClass != "") {
             return proxyClass(value, this._policy, this._strict, childPath)
         }
 
