@@ -9,6 +9,7 @@ class SapComProxy {
         this.DefineProp("_policy", {Value: IsObject(policy) ? policy : SapHookPolicy()})
         this.DefineProp("_strict", {Value: strict})
         this.DefineProp("_allow", {Value: SapTypeRegistry.GetAllowlist(typeName)})
+        this.DefineProp("_inOnErrorPolicy", {Value: false, Writable: true})
     }
 
     __Get(name, params) {
@@ -136,7 +137,6 @@ class SapComProxy {
             ; stop retrying
             return false
         }
-
         retry := false
         r := this._CallPolicy("On_Error", op, member, args)
 
@@ -241,7 +241,15 @@ class SapComProxy {
             if (methodName = "After_Call") {
                 return this._policy.After_Call(op, this._typeName, member, this._path, data, this)
             } else if (methodName = "On_Error") {
-                return this._policy.On_Error(op, this._typeName, member, this._path, data, this)
+                if (this._inOnErrorPolicy) {
+                    return false
+                }
+                this._inOnErrorPolicy := true
+                try {
+                    return this._policy.On_Error(op, this._typeName, member, this._path, data, this)
+                } finally {
+                    this._inOnErrorPolicy := false
+                }
             } else {
                 return this._policy.On_Call(op, this._typeName, member, this._path, data, this)
             }
