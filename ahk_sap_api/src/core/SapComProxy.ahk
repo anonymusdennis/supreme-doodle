@@ -132,7 +132,7 @@ class SapComProxy {
         }
         return 25
     }
-     ; now returns boolean: true=retry, false=stop
+    ; now returns boolean: true=retry, false=stop
     _HandleError(op, member, args, retries := 0, maxRetries := 0) {
         if (maxRetries && retries > maxRetries) {
             ; stop retrying
