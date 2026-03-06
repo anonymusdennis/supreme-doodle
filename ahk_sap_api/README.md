@@ -39,3 +39,9 @@ Lint typed wrappers (`src/types/*.ahk`) against the SAP API docs:
 ```bash
 python ahk_sap_api/tools/sap_api_codegen.py --lint-wrappers
 ```
+
+Lint wrapper coverage and detect direct raw COM touchpoints outside the central proxy:
+
+```bash
+python ahk_sap_api/tools/sap_api_codegen.py --lint-coverage
+```

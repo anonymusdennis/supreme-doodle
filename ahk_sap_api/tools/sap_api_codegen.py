@@ -23,7 +23,7 @@ INTERFACE_RE = re.compile(r"^\s*interface\s+([A-Za-z0-9_]+)(?:\s+extends\s+([A-Z
 METHOD_RE = re.compile(r"^\s*([A-Za-z0-9_]+)\s*\(")
 PROPERTY_RE = re.compile(r"^\s*(?:readonly\s+)?([A-Za-z0-9_]+)\s*:")
 INVOKE_RE = re.compile(r'Invoke(?:Call|Get|Set)\("([A-Za-z0-9_]+)"')
-CLASS_RE = re.compile(r"^\s*class\s+([A-Za-z0-9_]+)\s+extends\s+SapComProxy")
+CLASS_RE = re.compile(r"^\s*class\s+([A-Za-z0-9_]+)\s+extends\s+([A-Za-z0-9_]+)")
 DOC_BASENAME = "sap_gui_scripting_api_760_condensed_index.md"
 
 def find_repo_root(script_path: Path) -> Path:
@@ -167,10 +167,58 @@ def lint_wrapper_members(repo_root: Path, interfaces: dict[str, InterfaceDef]) -
     return 0
 
 
+def lint_wrapper_coverage(repo_root: Path, interfaces: dict[str, InterfaceDef]) -> int:
+    errors: list[str] = []
+    types_dir = repo_root / "src" / "types"
+    sap_wrapper_path = repo_root / "src" / "SapWrapper.ahk"
+    sap_source_root = repo_root / "src"
+
+    wrapper_classes: set[str] = set()
+    for file_path in sorted(types_dir.glob("*.ahk")):
+        for line in file_path.read_text(encoding="utf-8").splitlines():
+            m_class = CLASS_RE.match(line)
+            if m_class:
+                wrapper_classes.add(m_class.group(1))
+
+    documented_gui_types = {name for name in interfaces if name.startswith("Gui")}
+    missing_types = sorted(documented_gui_types - wrapper_classes)
+    for type_name in missing_types:
+        errors.append(f"missing wrapper class for documented SAP type: {type_name}")
+
+    if sap_wrapper_path.exists():
+        includes = {
+            line.split("#Include", 1)[1].strip()
+            for line in sap_wrapper_path.read_text(encoding="utf-8").splitlines()
+            if line.strip().startswith("#Include ")
+        }
+        for type_file in sorted(types_dir.glob("*.ahk")):
+            expected = f"types/{type_file.name}"
+            if expected not in includes:
+                errors.append(f"SapWrapper.ahk missing include: {expected}")
+    else:
+        errors.append("SapWrapper.ahk not found in src/")
+
+    for file_path in sorted(sap_source_root.rglob("*.ahk")):
+        if file_path.name == "SapComProxy.ahk":
+            continue
+        for idx, line in enumerate(file_path.read_text(encoding="utf-8").splitlines(), start=1):
+            if "._com." in line:
+                errors.append(f"{file_path}:{idx}: direct raw COM member access bypasses proxy pipeline")
+
+    if errors:
+        for err in errors:
+            print(err)
+        return 1
+
+    print("SAP wrapper coverage lint passed.")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="SAP GUI API codegen helpers")
     parser.add_argument("--generate-snippets", action="store_true", help="generate VSCode snippets from API docs")
     parser.add_argument("--lint-wrappers", action="store_true", help="lint src/types wrappers against API docs")
+    parser.add_argument("--lint-coverage", action="store_true", help="lint wrapper type coverage and include wiring")
     args = parser.parse_args()
 
     repo_root = find_repo_root(Path(__file__).resolve())
@@ -185,8 +233,11 @@ def main() -> int:
 
     if args.lint_wrappers:
         exit_code = lint_wrapper_members(repo_root, interfaces)
+    if args.lint_coverage:
+        coverage_exit_code = lint_wrapper_coverage(repo_root, interfaces)
+        exit_code = exit_code or coverage_exit_code
 
-    if not args.generate_snippets and not args.lint_wrappers:
+    if not args.generate_snippets and not args.lint_wrappers and not args.lint_coverage:
         parser.print_help()
         return 1
 

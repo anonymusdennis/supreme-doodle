@@ -16,3 +16,4 @@
 #Include types/GuiContainer.ahk
 #Include types/GuiVComponent.ahk
 #Include types/GuiVContainer.ahk
+#Include types/GuiAdditionalTypes.ahk
