@@ -801,7 +801,13 @@ class SAPWorker {
 
             if (cachedScript != "") {
                 set_status(this, "Cached script found for " . tableName . " - skipping DD03L")
-                this.ProcessTableFromCachedScript(tableName, destination, cachedScript)
+                processResult := this.ProcessTableFromCachedScript(tableName, destination, cachedScript)
+                if (!processResult) {
+                    if (this.lastErrorMessage = "") {
+                        this.lastErrorMessage := "Cached script flow failed"
+                    }
+                    throw Error(this.lastErrorMessage)
+                }
             } else {
                 set_status(this, "No cached script found for " . tableName . " - using DD03L flow")
 
@@ -820,7 +826,7 @@ class SAPWorker {
                 if (fields.Count = 0) {
                     this.lastErrorMessage := "No fields found for table " . tableName
                     this.lastSapMessage := this.GetCurrentSapMessage()
-                    Error(this.lastErrorMessage)
+                    throw Error(this.lastErrorMessage)
                 }
 
                 ; reset field arrays
@@ -846,7 +852,13 @@ class SAPWorker {
                 this.non_key_field_count := this.non_key_fields.Length
                 this.removed_field_count := this.removed_fields.Length
 
-                this.ProcessTable(tableName, destination, fields)
+                processResult := this.ProcessTable(tableName, destination, fields)
+                if (!processResult) {
+                    if (this.lastErrorMessage = "") {
+                        this.lastErrorMessage := "SE16XXL processing failed"
+                    }
+                    throw Error(this.lastErrorMessage)
+                }
             }
 
             set_status(this, "Task completed")
@@ -1045,8 +1057,14 @@ class SAPWorker {
             this.ApplyScriptInEditor(cachedScript)
 
             ; wenn ein Syntaxfehler-popup kommt, Cache als ungültig behandeln
+            errorPopup := ""
             try {
                 errorPopup := this.session.FindById("wnd[1]")
+            } catch {
+                ; kein popup = script ok
+            }
+
+            if (errorPopup != "") {
                 errorText := ""
                 message_row := 1
 
@@ -1067,9 +1085,7 @@ class SAPWorker {
                 } catch {
                 }
 
-                Error(this.lastErrorMessage)
-            } catch {
-                ; kein popup = script ok
+                throw Error(this.lastErrorMessage)
             }
 
             this.FinalizeValidatedScript(tableName, destination, scriptName)
@@ -1134,7 +1150,7 @@ class SAPWorker {
             set_status(this, "RFC destination does not exist, skipping")
             this.lastErrorMessage := "RFC destination does not exist: " . destination
             this.LogFailure(tableName, destination, this.lastErrorMessage, this.lastSapMessage)
-            return
+            return false
         } catch {
             LogMessage("INFO", "RFC destination " . destination . " exists, continuing")
             set_status(this, "RFC destination exists")
@@ -1156,7 +1172,7 @@ class SAPWorker {
             set_status(this, "Table does not exist in destination, skipping")
             this.lastErrorMessage := "Table does not exist in destination"
             this.LogFailure(tableName, destination, this.lastErrorMessage, this.lastSapMessage)
-            return
+            return false
         } catch {
             LogMessage("INFO", "Table " . tableName . " exists in destination " . destination . ", continuing")
             set_status(this, "Table exists in destination")
@@ -1232,6 +1248,7 @@ class SAPWorker {
         set_status(this, "Processing complete")
         ; Log success after all processing is complete
         this.LogSuccess(tableName, destination, scriptName)
+        return true
     }
 
     GenerateScriptName(tableName, destination) {
@@ -1364,13 +1381,14 @@ class SAPWorker {
         }
 
         if (!scriptGenerated) {
-            Error("Failed to generate valid script after " . attempts . " attempts")
+            throw Error("Failed to generate valid script after " . attempts . " attempts")
         }
 
         this.FinalizeValidatedScript(tableName, destination, scriptName)
 
         ; cache nur den validierten finalen script
         this.SaveScriptToCache(tableName, finalScript)
+        return true
     }
 
     LaunchBatchJob(tableName, destination, scriptName) {
