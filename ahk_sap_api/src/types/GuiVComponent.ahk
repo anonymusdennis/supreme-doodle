@@ -1,8 +1,8 @@
 #Requires AutoHotkey v2.0
 
-class GuiVComponent extends SapComProxy {
+class GuiVComponent extends GuiComponent {
     __New(comObj, policy := "", strict := false, path := "") {
-        super.__New(comObj, "GuiVComponent", path = "" ? "GuiVComponent" : path, policy, strict)
+        super.__New(comObj, policy, strict, path = "" ? this.__Class : path)
     }
 
     Text {

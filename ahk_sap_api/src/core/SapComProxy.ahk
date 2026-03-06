@@ -1,8 +1,6 @@
 #Requires AutoHotkey v2.0
 
 class SapComProxy {
-    static _typeClassMap := ""
-
     __New(comObj, typeName := "GuiUnknown", path := "", policy := "", strict := false) {
         this.DefineProp("_com", {Value: comObj})
         this.DefineProp("_typeName", {Value: typeName})
@@ -153,83 +151,8 @@ class SapComProxy {
 
         typeName := SapTypeRegistry.DetectTypeName(value)
         childPath := this._BuildPath(member, op, args)
-        if (!IsObject(SapComProxy._typeClassMap)) {
-            SapComProxy._typeClassMap := Map(
-                "GuiAbapEditor", GuiAbapEditor,
-                "GuiApoGrid", GuiApoGrid,
-                "GuiApplication", GuiApplication,
-                "GuiBarChart", GuiBarChart,
-                "GuiBox", GuiBox,
-                "GuiButton", GuiButton,
-                "GuiCTextField", GuiCTextField,
-                "GuiCalendar", GuiCalendar,
-                "GuiChart", GuiChart,
-                "GuiCheckBox", GuiCheckBox,
-                "GuiCollection", GuiCollection,
-                "GuiColorSelector", GuiColorSelector,
-                "GuiComboBox", GuiComboBox,
-                "GuiComboBoxControl", GuiComboBoxControl,
-                "GuiComboBoxEntry", GuiComboBoxEntry,
-                "GuiComponent", GuiComponent,
-                "GuiComponentCollection", GuiComponentCollection,
-                "GuiConnection", GuiConnection,
-                "GuiContainer", GuiContainer,
-                "GuiContainerShell", GuiContainerShell,
-                "GuiContextMenu", GuiContextMenu,
-                "GuiCustomControl", GuiCustomControl,
-                "GuiDialogShell", GuiDialogShell,
-                "GuiEAIViewer2D", GuiEAIViewer2D,
-                "GuiEAIViewer3D", GuiEAIViewer3D,
-                "GuiEnum", GuiEnum,
-                "GuiFrameWindow", GuiFrameWindow,
-                "GuiGOSShell", GuiGOSShell,
-                "GuiGraphAdapt", GuiGraphAdapt,
-                "GuiGridView", GuiGridView,
-                "GuiHTMLViewer", GuiHTMLViewer,
-                "GuiInputFieldControl", GuiInputFieldControl,
-                "GuiLabel", GuiLabel,
-                "GuiMainWindow", GuiMainWindow,
-                "GuiMap", GuiMap,
-                "GuiMenu", GuiMenu,
-                "GuiMenubar", GuiMenubar,
-                "GuiMessageWindow", GuiMessageWindow,
-                "GuiModalWindow", GuiModalWindow,
-                "GuiNetChart", GuiNetChart,
-                "GuiOfficeIntegration", GuiOfficeIntegration,
-                "GuiOkCodeField", GuiOkCodeField,
-                "GuiPasswordField", GuiPasswordField,
-                "GuiPicture", GuiPicture,
-                "GuiRadioButton", GuiRadioButton,
-                "GuiSapChart", GuiSapChart,
-                "GuiScrollContainer", GuiScrollContainer,
-                "GuiScrollbar", GuiScrollbar,
-                "GuiSession", GuiSession,
-                "GuiSessionInfo", GuiSessionInfo,
-                "GuiShell", GuiShell,
-                "GuiSimpleContainer", GuiSimpleContainer,
-                "GuiSplit", GuiSplit,
-                "GuiSplitterContainer", GuiSplitterContainer,
-                "GuiStage", GuiStage,
-                "GuiStatusPane", GuiStatusPane,
-                "GuiStatusbar", GuiStatusbar,
-                "GuiTab", GuiTab,
-                "GuiTabStrip", GuiTabStrip,
-                "GuiTableColumn", GuiTableColumn,
-                "GuiTableControl", GuiTableControl,
-                "GuiTableRow", GuiTableRow,
-                "GuiTextedit", GuiTextedit,
-                "GuiTitlebar", GuiTitlebar,
-                "GuiToolbar", GuiToolbar,
-                "GuiTree", GuiTree,
-                "GuiUserArea", GuiUserArea,
-                "GuiUtils", GuiUtils,
-                "GuiVComponent", GuiVComponent,
-                "GuiVContainer", GuiVContainer,
-                "GuiVHViewSwitch", GuiVHViewSwitch,
-            )
-        }
-        if (SapComProxy._typeClassMap.Has(typeName)) {
-            proxyClass := SapComProxy._typeClassMap[typeName]
+        proxyClass := SapTypeRegistry.GetProxyClass(typeName)
+        if (proxyClass != "") {
             return proxyClass(value, this._policy, this._strict, childPath)
         }
 

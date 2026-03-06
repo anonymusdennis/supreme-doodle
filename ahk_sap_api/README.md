@@ -45,3 +45,22 @@ Lint wrapper coverage and detect direct raw COM touchpoints outside the central 
 ```bash
 python ahk_sap_api/tools/sap_api_codegen.py --lint-coverage
 ```
+
+`--lint-coverage` now also checks:
+- duplicate wrapper/declaration classes
+- `SapWrapper.ahk` include-order inheritance risks
+- `Raw()` usage and raw-return leakage inside wrapper files
+- `.ahk` ↔ `.d.ahk` class drift
+- expected documented members for key wrappers (session/application/frame/container/collections)
+- presence of non-`Gui*` representations (`SapGuiBootstrap`, `GuiComponentType`)
+
+## Non-`Gui*` API handling
+
+The SAP docs include non-interface API items in addition to `Gui*` COM interfaces:
+- `SapGuiAuto` (ROT bootstrap object)
+- `Sapgui.ScriptingCtrl.1` (ProgID creation object)
+- `GuiComponentType` (enum/constants)
+
+This wrapper models those as:
+- `src/core/SapGuiBootstrap.ahk` (attach/create helpers)
+- `src/generated/GuiComponentType.ahk` (conservative enum placeholder; values are version-sensitive)

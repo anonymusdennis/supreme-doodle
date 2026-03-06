@@ -24,8 +24,25 @@ METHOD_RE = re.compile(r"^\s*([A-Za-z0-9_]+)\s*\(")
 PROPERTY_RE = re.compile(r"^\s*(?:readonly\s+)?([A-Za-z0-9_]+)\s*:")
 INVOKE_RE = re.compile(r'Invoke(?:Call|Get|Set)\("([A-Za-z0-9_]+)"')
 CLASS_RE = re.compile(r"^\s*class\s+([A-Za-z0-9_]+)\s+extends\s+[A-Za-z0-9_]+")
+CLASS_EXTENDS_RE = re.compile(r"^\s*class\s+([A-Za-z0-9_]+)\s+extends\s+([A-Za-z0-9_]+)")
 RAW_COM_RE = re.compile(r"\b[A-Za-z][A-Za-z0-9_]*\._com\.[A-Za-z][A-Za-z0-9_]*\b")
+RAW_ESCAPE_RE = re.compile(r"\.Raw\s*\(")
+RETURN_RAW_RE = re.compile(r"^\s*return\s+.*(?:_com|\.Raw\s*\()", re.IGNORECASE)
 DOC_BASENAME = "sap_gui_scripting_api_760_condensed_index.md"
+CORE_BASE_CLASSES = {"SapComProxy", "SapCollectionProxy"}
+KEY_WRAPPER_MEMBERS: dict[str, set[str]] = {
+    "GuiApplication": {"ActiveSession", "Connections", "OpenConnection", "OpenConnectionByConnectionString", "CreateGuiCollection"},
+    "GuiConnection": {"Sessions", "CloseConnection", "CloseSession", "ConnectionString"},
+    "GuiSession": {"FindById", "ActiveWindow", "Info", "Busy", "StartTransaction", "SendCommand", "CreateSession"},
+    "GuiSessionInfo": {"SystemName", "Transaction", "User", "Client"},
+    "GuiContainer": {"Children", "FindById"},
+    "GuiVContainer": {"FindByName", "FindAllByName", "FindAllByNameEx"},
+    "GuiFrameWindow": {"SendVKey", "Maximize", "Restore", "Close"},
+    "GuiMainWindow": {"ResizeWorkingPane", "ResizeWorkingPaneEx", "ToolbarVisible", "StatusbarVisible"},
+    "GuiCollection": {"Item", "ElementAt"},
+    "GuiComponentCollection": {"Item", "ElementAt"},
+}
+DECLARATION_ONLY_CLASSES = {"SapGuiBootstrap", "GuiComponentType"}
 
 def find_repo_root(script_path: Path) -> Path:
     for current in [script_path.parent, *script_path.parents]:
@@ -175,11 +192,19 @@ def lint_wrapper_coverage(repo_root: Path, interfaces: dict[str, InterfaceDef]) 
     sap_source_root = repo_root / "src"
 
     wrapper_classes: set[str] = set()
+    wrapper_extends: dict[str, str] = {}
+    class_files: dict[str, Path] = {}
     for file_path in sorted(types_dir.glob("*.ahk")):
         for line in file_path.read_text(encoding="utf-8").splitlines():
-            m_class = CLASS_RE.match(line)
+            m_class = CLASS_EXTENDS_RE.match(line)
             if m_class:
-                wrapper_classes.add(m_class.group(1))
+                class_name = m_class.group(1)
+                wrapper_classes.add(class_name)
+                wrapper_extends[class_name] = m_class.group(2)
+                class_files[class_name] = file_path
+
+    if len(wrapper_classes) != len(class_files):
+        errors.append("duplicate wrapper class definitions detected in src/types")
 
     documented_gui_types = {name for name in interfaces if name.startswith("Gui")}
     missing_types = sorted(documented_gui_types - wrapper_classes)
@@ -187,15 +212,28 @@ def lint_wrapper_coverage(repo_root: Path, interfaces: dict[str, InterfaceDef]) 
         errors.append(f"missing wrapper class for documented SAP type: {type_name}")
 
     if sap_wrapper_path.exists():
-        includes = {
+        include_lines = [
             line.split("#Include", 1)[1].strip()
             for line in sap_wrapper_path.read_text(encoding="utf-8").splitlines()
             if line.strip().startswith("#Include ")
-        }
+        ]
+        includes = set(include_lines)
         for type_file in sorted(types_dir.glob("*.ahk")):
             expected = f"types/{type_file.name}"
             if expected not in includes:
                 errors.append(f"SapWrapper.ahk missing include: {expected}")
+
+        include_index = {name: idx for idx, name in enumerate(include_lines)}
+        for class_name, base_name in wrapper_extends.items():
+            if base_name in CORE_BASE_CLASSES:
+                continue
+            class_include = f"types/{class_files[class_name].name}"
+            base_file = class_files.get(base_name)
+            if base_file is None:
+                continue
+            base_include = f"types/{base_file.name}"
+            if include_index.get(base_include, -1) > include_index.get(class_include, -1):
+                errors.append(f"SapWrapper.ahk include order risk: {base_include} must come before {class_include}")
     else:
         errors.append("SapWrapper.ahk not found in src/")
 
@@ -225,6 +263,45 @@ def lint_wrapper_coverage(repo_root: Path, interfaces: dict[str, InterfaceDef]) 
             source_line = source_line.split(";", 1)[0]
             if RAW_COM_RE.search(source_line):
                 errors.append(f"{file_path}:{idx}: direct raw COM member access bypasses proxy pipeline")
+
+    for file_path in sorted(types_dir.glob("*.ahk")):
+        for idx, line in enumerate(file_path.read_text(encoding="utf-8").splitlines(), start=1):
+            if RAW_ESCAPE_RE.search(line):
+                errors.append(f"{file_path}:{idx}: Raw() usage inside wrapper internals bypasses proxy pipeline")
+            if RETURN_RAW_RE.search(line):
+                errors.append(f"{file_path}:{idx}: wrapper may return raw COM object instead of wrapped proxy")
+
+    d_path = repo_root / "src" / "SapWrapper.d.ahk"
+    if d_path.exists():
+        d_classes = set()
+        for line in d_path.read_text(encoding="utf-8").splitlines():
+            m_class = CLASS_RE.match(line)
+            if m_class:
+                d_classes.add(m_class.group(1))
+        missing_decls = sorted(wrapper_classes - d_classes)
+        extra_decls = sorted(d_classes - wrapper_classes - DECLARATION_ONLY_CLASSES)
+        for class_name in missing_decls:
+            errors.append(f"SapWrapper.d.ahk missing class declaration: {class_name}")
+        for class_name in extra_decls:
+            errors.append(f"SapWrapper.d.ahk has unknown class declaration: {class_name}")
+    else:
+        errors.append("SapWrapper.d.ahk not found in src/")
+
+    for class_name, required_members in KEY_WRAPPER_MEMBERS.items():
+        file_path = class_files.get(class_name)
+        if file_path is None:
+            continue
+        content = file_path.read_text(encoding="utf-8")
+        for member in sorted(required_members):
+            if re.search(rf"\b{re.escape(member)}\b", content) is None:
+                errors.append(f"{file_path}: missing expected documented member: {class_name}.{member}")
+
+    bootstrap_file = repo_root / "src" / "core" / "SapGuiBootstrap.ahk"
+    enum_file = repo_root / "src" / "generated" / "GuiComponentType.ahk"
+    if not bootstrap_file.exists():
+        errors.append("missing non-Gui bootstrap representation: src/core/SapGuiBootstrap.ahk")
+    if not enum_file.exists():
+        errors.append("missing non-Gui enum representation: src/generated/GuiComponentType.ahk")
 
     if errors:
         for err in errors:

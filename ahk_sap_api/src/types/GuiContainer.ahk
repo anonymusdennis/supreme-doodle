@@ -1,8 +1,8 @@
 #Requires AutoHotkey v2.0
 
-class GuiContainer extends SapComProxy {
+class GuiContainer extends GuiComponent {
     __New(comObj, policy := "", strict := false, path := "") {
-        super.__New(comObj, "GuiContainer", path = "" ? "GuiContainer" : path, policy, strict)
+        super.__New(comObj, policy, strict, path = "" ? this.__Class : path)
     }
 
     Children {
