@@ -31,7 +31,7 @@ class GuiSession extends SapComProxy {
     }
 
     SendVKey(vkey) {
-        return this.InvokeCall("SendVKey", vkey)
+        return this.InvokeCall("SendVKey", vkey) ; sap-lint:ignore convenience passthrough
     }
 
     StartTransaction(tcode) {
