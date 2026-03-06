@@ -116,6 +116,8 @@ class SAPWorker {
     }
     GetScriptCachePath(tableName) {
         safeTableName := StrUpper(Trim(tableName))
+        ; Windows-safe filename for SAP table names like /BIC/...
+        safeTableName := RegExReplace(safeTableName, "[\\/:*?""<>|]", "_")
         return SCRIPT_CACHE_DIR . "\" . safeTableName . ".sapscript"
     }
 
@@ -124,6 +126,10 @@ class SAPWorker {
     }
 
     LoadCachedScript(tableName) {
+        if (Trim(tableName) = "") {
+            LogError("Failed to load cached script: empty table name")
+            return ""
+        }
         cachePath := this.GetScriptCachePath(tableName)
         if (!FileExist(cachePath)) {
             return ""
@@ -145,12 +151,19 @@ class SAPWorker {
         if (Trim(scriptText) = "") {
             return false
         }
+        if (Trim(tableName) = "") {
+            LogError("Failed to write cached script: empty table name")
+            return false
+        }
 
         cachePath := this.GetScriptCachePath(tableName)
 
         try {
             if (!DirExist(SCRIPT_CACHE_DIR)) {
                 DirCreate(SCRIPT_CACHE_DIR)
+                if (!DirExist(SCRIPT_CACHE_DIR)) {
+                    throw Error("Cache directory could not be created: " . SCRIPT_CACHE_DIR)
+                }
             }
 
             ; overwrite existing cache
