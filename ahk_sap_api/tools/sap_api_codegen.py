@@ -23,7 +23,8 @@ INTERFACE_RE = re.compile(r"^\s*interface\s+([A-Za-z0-9_]+)(?:\s+extends\s+([A-Z
 METHOD_RE = re.compile(r"^\s*([A-Za-z0-9_]+)\s*\(")
 PROPERTY_RE = re.compile(r"^\s*(?:readonly\s+)?([A-Za-z0-9_]+)\s*:")
 INVOKE_RE = re.compile(r'Invoke(?:Call|Get|Set)\("([A-Za-z0-9_]+)"')
-CLASS_RE = re.compile(r"^\s*class\s+([A-Za-z0-9_]+)\s+extends\s+([A-Za-z0-9_]+)")
+CLASS_RE = re.compile(r"^\s*class\s+([A-Za-z0-9_]+)\s+extends\s+[A-Za-z0-9_]+")
+RAW_COM_RE = re.compile(r"\b[A-Za-z][A-Za-z0-9_]*\._com\.[A-Za-z][A-Za-z0-9_]*\b")
 DOC_BASENAME = "sap_gui_scripting_api_760_condensed_index.md"
 
 def find_repo_root(script_path: Path) -> Path:
@@ -201,8 +202,28 @@ def lint_wrapper_coverage(repo_root: Path, interfaces: dict[str, InterfaceDef]) 
     for file_path in sorted(sap_source_root.rglob("*.ahk")):
         if file_path.name == "SapComProxy.ahk":
             continue
+        in_block_comment = False
         for idx, line in enumerate(file_path.read_text(encoding="utf-8").splitlines(), start=1):
-            if "._com." in line:
+            source_line = line
+            if in_block_comment:
+                if "*/" in source_line:
+                    source_line = source_line.split("*/", 1)[1]
+                    in_block_comment = False
+                else:
+                    continue
+
+            while "/*" in source_line:
+                before, after = source_line.split("/*", 1)
+                if "*/" in after:
+                    after = after.split("*/", 1)[1]
+                    source_line = before + " " + after
+                else:
+                    source_line = before
+                    in_block_comment = True
+                    break
+
+            source_line = source_line.split(";", 1)[0]
+            if RAW_COM_RE.search(source_line):
                 errors.append(f"{file_path}:{idx}: direct raw COM member access bypasses proxy pipeline")
 
     if errors:
