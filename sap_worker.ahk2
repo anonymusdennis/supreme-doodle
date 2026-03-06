@@ -42,7 +42,7 @@ global CHECK_INTERVAL := 1000  ; ms
 global SleepTimeShort := 20
 global SleepTimeMedium := 50
 global SleepTimeLong := 200
-
+global SCRIPT_CACHE_DIR := A_ScriptDir . "\script_cache"
 SetWorkingDir(A_ScriptDir)
 ProcessSetPriority("High")
 
@@ -107,12 +107,117 @@ class SAPWorker {
         if (!FileExist(FAILURE_LOG)) {
             FileAppend("Timestamp|Worker|Table|Destination|Error|SAP_Message`r`n", FAILURE_LOG)
         }
-
+        if (!DirExist(SCRIPT_CACHE_DIR)) {
+            DirCreate(SCRIPT_CACHE_DIR)
+        }
         LogMessage("INFO", "Worker " . workerId . " starting...")
         ; Load worker configuration
         this.LoadWorkerConfig()
     }
+    GetScriptCachePath(tableName) {
+        safeTableName := StrUpper(Trim(tableName))
+        return SCRIPT_CACHE_DIR . "\" . safeTableName . ".sapscript"
+    }
 
+    HasCachedScript(tableName) {
+        return FileExist(this.GetScriptCachePath(tableName))
+    }
+
+    LoadCachedScript(tableName) {
+        cachePath := this.GetScriptCachePath(tableName)
+        if (!FileExist(cachePath)) {
+            return ""
+        }
+
+        try {
+            return FileRead(cachePath, "UTF-8")
+        } catch {
+            try {
+                return FileRead(cachePath)
+            } catch {
+                LogError("Failed to read cached script for table " . tableName)
+                return ""
+            }
+        }
+    }
+
+    SaveScriptToCache(tableName, scriptText) {
+        if (Trim(scriptText) = "") {
+            return false
+        }
+
+        cachePath := this.GetScriptCachePath(tableName)
+
+        try {
+            if (!DirExist(SCRIPT_CACHE_DIR)) {
+                DirCreate(SCRIPT_CACHE_DIR)
+            }
+
+            ; overwrite existing cache
+            if (FileExist(cachePath)) {
+                FileDelete(cachePath)
+            }
+
+            FileAppend(scriptText, cachePath, "UTF-8")
+            LogMessage("INFO", "Cached script written: " . cachePath)
+            return true
+        } catch {
+            LogError("Failed to write cached script for table " . tableName)
+            return false
+        }
+    }
+
+    ApplyScriptInEditor(scriptText) {
+        editor := this.session.FindById("wnd[0]/usr/cntlCC/shellcont/shell/shellcont[0]/shell")
+        editor.Text := scriptText
+        ExecuteSapCommand(this.session, "ZZACTIV") ; activate / syntax check
+    }
+
+    FinalizeValidatedScript(tableName, destination, scriptName) {
+        ; optional filters
+        try {
+            colnames := this.session.FindById("wnd[0]/usr/cntlGRID1/shellcont/shell/shellcont[1]/shell").ColumnOrder
+            for rowIdx in range(0, colnames.Length - 1) {
+                if (SubStr(colnames[rowIdx], 1, 3) = "_XX") {
+                    this.session.FindById("wnd[0]/usr/cntlGRID1/shellcont/shell/shellcont[1]/shell").SelectColumn(colnames[rowIdx])
+                    ExecuteSapCommand(this.session, "ZZFILTER")
+                    ExecuteSapCommand(this.session, "ZZMORE_001")
+                    ExecuteSapCommand(this.session, "ZOPTI001")
+                    this.session.FindById("wnd[3]/usr/cntlOPTION_CONTAINER/shellcont/shell").SelectedRows(5)
+                    ExecuteSapCommand(this.session, "OKAY")
+                    ExecuteSapCommand(this.session, "ZZOKAY")
+                    ExecuteSapCommand(this.session, "ZZKEEP")
+                    break
+                }
+            }
+        } catch {
+            ; filter errors ignorieren
+        }
+
+        if (this.workerConfig["AUTO_SAVE_SCRIPT"]) {
+            set_status(this, "Saving script")
+            ExecuteSapCommand(this.session, "ZZSAVE")
+
+            this.session.FindById("wnd[1]/usr/ctxtSP_SCRIP").Text := SubStr(scriptName, 1, 23)
+
+            if (this.workerConfig["SCRIPT_IS_GLOBAL"]) {
+                this.session.FindById("wnd[1]/usr/chkSP_SGLOB").Selected := 1
+            } else {
+                this.session.FindById("wnd[1]/usr/chkSP_SGLOB").Selected := 0
+            }
+
+            timestamp := FormatTime(, "yyyy_MM_dd HH:mm:ss")
+            this.session.FindById("wnd[1]/usr/txtSP_STEXT").Text := SubStr("[" . timestamp . "]: Auto " . tableName . " & " . destination, 1, 59)
+            ExecuteSapCommand(this.session, "CRET")
+
+            try {
+                ExecuteSapCommand(this.session, "YES")
+                this.session.FindById("wnd[2]/tbar[0]/btn[0]").Press()
+            } catch {
+                ; kein overwrite popup
+            }
+        }
+    }
     ; Load configuration from worker_config.ini
     LoadWorkerConfig() {
         if (!FileExist(WORKER_CONFIG_FILE)) {
@@ -690,49 +795,63 @@ class SAPWorker {
         }
 
         try {
-            set_status(this, "Reading DD03L fields")
-            fields := this.ReadDD03LFields(task["tableName"])
+            tableName := task["tableName"]
+            destination := task["destination"]
+            cachedScript := this.LoadCachedScript(tableName)
 
-            ; Restore window size after reading fields
-            if (this.workerConfig["RESIZE_WINDOW"]) {
-                try {
-                    this.session.FindById("wnd[0]").Width := this.originalWidth >= this.workerConfig["WINDOW_WIDTH"] - 200 ? 400 : this.originalWidth
-                    this.session.FindById("wnd[0]").Height := this.originalHeight >= this.workerConfig["WINDOW_HEIGHT"] - 200 ? 400 : this.originalHeight
-                } catch {
-                    ; Ignore resize errors
-                }
-            }
+            if (cachedScript != "") {
+                set_status(this, "Cached script found for " . tableName . " - skipping DD03L")
+                this.ProcessTableFromCachedScript(tableName, destination, cachedScript)
+            } else {
+                set_status(this, "No cached script found for " . tableName . " - using DD03L flow")
 
-            if (fields.Count = 0) {
-                set_status(this, "No fields found for table " . task["tableName"])
-                this.lastErrorMessage := "No fields found for table " . task["tableName"]
-                this.lastSapMessage := this.GetCurrentSapMessage()
-                Error(this.lastErrorMessage)
-            }
+                fields := this.ReadDD03LFields(tableName)
 
-            ; Populate field arrays for template use
-            for fieldName, fieldData in fields {
-                if (fieldData.fieldName != "MANDT" && fieldData.fieldName != "CLIENT") {
-                    this.all_fields.Push(fieldData.fieldName)
-                    if (fieldData.key = "X") {
-                        this.key_fields.Push(fieldData.fieldName)
-                    } else {
-                        this.non_key_fields.Push(fieldData.fieldName)
+                ; Restore window size after reading fields
+                if (this.workerConfig["RESIZE_WINDOW"]) {
+                    try {
+                        this.session.FindById("wnd[0]").Width := this.originalWidth >= this.workerConfig["WINDOW_WIDTH"] - 200 ? 400 : this.originalWidth
+                        this.session.FindById("wnd[0]").Height := this.originalHeight >= this.workerConfig["WINDOW_HEIGHT"] - 200 ? 400 : this.originalHeight
+                    } catch {
+                        ; Ignore resize errors
                     }
                 }
+
+                if (fields.Count = 0) {
+                    this.lastErrorMessage := "No fields found for table " . tableName
+                    this.lastSapMessage := this.GetCurrentSapMessage()
+                    Error(this.lastErrorMessage)
+                }
+
+                ; reset field arrays
+                this.all_fields := []
+                this.key_fields := []
+                this.non_key_fields := []
+                this.removed_fields := []
+                this.commented_out_fields := []
+
+                for fieldName, fieldData in fields {
+                    if (fieldData.fieldName != "MANDT" && fieldData.fieldName != "CLIENT") {
+                        this.all_fields.Push(fieldData.fieldName)
+                        if (fieldData.key = "X") {
+                            this.key_fields.Push(fieldData.fieldName)
+                        } else {
+                            this.non_key_fields.Push(fieldData.fieldName)
+                        }
+                    }
+                }
+
+                this.field_count := this.all_fields.Length
+                this.key_field_count := this.key_fields.Length
+                this.non_key_field_count := this.non_key_fields.Length
+                this.removed_field_count := this.removed_fields.Length
+
+                this.ProcessTable(tableName, destination, fields)
             }
 
-            ; Update counts
-            this.field_count := this.all_fields.Length
-            this.key_field_count := this.key_fields.Length
-            this.non_key_field_count := this.non_key_fields.Length
-
-            set_status(this, "Processing table and generating script")
-            this.ProcessTable(task["tableName"], task["destination"], fields)
             set_status(this, "Task completed")
             this.UpdateTaskStatus(task["id"], "completed", "")
 
-            ; Update completed tasks counter
             this.LoadConfig()
             for worker in this.config["workers"] {
                 if (worker["id"] = this.workerId) {
@@ -742,23 +861,22 @@ class SAPWorker {
             }
             this.SaveConfig()
             return true
+
         } catch {
-            ; Restore window size on error
             if (this.workerConfig["RESIZE_WINDOW"]) {
                 try {
                     this.session.FindById("wnd[0]").Width := this.originalWidth
                     this.session.FindById("wnd[0]").Height := this.originalHeight
                 } catch {
-                    ; Ignore resize errors
                 }
             }
 
-            this.lastErrorMessage := ""
+            this.lastErrorMessage := this.lastErrorMessage != "" ? this.lastErrorMessage : "Unknown error"
             this.lastSapMessage := this.GetCurrentSapMessage()
             LogError(Format("Worker {} error: {} - {} (SAP: {})",
-                this.workerId, task["tableName"], , this.lastSapMessage))
-            set_status(this, "Task failed: ")
-            this.UpdateTaskStatus(task["id"], "failed", "")
+                this.workerId, task["tableName"], this.lastErrorMessage, this.lastSapMessage))
+            set_status(this, "Task failed: " . this.lastErrorMessage)
+            this.UpdateTaskStatus(task["id"], "failed", this.lastErrorMessage)
             return false
         }
     }
@@ -840,7 +958,129 @@ class SAPWorker {
         ExecuteSapCommand(this.session, "/n")
         return results
     }
+    ProcessTableFromCachedScript(tableName, destination, cachedScript) {
+        set_status(this, "SE16XXL (cached script) for " . tableName . " to " . destination)
 
+        ExecuteSapCommand(this.session, "/n/TFTO/SE16XXL")
+
+        this.session.FindById("wnd[0]/usr/subSC:/TFTO/TX_BX:1111/radSP_TAB").Select()
+        this.session.FindById("wnd[0]/usr/subSC:/TFTO/TX_BX:1111/ctxtSP_TABNA").Text := tableName
+
+        ExecuteSapCommand(this.session, "ZZSHOW")
+
+        try {
+            this.session.FindById("wnd[0]/usr/ssubSUBMAIN:/TFTO/TX_SELECT_DYNPRO:9300/ssubOPTSEL:/TFTO/TX_SELECT_DYNPRO:9902/subOPTIONS:/TFTO/TX_SELECT_DYNPRO:9053/txtSP_MAX").Text := String(this.workerConfig["INITIAL_ROW_COUNT"])
+        } catch {
+            LogError("Failed to set initial row count")
+        }
+
+        this.session.FindById("wnd[0]/tbar[1]/btn[8]").Press()
+
+        ; Check if table has any entries
+        try {
+            popup := this.session.FindById("wnd[1]")
+            FileAppend("`r`n" . tableName . " _ " . destination . " Could not find any entries for this table.`n", SPECIAL_CASES_LOG)
+            LogError("No entries found for table " . tableName . " in destination " . destination)
+            popup.SendVKey(0)
+            this.lastErrorMessage := "No entries found for table"
+            return false
+        } catch {
+            ; no popup
+        }
+
+        set_status(this, "Opening RFC comparison dialog")
+        ExecuteSapCommand(this.session, "ZZOUTJOIN")
+        this.session.FindById("wnd[1]/usr/radG_OPTION_RFC").SetFocus()
+        this.session.FindById("wnd[1]/usr/radG_OPTION_RFC").Select()
+
+        this.session.FindById("wnd[1]/usr/ctxtG_DIA_DEST").Text := destination
+        this.session.FindById("wnd[1]/usr/ctxtG_DIA_DEST").CaretPosition := StrLen(destination)
+        ExecuteSapCommand(this.session, "ZZENTER")
+
+        try {
+            this.session.FindById("wnd[2]").Text
+            this.lastSapMessage := this.GetCurrentSapMessage()
+            LogMessage("WARNING", "RFC destination " . destination . " does not exist, skipping")
+            ExecuteSapCommand(this.session, "ZZENTER")
+            this.lastErrorMessage := "RFC destination does not exist: " . destination
+            this.LogFailure(tableName, destination, this.lastErrorMessage, this.lastSapMessage)
+            return false
+        } catch {
+        }
+
+        this.session.FindById("wnd[1]/usr/ctxtG_TABNA_RFC").Text := tableName
+        this.session.FindById("wnd[1]/usr/ctxtG_TABNA_RFC").CaretPosition := StrLen(tableName)
+        ExecuteSapCommand(this.session, "ZZENTER")
+
+        try {
+            this.session.FindById("wnd[2]").Text
+            this.lastSapMessage := this.GetCurrentSapMessage()
+            LogMessage("WARNING", "Table " . tableName . " does not exist in destination " . destination . ", skipping")
+            ExecuteSapCommand(this.session, "ZZENTER")
+            this.lastErrorMessage := "Table does not exist in destination"
+            this.LogFailure(tableName, destination, this.lastErrorMessage, this.lastSapMessage)
+            return false
+        } catch {
+        }
+
+        ; direkt weiter zum Script-Editor
+        set_status(this, "Opening script editor with cached script")
+        ExecuteSapCommand(this.session, "ZZFORMULA")
+
+        scriptName := this.GenerateScriptName(tableName, destination)
+        this.script_name := scriptName
+
+        set_status(this, "Applying cached script")
+        this.ApplyCachedScriptAndValidate(tableName, destination, cachedScript, scriptName)
+
+        if (this.workerConfig["CREATE_BATCH_JOB"]) {
+            this.LaunchBatchJob(tableName, destination, scriptName)
+        }
+
+        this.LogSuccess(tableName, destination, scriptName)
+        return true
+    }
+    ApplyCachedScriptAndValidate(tableName, destination, cachedScript, scriptName) {
+        try {
+            this.ApplyScriptInEditor(cachedScript)
+
+            ; wenn ein Syntaxfehler-popup kommt, Cache als ungültig behandeln
+            try {
+                errorPopup := this.session.FindById("wnd[1]")
+                errorText := ""
+                message_row := 1
+
+                Loop {
+                    try {
+                        errorText .= errorPopup.FindById("usr/lbl[0," . message_row . "]").Text
+                        message_row++
+                    } catch {
+                        break
+                    }
+                }
+
+                this.lastErrorMessage := "Cached script invalid: " . errorText
+                this.lastSapMessage := this.GetCurrentSapMessage()
+
+                try {
+                    ExecuteSapCommand(this.session, "BACK")
+                } catch {
+                }
+
+                Error(this.lastErrorMessage)
+            } catch {
+                ; kein popup = script ok
+            }
+
+            this.FinalizeValidatedScript(tableName, destination, scriptName)
+
+        } catch {
+            if (this.lastErrorMessage = "") {
+                this.lastErrorMessage := "Failed to apply cached script"
+            }
+            throw Error(this.lastErrorMessage)
+        }
+    }
     ProcessTable(tableName, destination, fields) {
         set_status(this, "SE16XXL for " . tableName . " to " . destination)
         ExecuteSapCommand(this.session, "/n/TFTO/SE16XXL")
@@ -1079,16 +1319,14 @@ class SAPWorker {
         maxAttempts := this.workerConfig["MAX_VALIDATION_ATTEMPTS"]
         attempts := 0
         scriptGenerated := false
+        finalScript := ""
 
         while (!scriptGenerated && attempts < maxAttempts) {
             attempts++
             script := this.GenerateScriptFromTemplate(tableName, validFields)
 
             set_status(this, "Inserting script and syntax check (attempt " . attempts . ")")
-            this.session.FindById("wnd[0]/usr/cntlCC/shellcont/shell/shellcont[0]/shell").Text := script
-            ;this.session.FindById("wnd[0]/tbar[1]/btn[27]").Press()
-            ExecuteSapCommand(this.session, "ZZACTIV") ; activate formula
-            ; Sleep(200)
+            this.ApplyScriptInEditor(script)
 
             try {
                 errorPopup := this.session.FindById("wnd[1]")
@@ -1110,84 +1348,29 @@ class SAPWorker {
                         if (fieldData.fieldName == invalidField) {
                             validFields.Delete(index)
                             this.removed_fields.Push(invalidField)
+                            break
                         }
                     }
+                    this.removed_field_count := this.removed_fields.Length
                 }
 
-                ;this.session.FindById("wnd[1]/tbar[0]/btn[0]").Press()
-                ExecuteSapCommand(this.session, "BACK") ; back to edit script
-                ; Sleep(100)
+                ExecuteSapCommand(this.session, "BACK")
 
             } catch {
                 ; No error - script is valid
                 scriptGenerated := true
-
-                ; Apply filters if configured
-                ; if (scriptGenerated && this.workerConfig["APPLY_FILTERS"]) {
-                try {
-                    colnames := this.session.FindById("wnd[0]/usr/cntlGRID1/shellcont/shell/shellcont[1]/shell").ColumnOrder
-                    for rowIdx in range(0, colnames.Length - 1) {
-                        if (SubStr(colnames[rowIdx], 1, 3) = "_XX") {
-                            ; Sleep(5000)
-                            this.session.FindById("wnd[0]/usr/cntlGRID1/shellcont/shell/shellcont[1]/shell").SelectColumn(colnames[rowIdx])
-                            ; Sleep(5000)
-                            ExecuteSapCommand(this.session, "ZZFILTER")
-                            ; Sleep(5000)
-                            ExecuteSapCommand(this.session, "ZZMORE_001")
-                            ; Sleep(5000)
-                            ExecuteSapCommand(this.session, "ZOPTI001")
-                            ; Sleep(5000)
-                            this.session.FindById("wnd[3]/usr/cntlOPTION_CONTAINER/shellcont/shell").SelectedRows(5)
-                            ; Sleep(5000)
-                            ExecuteSapCommand(this.session, "OKAY")
-                            ; Sleep(5000)
-                            ExecuteSapCommand(this.session, "ZZOKAY")
-                            ; Sleep(5000)
-                            ExecuteSapCommand(this.session, "ZZKEEP")
-                            ; Sleep(5000)
-                            break
-                        }
-                    }
-                } catch {
-                    ;msgbox("filter error")
-                    ;MsgBox( A_LastError )
-                    ; Ignore filter errors
-                }
-                ;}
-
-                ; Save script if configured
-                if (scriptGenerated && this.workerConfig["AUTO_SAVE_SCRIPT"]) {
-                    set_status(this, "Saving script")
-                    ;this.session.FindById("wnd[0]/tbar[0]/btn[11]").Press()
-                    ExecuteSapCommand(this.session, "ZZSAVE") ; commit...
-                    ; Sleep(200)
-
-                    this.session.FindById("wnd[1]/usr/ctxtSP_SCRIP").Text := SubStr(scriptName, 1, 23)
-
-                    if (this.workerConfig["SCRIPT_IS_GLOBAL"]) {
-                        this.session.FindById("wnd[1]/usr/chkSP_SGLOB").Selected := 1
-                    } else {
-                        this.session.FindById("wnd[1]/usr/chkSP_SGLOB").Selected := 0
-                    }
-
-                    timestamp := FormatTime(, "yyyy_MM_dd HH:mm:ss")
-                    this.session.FindById("wnd[1]/usr/txtSP_STEXT").Text := SubStr("[" . timestamp . "]: Auto " . tableName . " & " . destination, 1, 59)
-                    ;this.session.FindById("wnd[1]/tbar[0]/btn[0]").Press()
-                    ExecuteSapCommand(this.session, "CRET") ; commit...
-
-                    try {
-                        ExecuteSapCommand(this.session, "YES")
-                        this.session.FindById("wnd[2]/tbar[0]/btn[0]").Press()
-                    } catch {
-                        ; No overwrite needed
-                    }
-                }
+                finalScript := script
             }
         }
 
         if (!scriptGenerated) {
             Error("Failed to generate valid script after " . attempts . " attempts")
         }
+
+        this.FinalizeValidatedScript(tableName, destination, scriptName)
+
+        ; cache nur den validierten finalen script
+        this.SaveScriptToCache(tableName, finalScript)
     }
 
     LaunchBatchJob(tableName, destination, scriptName) {

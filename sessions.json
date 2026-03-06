@@ -1,1 +1,81 @@
-""
+{
+  "settings": {
+    "defaultDelay": 300,
+    "maxEntries": 5
+  },
+  "statistics": {
+    "completedTasks": 0,
+    "failedTasks": 0,
+    "startTime": "20260306124924",
+    "totalTasks": 520
+  },
+  "tasks": [
+    {
+      "assignedWorker": 0,
+      "destination": "NONE",
+      "endTime": "20260306125253",
+      "error": "",
+      "id": 6,
+      "startTime": "20260306125203",
+      "status": "completed",
+      "tableName": "\/SAPLOM\/FMO_PROP",
+      "working": 0
+    },
+    {
+      "assignedWorker": 0,
+      "destination": "NONE",
+      "endTime": "20260306125306",
+      "error": "",
+      "id": 7,
+      "startTime": "20260306125253",
+      "status": "completed",
+      "tableName": "\/SAPLOM\/FMO_RSLH",
+      "working": 0
+    },
+    {
+      "assignedWorker": 0,
+      "destination": "NONE",
+      "endTime": "",
+      "error": "",
+      "id": 8,
+      "startTime": "20260306125307",
+      "status": "pending",
+      "tableName": "\/SAPLOM\/FMO_RSLT",
+      "working": 1
+    },
+    {
+      "assignedWorker": 0,
+      "destination": "NONE",
+      "endTime": "",
+      "error": "",
+      "id": 9,
+      "startTime": "",
+      "status": "pending",
+      "tableName": "\/SAPLOM\/FMO_SIMU",
+      "working": 0
+    },
+    {
+      "assignedWorker": 0,
+      "destination": "NONE",
+      "endTime": "",
+      "error": "",
+      "id": 10,
+      "startTime": "",
+      "status": "pending",
+      "tableName": "\/SAPLOM\/X__BELEG",
+      "working": 0
+    }
+  ],
+  "workers": [
+    {
+      "completedTasks": 7,
+      "connectionIndex": 0,
+      "currentTask": "\/SAPLOM\/FMO_RSLT -> NONE",
+      "current_status": "No cached script found for \/SAPLOM\/FMO_RSLT - using DD03L flow",
+      "id": 0,
+      "lastUpdate": "20260306125307",
+      "sessionIndex": 1,
+      "status": "working"
+    }
+  ]
+}
