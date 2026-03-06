@@ -2,15 +2,14 @@
 
 class SapComProxy {
     __New(comObj, typeName := "GuiUnknown", path := "", policy := "", strict := false) {
-        if (comObj is SapComProxy) {
-            comObj := comObj.Raw()
-        }
+        comObj := this._UnwrapComTarget(comObj)
         this.DefineProp("_com", {Value: comObj})
         this.DefineProp("_typeName", {Value: typeName})
         this.DefineProp("_path", {Value: path == "" ? typeName : path})
         this.DefineProp("_policy", {Value: IsObject(policy) ? policy : SapHookPolicy()})
         this.DefineProp("_strict", {Value: strict})
         this.DefineProp("_allow", {Value: SapTypeRegistry.GetAllowlist(typeName)})
+        this.DefineProp("_inOnErrorPolicy", {Value: false, Writable: true})
     }
 
     __Get(name, params) {
@@ -57,7 +56,7 @@ class SapComProxy {
 
         while true {
             try {
-                result := this._com.%member%
+                result := this._GetComTarget().%member%
                 break
             } catch {
                 retries += 1
@@ -84,7 +83,7 @@ class SapComProxy {
 
         while true {
             try {
-                this._com.%member% := comValue
+                this._GetComTarget().%member% := comValue
                 break
             } catch {
                 retries += 1
@@ -109,7 +108,7 @@ class SapComProxy {
 
         while true {
             try {
-                result := this._com.%member%(comArgs*)
+                result := this._GetComTarget().%member%(comArgs*)
                 break
             } catch {
                 retries += 1
@@ -138,7 +137,6 @@ class SapComProxy {
             ; stop retrying
             return false
         }
-
         retry := false
         r := this._CallPolicy("On_Error", op, member, args)
 
@@ -158,8 +156,17 @@ class SapComProxy {
     }
 
     _NormalizeComValue(value) {
-        if (value is SapComProxy) {
-            return value.Raw()
+        return this._UnwrapComTarget(value)
+    }
+
+    _GetComTarget() {
+        this._com := this._UnwrapComTarget(this._com)
+        return this._com
+    }
+
+    _UnwrapComTarget(value) {
+        while (value is SapComProxy) {
+            value := value.Raw()
         }
         return value
     }
@@ -234,7 +241,15 @@ class SapComProxy {
             if (methodName = "After_Call") {
                 return this._policy.After_Call(op, this._typeName, member, this._path, data, this)
             } else if (methodName = "On_Error") {
-                return this._policy.On_Error(op, this._typeName, member, this._path, data, this)
+                if (this._inOnErrorPolicy) {
+                    return false
+                }
+                this._inOnErrorPolicy := true
+                try {
+                    return this._policy.On_Error(op, this._typeName, member, this._path, data, this)
+                } finally {
+                    this._inOnErrorPolicy := false
+                }
             } else {
                 return this._policy.On_Call(op, this._typeName, member, this._path, data, this)
             }
