@@ -2,6 +2,9 @@
 
 class SapComProxy {
     __New(comObj, typeName := "GuiUnknown", path := "", policy := "", strict := false) {
+        if (comObj is SapComProxy) {
+            comObj := comObj.Raw()
+        }
         this.DefineProp("_com", {Value: comObj})
         this.DefineProp("_typeName", {Value: typeName})
         this.DefineProp("_path", {Value: path == "" ? typeName : path})
