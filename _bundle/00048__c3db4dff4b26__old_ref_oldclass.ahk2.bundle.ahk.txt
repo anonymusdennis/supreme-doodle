@@ -1,0 +1,467 @@
+;; @bundle-id: c3db4dff4b26
+;; @source-rel: old/ref/oldclass.ahk2
+;; @source-sha1: 177f75981e9040d7f57cb966fcc347e6538b58cf
+;; @note: Edit content below. Keep header lines starting with ';;' intact.
+;; -------------------------
+
+; ==================== PARALLEL PROCESSING MANAGER ====================
+class ParallelProcessor {
+    workers := []
+    databases := []
+    destinations := []
+    completedTasks := 0
+    totalTasks := 0
+    session := ""  ; SAP session for executing commands
+
+    __New(workers, databases, destinations) {
+        this.workers := workers
+        this.databases := databases
+        this.destinations := destinations
+        this.totalTasks := databases.Length  ; Arrays use .Length
+    }
+
+    Start() {
+        LogMessage("INFO", "Starting parallel processing with " . this.workers.Length . " workers")  ; Changed from .Count to .Length
+
+        ; Divide databases among workers
+        tasksPerWorker := Ceil(this.databases.Length / this.workers.Length)  ; Changed from .Count to .Length
+
+        ; Create worker threads
+        Loop this.workers.Length {  ; Changed from .Count to .Length
+            workerIdx := A_Index
+            worker := this.workers[workerIdx]
+
+            ; Calculate database range for this worker
+            startIdx := (workerIdx - 1) * tasksPerWorker + 1
+            endIdx := Min(workerIdx * tasksPerWorker, this.databases.Length)
+
+            ; Get databases for this worker
+            workerDatabases := []
+            Loop (endIdx - startIdx + 1) {
+                if (startIdx + A_Index - 1 <= this.databases.Length) {
+                    workerDatabases.Push(this.databases[startIdx + A_Index - 1])
+                }
+            }
+
+            ; Start worker thread
+            this.StartWorkerThread(worker, workerDatabases)
+        }
+    }
+
+    StartWorkerThread(worker, databases) {
+        ; For true parallel processing in AHK v2, we use SetTimer with -1
+        ; This creates a pseudo-thread that runs once
+
+         this.ProcessWorkerTasks(worker, databases)
+        
+    }
+    
+    ProcessWorkerTasks(worker, databases) {
+        sessionInfo := worker.GetSystemInfo()
+        LogMessage("INFO", "Worker " . worker.sessionId . " (" . sessionInfo.title . ") processing " . databases.Length . " tables")
+        this.session :=  SyncSession(worker.session)   ; Store session for command execution
+        
+        for tableName in databases {
+            try {
+                ; Read fields from DD03L
+                fields := this.ReadDD03LFields(this.session, tableName)
+    
+                for destination in this.destinations {
+                    LogMessage("INFO", "Worker " . worker.sessionId . " processing table " . tableName . " for destination " . destination)
+                    ExecuteSapCommand(this.session, "/n/TFTO/SE16XXL")
+                    Sleep(200)
+    
+                    ; Set table name
+                    this.session.FindById("wnd[0]/usr/subSC:/TFTO/TX_BX:1111/ctxtSP_TABNA").Text := tableName
+    
+                    ; Set max rows to 5
+                    this.session.FindById("wnd[0]/usr/ssubSUBMAIN:/TFTO/TX_SELECT_DYNPRO:9300/ssubOPTSEL:/TFTO/TX_SELECT_DYNPRO:9902/subOPTIONS:/TFTO/TX_SELECT_DYNPRO:9053/txtSP_MAX").Text := "5 "
+    
+                    ; Press execute button
+                    this.session.FindById("wnd[0]/tbar[1]/btn[8]").Press()
+    
+                    ; Open RFC comparison dialog
+                    this.session.FindById("wnd[0]/tbar[1]/btn[48]").Press()
+    
+                    ; Select RFC option
+                    this.session.FindById("wnd[1]/usr/radG_OPTION_RFC").SetFocus()
+                    this.session.FindById("wnd[1]/usr/radG_OPTION_RFC").Select()
+    
+                    ; Enter RFC destination
+                    this.session.FindById("wnd[1]/usr/ctxtG_DIA_DEST").Text := destination
+                    this.session.FindById("wnd[1]/usr/ctxtG_DIA_DEST").CaretPosition := StrLen(destination)
+                    this.session.FindById("wnd[1]/tbar[0]/btn[0]").Press()
+    
+                    ; Handle popup if RFC destination doesn"t exist
+                    try {
+                        this.session.FindById("wnd[2]").Text
+                        LogMessage("WARNING", "RFC destination " . destination . " does not exist, skipping")
+                        this.session.FindById("wnd[2]/tbar[0]/btn[0]").Press()
+                        continue
+                    } catch {
+                        LogMessage("INFO", "RFC destination " . destination . " exists, continuing")
+                    }
+    
+                    ; Enter table name for RFC connection
+                    this.session.FindById("wnd[1]/usr/ctxtG_TABNA_RFC").Text := tableName
+                    this.session.FindById("wnd[1]/usr/ctxtG_TABNA_RFC").CaretPosition := StrLen(tableName)
+                    this.session.FindById("wnd[1]/tbar[0]/btn[0]").Press()
+                    
+                    ; Check if table exists in destination
+                    try {
+                        this.session.FindById("wnd[2]").Text
+                        LogMessage("WARNING", "Table " . tableName . " does not exist in destination " . destination . ", skipping")
+                        this.session.FindById("wnd[2]/tbar[0]/btn[0]").Press()
+                        continue
+                    } catch {
+                        LogMessage("INFO", "Table " . tableName . " exists in destination " . destination . ", continuing")
+                    }
+    
+                    ; Count keys and add rows if needed (excluding MANDT)
+                    keyCount := 0
+                    for fieldName, fieldData in fields {
+                        if (fieldData.key == "X" && fieldName != "MANDT" && fieldName != "CLIENT") {
+                            keyCount++
+                            if (keyCount > 2) {
+                                this.session.FindById("wnd[1]/tbar[0]/btn[30]").Press()
+                            }
+                        }
+                    }
+    
+                    ; Set field mappings
+                    row := 0
+                    for fieldName, fieldData in fields {
+                        if (fieldData.key == "X" && fieldName != "MANDT" && fieldName != "CLIENT") {
+                            this.session.FindById("wnd[1]/usr/tbl/TFTO/SAPLTX_SELFAETC/ctxtGS_JSEL-OLDF[0," . row . "]").Text := fieldName
+                            this.session.FindById("wnd[1]/usr/tbl/TFTO/SAPLTX_SELFAETC/ctxtGS_JSEL-NEWF[2," . row . "]").Text := fieldName
+                            row++
+                        }
+                    }
+    
+                    ; Toggle retain formula checkbox off
+                    this.session.FindById("wnd[1]/usr/chkG_RETAIN_FMLA").Selected := false
+    
+                    ; Confirm join
+                    this.session.FindById("wnd[1]/tbar[0]/btn[8]").Press()
+                    Sleep(200)
+    
+                    ; Open script editor
+                    this.session.FindById("wnd[0]/tbar[1]/btn[31]").Press()
+                    Sleep(200)
+    
+                    ; Generate and insert script with iterative field validation
+                    validFields := Map()
+                    for fieldName, fieldData in fields {
+                        validFields[fieldName] := fieldData
+                    }
+    
+                    maxAttempts := 20  ; Safety limit
+                    attempts := 0
+                    scriptGenerated := false
+    
+                    while (!scriptGenerated && attempts < maxAttempts) {
+                        attempts++
+                        
+                        ; Generate script from template
+                        script := this.GenerateScriptFromTemplate(tableName, validFields)
+                        
+                        ; Insert script
+                        this.session.FindById("wnd[0]/usr/cntlCC/shellcont/shell/shellcont[0]/shell").Text := script
+                        
+                        ; Check syntax
+                        this.session.FindById("wnd[0]/tbar[1]/btn[27]").Press()
+                        Sleep(200)
+                        
+                        ; Check for error popup
+                        try {
+                            errorPopup := this.session.FindById("wnd[1]")
+                            errorText := ""
+                            
+                            ; Try to get error message text
+                            try {
+                                errorText := errorPopup.FindById("usr/txtMESSTXT1").Text
+                            } catch {
+                                try {
+                                    errorText := errorPopup.FindById("usr/txtMESSAGE").Text
+                                } catch {
+                                    ; Try generic text extraction
+                                    errorText := errorPopup.Text
+                                }
+                            }
+                            
+                            LogMessage("DEBUG", "Syntax error detected: " . errorText)
+                            
+                            ; Parse error to find invalid field
+                            invalidField := this.ExtractInvalidFieldFromError(errorText)
+                            
+                            if (invalidField != "") {
+                                LogMessage("INFO", "Removing invalid field: " . invalidField)
+                                validFields.Delete(invalidField)
+                            }
+                            
+                            ; Close error popup
+                            this.session.FindById("wnd[1]/tbar[0]/btn[0]").Press()
+                            Sleep(100)
+                            
+                        } catch {
+                            ; No error popup means syntax check passed
+                            LogMessage("INFO", "Script syntax check passed for table " . tableName)
+                            scriptGenerated := true
+                            
+                            ; Save the script
+                            scriptName := "MANDT_" . tableName . "_" . destination
+                            
+                            ; Press save button
+                            this.session.FindById("wnd[0]/tbar[0]/btn[11]").Press()
+                            Sleep(200)
+                            
+                            try {
+                                ; Enter script name in save dialog
+                                this.session.FindById("wnd[1]/usr/ctxtRS38M-PROGRAMM").Text := scriptName
+                                this.session.FindById("wnd[1]/tbar[0]/btn[0]").Press()
+                                
+                                ; Handle overwrite confirmation if script already exists
+                                try {
+                                    this.session.FindById("wnd[2]/tbar[0]/btn[0]").Press()
+                                } catch {
+                                    ; No overwrite needed
+                                }
+                                
+                                LogMessage("INFO", "Script saved: " . scriptName)
+                                LogMessage("success", tableName .destination .scriptName)
+                                
+                            } catch {
+                                LogMessage("ERROR", "Failed to save script: ")
+                                continue
+                            }
+                        }
+                    }
+                    
+                    if (!scriptGenerated) {
+                        LogMessage("ERROR", "Failed to generate valid script after " . attempts . " attempts")
+                        continue
+                    }
+                    
+                }  ; End of destination loop
+                
+                this.completedTasks++
+                LogMessage("INFO", "Progress: " . this.completedTasks . "/" . this.totalTasks . " tables processed")
+                
+            } catch {
+                LogError("Worker " . worker.sessionId . " error processing " . tableName . ": ")
+                continue
+            }
+        }
+        
+        worker.isWorking := false
+        LogMessage("INFO", "Worker " . worker.sessionId . " completed all tasks")
+    }
+    
+    ; Generate script from template
+    GenerateScriptFromTemplate(tableName, validFields) {
+        ; Read template
+        templateContent := FileRead("script_template.txt")
+        
+        ; Extract rowise section
+        rowisePattern := "<rowise>(.*?)</rowise>"
+        rowiseMatch := ""
+        if (RegExMatch(templateContent, rowisePattern, &rowiseMatch)) {
+            rowiseTemplate := rowiseMatch[1]
+            
+            ; Generate rowise code for each field
+            rowiseCode := ""
+            for fieldName, fieldData in validFields {
+                if (fieldName != "MANDT" && fieldName != "CLIENT") {
+                    fieldCode := StrReplace(rowiseTemplate, "$FNAME$", fieldName)
+                    rowiseCode .= fieldCode . "`r`n"
+                }
+            }
+            
+            ; Replace rowise section with generated code
+            script := RegExReplace(templateContent, rowisePattern, rowiseCode)
+        } else {
+            ; No rowise section, use template as-is
+            script := templateContent
+        }
+        
+        ; Replace table name placeholder
+        script := StrReplace(script, "$TABLENAME$", tableName)
+        
+        return script
+    }
+    
+    ; Extract invalid field name from error message
+    ExtractInvalidFieldFromError(errorText) {
+        ; Pattern 1: "ROW-A" besitzt keine Komponente mit Namen "FIELDNAME"
+        pattern1 := 'besitzt keine Komponente mit Namen "([^"]+)"'
+        if (RegExMatch(errorText, pattern1, &match)) {
+            return match[1]
+        }
+        
+        ; Pattern 2: Component "FIELDNAME" does not exist
+        pattern2 := 'Component "([^"]+)" does not exist'
+        if (RegExMatch(errorText, pattern2, &match)) {
+            return match[1]
+        }
+        
+        ; Pattern 3: Field "FIELDNAME" unknown
+        pattern3 := 'Field "([^"]+)" unknown'
+        if (RegExMatch(errorText, pattern3, &match)) {
+            return match[1]
+        }
+        
+        ; Pattern 4: ROW-A~FIELDNAME format
+        pattern4 := 'ROW-[AB]~(\w+)'
+        if (RegExMatch(errorText, pattern4, &match)) {
+            return match[1]
+        }
+        
+        return ""
+    }
+    
+
+
+
+; Reads DD03L fields for a table from SE16N, sets ROLLNAME <> '' and TABNAME filter,
+; restricts output to FIELDNAME only, and executes (first screen only).
+; Later, add CSV export and other logic. For now, just execute the query.
+; Function to read DD03L fields with filtering via selection options
+; Function to read DD03L fields with filtering via SE16N
+ReadDD03LFields(session, tableName) {
+    try {
+        LogMessage(LOG_INFO, "Reading DD03L fields for table: " tableName)
+
+        ; Navigate to SE16N
+        session.FindById("wnd[0]/tbar[0]/okcd").Text := "/nSE16N"
+        session.FindById("wnd[0]").SendVKey(0)
+        Sleep(200)
+
+        ; Enter DD03L table
+        session.FindById("wnd[0]/usr/ctxtGD-TAB").Text := "DD03L"
+        session.FindById("wnd[0]").SendVKey(0)
+        Sleep(200)
+
+        ; Set tabname
+        ExecuteSapCommand(session, "REMARKALL") ; => remove all markings.
+        SetSapFieldDirect("wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,7]", "")
+        SetSapFieldDirect("wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,7]", "",session)
+        session.FindById("wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,7]").SetFocus()
+        Sleep(200)
+        ExecuteSapCommand(session, "OPTION")
+        Sleep(200)
+        ControlSelectOptionPopup("NE", session) ; Select "NE" option in popup
+        Sleep(200)
+        SetSapFieldDirect("wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,0]", tableName,session) ; Set table name in TABNAME field
+
+        SetSapFieldDirect("wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/chkGS_SELFIELDS-MARK[5,1]", "X",session) ; output FIELDNAME
+        SetSapFieldDirect("wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/chkGS_SELFIELDS-MARK[5,5]", "X",session) ; OUTput KEYFLAG
+        Sleep(200)
+        ExecuteSapCommand(session, "EXEC") ; Execute the query
+
+        ; Now extract data from the result screen
+        Sleep(500) ; Give time for results to load
+
+        ; Check for possible popup (e.g., too many entries)
+        try {
+            popup := session.FindById("wnd[1]")
+            if (IsSet(popup)) {
+                ; Click Continue/OK button
+                try {
+                    session.FindById("wnd[1]/tbar[0]/btn[0]").Press()
+                    Sleep(200)
+                } catch {
+                    ; Try alternative approach - Enter key
+                    session.FindById("wnd[1]").SendVKey(0)
+                }
+            }
+        } catch {
+            ; No popup, continue
+        }
+
+        ; Identify the grid control - common path for SE16N results
+        gridControl := ""
+        try {
+            gridControl := session.FindById("wnd[0]/usr/cntlRESULT_LIST/shellcont/shell")
+            LogMessage(LOG_INFO, "Found results grid at standard path")
+        } catch {
+
+            LogMessage(LOG_ERROR, "Could not find results grid")
+            return {}
+
+        }
+
+        ; Get row and column counts
+        rowCount := gridControl.RowCount
+        LogMessage(LOG_INFO, "Result grid has " rowCount " rows")
+
+
+        ; Initialize result collection
+        results := []
+
+
+        LogMessage(LOG_INFO, "Extracting " . rowCount . "FIELDNAMEs")
+
+        ; Extract data from the grid
+        for rowIdx in range(0, rowCount - 1) {
+            try {
+                fieldName := ""
+                is_key := ""
+                ; Get FIELDNAME
+                try {
+                    fieldName := gridControl.GetCellValue(rowIdx, "FIELDNAME")
+                } catch {
+                }
+                try {
+                    is_key := gridControl.GetCellValue(rowIdx, "KEYFLAG")
+                } catch {
+                }
+
+                ; Only include rows where DATAELEMENT is not empty
+                results.Push({
+                    fieldName: fieldName,
+                    key: is_key
+                })
+            } catch {
+                ; Skip problematic rows
+                continue
+            }
+        }
+
+        LogMessage(LOG_INFO, "Extracted " results.Length " fields with data elements from table " tableName)
+
+        ; Go back to main screen
+        ExecuteSapCommand(session, "/n")
+
+        return results
+    }
+    catch {
+        LogMessage(LOG_ERROR, "Error reading DD03L fields: ")
+        return {}
+    }
+}
+
+; Helper function - Range function like in other languages
+range(start, end) {
+    result := []
+    Loop (end - start + 1) {
+        result.Push(start + A_Index - 1)
+    }
+    return result
+}
+GenerateScript(template, tableName, fields) {
+    ; Generate script based on template and fields
+    script := template
+
+    ; Replace placeholders in the template
+    script := StrReplace(script, "{TABLE_NAME}", tableName)
+
+    fieldList := ""
+    for fieldName, fieldData in fields {
+        fieldList .= fieldName . " (" . fieldData.dataType . ", " . fieldData.length . ", " . fieldData.decimals . "), "
+    }
+
+    script := StrReplace(script, "{FIELDS}", Trim(fieldList, ", "))
+
+    return script
+}
+}

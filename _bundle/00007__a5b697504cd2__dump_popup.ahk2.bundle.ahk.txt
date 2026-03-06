@@ -1,0 +1,176 @@
+;; @bundle-id: a5b697504cd2
+;; @source-rel: dump_popup.ahk2
+;; @source-sha1: 431fba2f5e8dd2945f6b66011415de5c03d9597b
+;; @note: Edit content below. Keep header lines starting with ';;' intact.
+;; -------------------------
+#Requires AutoHotkey v2.0
+#SingleInstance Force
+
+; ==================== INCLUDES ====================
+#Include "declarations.ahk2"
+#Include "utility.ahk2"
+#Include "excel_functions.ahk2"
+#Include "sap_functions.ahk2"
+#Include se16_selectionscreen.ahk2
+; ==================== CONSTANTS ====================
+global THREAD_COUNT := 2  ; Number of concurrent threads
+global MAX_ENTRIES := 5   ; Max entries for SE16XXL
+global SleepTimeShort := 20
+global SleepTimeMedium := 50
+global SleepTimeLong := 200
+; ==================== GLOBAL VARIABLES ====================
+global SapSessions := Map()  ; Will hold both SAP sessions
+global Databases := []
+global RfcDestinations := []
+global ScriptTemplate := ""
+global LogFile := A_ScriptDir "\logs\trace.log"
+global SuccessLog := A_ScriptDir "\logs\success.txt"
+global ErrorLog := A_ScriptDir "\logs\error.txt"
+global ProcessingQueue := []
+global QueueLock := 0
+
+; ==================== INITIAL SETUP ====================
+SetWorkingDir(A_ScriptDir)
+ProcessSetPriority("High")
+
+; Create logs directory
+if (!DirExist(A_ScriptDir "\logs")) {
+    DirCreate(A_ScriptDir "\logs")
+}
+; a simple script, that connects to sap and then dumps the active screen
+; Initialize SAP GUI
+SapGui := ConnectSAP()
+;ControlSelectOptionPopup("NE")
+SetFieldValue("ROLLNAME","","","NE") ; Set the table name in the TABNAME field
+;AnalyzeOptionPopup()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+; Function to analyze and log all options in the popup (for debugging/verification)
+AnalyzeOptionPopup() {
+    global SapSession
+    
+    if (!IsSet(SapSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available")
+        return
+    }
+    
+    try {
+        popup := SapSession.FindById("wnd[1]")
+        optionGrid := SapSession.FindById("wnd[1]/usr/cntlGRID/shellcont/shell")
+        
+        rowCount := optionGrid.RowCount
+        LogMessage(LOG_INFO, "=== OPTION POPUP CONTENT ===")
+        LogMessage(LOG_INFO, "Total rows: " rowCount)
+        
+        ; Read all rows
+        Loop rowCount {
+            rowIdx := A_Index - 1
+            
+            try {
+                iconValue := optionGrid.GetCellValue(rowIdx, "ICON")
+                textValue := optionGrid.GetCellValue(rowIdx, "TEXT")
+                
+                LogMessage(LOG_INFO, "Row " rowIdx ": ICON='" iconValue "', TEXT='" textValue "'")
+            } catch {
+                LogMessage(LOG_INFO, "Row " rowIdx ": [Could not read]")
+            }
+        }
+        
+        ; Show current selection
+        try {
+            currentRow := optionGrid.SelectedRows
+            LogMessage(LOG_INFO, "Currently selected row: " currentRow)
+        } catch {
+            ; No selection info
+        }
+        
+        LogMessage(LOG_INFO, "=== END OPTION CONTENT ===")
+        
+    } catch {
+        LogMessage(LOG_ERROR, "Error analyzing option popup: ")
+    }
+}
+
+; Simplified function for direct position selection (when you know the exact row)
+SelectOptionByRow(rowNumber) {
+    global SapSession
+    
+    try {
+        popup := SapSession.FindById("wnd[1]")
+        optionGrid := SapSession.FindById("wnd[1]/usr/cntlGRID/shellcont/shell")
+        
+        ; Select the row
+        optionGrid.SelectedRows := rowNumber
+        Sleep SleepTimeShort
+        
+        ; Confirm with double-click
+        optionGrid.doubleClickCurrentCell()
+        
+        LogMessage(LOG_INFO, "Selected option at row " rowNumber)
+        return true
+        
+    } catch {
+        LogMessage(LOG_ERROR, "Row selection failed: ")
+        return false
+    }
+}

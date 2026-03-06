@@ -1,0 +1,702 @@
+;; @bundle-id: 59545c4ea0f7
+;; @source-rel: main.ahk2
+;; @source-sha1: 775f819bee1c0a9aab7b085b8a5dd495ca4ad03c
+;; @note: Edit content below. Keep header lines starting with ';;' intact.
+;; -------------------------
+#Requires AutoHotkey v2.0
+#SingleInstance Force
+
+; ==================== INCLUDES ====================
+#Include "declarations.ahk2"
+#Include "utility.ahk2"
+#Include "excel_functions.ahk2"
+#Include "sap_functions.ahk2"
+#Include "se16_selectionscreen.ahk2"
+#Include "sessionfix.ahk2"
+#Include "JSON.ahk2"
+#Include disclaimer.ahk2
+ShowDisclaimerIfNeeded()
+; ==================== CONSTANTS ====================
+global CONFIG_FILE := A_ScriptDir . "\sessions.json"
+global WORKER_SCRIPT := A_ScriptDir . "\sap_worker.ahk2"
+global STOP_FILE := A_ScriptDir . "\STOP_ALL_WORKERS"
+global REFRESH_INTERVAL := 500
+global MAX_ENTRIES := 5
+global WORKER_START_DELAY := 6000
+global BATCH_SIZE_PER_WORKER := 5  ; Each worker gets 5 tables per batch
+
+; ==================== GLOBAL VARIABLES ====================
+global Databases := []
+global RfcDestinations := []
+global ScriptTemplate := ""
+
+; ==================== INITIAL SETUP ====================
+SetWorkingDir(A_ScriptDir)
+ProcessSetPriority("High")
+try {
+    DirDelete(A_ScriptDir . "\logs", 1)
+} catch {
+    ; Ignore errors if logs directory does not exist
+}
+if (!DirExist(A_ScriptDir "\logs")) {
+    DirCreate(A_ScriptDir "\logs")
+}
+if (FileExist(STOP_FILE)) {
+    FileDelete(STOP_FILE)
+}
+if (FileExist("specials.txt")) {
+    FileDelete("specials.txt")
+}
+if (FileExist("lockconfig")) {
+    FileDelete("lockconfig")
+}
+if (FileExist("removed_fields.log")) {
+    FileDelete("removed_fields.log")
+}
+
+; Kill all SAP worker processes immediately
+KillAllWorkers() {
+    for process in ComObjGet("winmgmts:").ExecQuery("SELECT * FROM Win32_Process WHERE Name = 'AutoHotkey64.exe' OR Name = 'AutoHotkey32.exe' OR Name = 'AutoHotkey.exe'") {
+        try {
+            cmdLine := process.CommandLine
+            if (InStr(cmdLine, "sap_worker.ahk2")) {
+                ProcessClose(process.ProcessId)
+                ToolTip("Killed worker process: " . process.ProcessId)
+            }
+        } catch {
+            ; Continue
+        }
+    }
+    for process in ComObjGet("winmgmts:").ExecQuery("SELECT * FROM Win32_Process WHERE Name = 'sap_worker.exe'") {
+        try {
+            ProcessClose(process.ProcessId)
+            ToolTip("Killed worker process: " . process.ProcessId)
+        } catch {
+            ; Continue
+        }
+        sleep 100
+    }
+}
+
+; ==================== TASK DISTRIBUTOR CLASS ====================
+class TaskDistributor {
+    __New() {
+        this.config := {
+            tasks: [],
+            workers: [],
+            settings: {
+                maxEntries: MAX_ENTRIES,
+                defaultDelay: 300
+            },
+            statistics: {
+                totalTasks: 0,
+                completedTasks: 0,
+                failedTasks: 0,
+                startTime: A_Now
+            }
+        }
+
+        this.availableSessions := []
+        this.workerProcesses := Map()
+        this.workerStarted := Map()
+
+        ; Batch processing variables
+        this.allTasks := []  ; Store all tasks
+        this.currentBatchIndex := 0
+        this.totalBatches := 0
+        this.batchInProgress := false
+        this.progressGui := ""
+        this.overallText := ""
+        this.overallProgress := ""
+        this.workerListView := ""
+        this.globalCompletedTasks := 0
+        this.globalFailedTasks := 0
+    }
+
+    fixconfig() {
+        this.config := JSON.Parse(JSON.Stringify(this.config))
+    }
+
+    Initialize() {
+        this.fixconfig()
+        if (!ParseConfigFiles()) {
+            Error("Failed to parse configuration files")
+        }
+
+        this.DiscoverSAPSessions()
+
+        if (!this.SelectSessions()) {
+            return false
+        }
+
+        ; Create ALL tasks first (not saved to config yet)
+        this.CreateAllTasks()
+
+        ; Calculate batch count
+        workerCount := this.config["workers"].Length
+        batchSize := workerCount * BATCH_SIZE_PER_WORKER
+        this.totalBatches := Ceil(this.allTasks.Length / batchSize)
+
+        LogMessage("INFO", Format("Total tasks: {}, Batch size: {}, Total batches: {}",
+            this.allTasks.Length, batchSize, this.totalBatches))
+
+        return true
+    }
+
+    DiscoverSAPSessions() {
+        try {
+            SapGuiAuto := ComObjGet("SAPGUI")
+            appCom := SapGuiAuto.GetScriptingEngine
+            policy := SapHookPolicy()
+            SapGui := GuiApplication(appCom, policy)
+            sessionIndex := 0
+            for connection in SapGui.Children {
+                for session in connection.Children {
+                    try {
+                        info := session.Info
+                        this.availableSessions.Push({
+                            index: sessionIndex,
+                            connectionIndex: A_Index - 1,
+                            sessionIndex: session.Children.Count - 1,
+                            sysId: info.SystemName,
+                            client: info.Client,
+                            user: info.User,
+                            transaction: info.Transaction
+                        })
+                        sessionIndex++
+                    } catch {
+                        continue
+                    }
+                }
+            }
+            LogMessage("INFO", "Found " . this.availableSessions.Length . " SAP sessions")
+        } catch {
+            Error("Could not connect to SAP GUI: ")
+        }
+    }
+
+    SelectSessions() {
+        if (this.availableSessions.Length < 1) {
+            MsgBox("No SAP sessions found. Please open SAP GUI first.", "Error", 0x10)
+            return false
+        }
+
+        myGui := Gui("+Resize", "Select SAP Sessions for Processing")
+        myGui.MarginX := 15
+        myGui.MarginY := 15
+
+        myGui.Add("Text", "Section", "Select SAP sessions for parallel processing:")
+        myGui.Add("Text", "xs", "The tool will distribute tables across selected sessions.")
+
+        checkboxes := []
+        selectedIndices := []
+
+        myGui.Add("Text", "xs Section", "Available Sessions:")
+
+        for idx, sessionData in this.availableSessions {
+            displayText := Format("Session {}: {} / Client {} (User: {})",
+                idx + 1,
+                sessionData.sysId,
+                sessionData.client,
+                sessionData.user
+            )
+            if (sessionData.transaction != "") {
+                displayText .= " [" . sessionData.transaction . "]"
+            }
+            cb := myGui.Add("Checkbox", "xs", displayText)
+            if (idx < 2) {
+                cb.Value := 1
+            }
+            checkboxes.Push(cb)
+        }
+
+        btnOK := myGui.Add("Button", "xs Section w100", "OK")
+        btnCancel := myGui.Add("Button", "x+10 w100", "Cancel")
+        btnSelectAll := myGui.Add("Button", "x+10 w100", "Select All")
+
+        result := false
+
+        OnOKClick(*) {
+            selectedCount := 0
+            Loop checkboxes.Length {
+                if (checkboxes[A_Index].Value) {
+                    selectedIndices.Push(A_Index - 1)
+                    selectedCount++
+                }
+            }
+
+            if (selectedCount < 1) {
+                MsgBox("Please select at least 1 session.", "Error", 0x30)
+                return
+            }
+
+            for idx in selectedIndices {
+                sessionData := this.availableSessions[idx + 1]
+                this.config["workers"].Push({
+                    id: A_Index - 1,
+                    sessionIndex: sessionData.index,
+                    connectionIndex: sessionData.connectionIndex,
+                    status: "idle",
+                    currentTask: "",
+                    completedTasks: 0,
+                    lastUpdate: A_Now,
+                    current_status: "Ready"
+                })
+                this.fixconfig()
+            }
+
+            result := true
+            myGui.Destroy()
+        }
+
+        OnCancelClick(*) {
+            myGui.Destroy()
+        }
+
+        OnSelectAllClick(*) {
+            for cb in checkboxes {
+                cb.Value := 1
+            }
+        }
+
+        btnOK.OnEvent("Click", OnOKClick)
+        btnCancel.OnEvent("Click", OnCancelClick)
+        btnSelectAll.OnEvent("Click", OnSelectAllClick)
+
+        myGui.Show()
+        WinWait(myGui)
+        WinWaitClose(myGui)
+
+        return result
+    }
+
+    CreateAllTasks() {
+        taskId := 0
+        workerCount := this.config["workers"].Length
+
+        ; Create ALL tasks but don't add to config yet
+        this.allTasks := []
+
+        for idx, tableName in Databases {
+            for destIdx, destination in RfcDestinations {
+                taskId++
+                workerIndex := Mod(taskId - 1, workerCount)
+
+                this.allTasks.Push({
+                    id: taskId,
+                    tableName: tableName,
+                    destination: destination,
+                    assignedWorker: workerIndex,
+                    status: "pending",
+                    working: false,
+                    startTime: "",
+                    endTime: "",
+                    error: ""
+                })
+            }
+        }
+
+        this.config["statistics"]["totalTasks"] := this.allTasks.Length
+        LogMessage("INFO", "Created " . this.allTasks.Length . " total tasks")
+    }
+
+    LoadNextBatch() {
+        ; Clear current tasks
+        this.config["tasks"] := []
+
+        ; Calculate batch size
+        workerCount := this.config["workers"].Length
+        batchSize := workerCount * BATCH_SIZE_PER_WORKER
+
+        ; Calculate batch range
+        startIdx := this.currentBatchIndex * batchSize + 1
+        endIdx := Min(startIdx + batchSize - 1, this.allTasks.Length)
+
+        if (startIdx > this.allTasks.Length) {
+            LogMessage("INFO", "No more batches to process")
+            return false
+        }
+
+        ; Load tasks for this batch
+        for i in range(startIdx, endIdx) {
+            this.config["tasks"].Push(this.allTasks[i])
+        }
+
+        this.currentBatchIndex++
+        this.batchInProgress := true
+
+        ; Reset worker states for new batch
+        for worker in this.config["workers"] {
+            worker["status"] := "queued"
+            worker["currentTask"] := ""
+            worker["current_status"] := Format("Batch {}/{} - Waiting to start",
+                this.currentBatchIndex, this.totalBatches)
+        }
+
+        ; Clear worker tracking
+        this.workerStarted.Clear()
+        this.workerProcesses.Clear()
+
+        this.SaveConfig()
+
+        LogMessage("INFO", Format("Loaded batch {}/{} with {} tasks",
+            this.currentBatchIndex, this.totalBatches, this.config["tasks"].Length))
+
+        return true
+    }
+
+    StartBatchProcessing() {
+        ; Start first batch
+        if (this.LoadNextBatch()) {
+            this.StartWorkers()
+        }
+    }
+
+    CheckBatchComplete() {
+        ; Check if all tasks in current batch are done
+        for task in this.config["tasks"] {
+            if (task["status"] = "pending" || task["working"]) {
+                return false
+            }
+        }
+
+        ; All done - update global counters
+        for task in this.config["tasks"] {
+            if (task["status"] = "completed") {
+                this.globalCompletedTasks++
+            } else if (task["status"] = "failed") {
+                this.globalFailedTasks++
+            }
+        }
+
+        LogMessage("INFO", Format("Batch {}/{} complete",
+            this.currentBatchIndex, this.totalBatches))
+
+        ; Kill all workers
+        KillAllWorkers()
+        Sleep(2000)  ; Wait for cleanup
+
+        this.batchInProgress := false
+
+        ; Load next batch
+        if (this.LoadNextBatch()) {
+            Sleep(3000)  ; Pause between batches
+            this.StartWorkers()
+            return false  ; More batches to process
+        }
+
+        return true  ; All batches complete
+    }
+
+    SaveConfig() {
+        jsonText := JSON.Stringify(this.config)
+        try {
+            file := FileOpen(CONFIG_FILE, "w")
+            file.Write(jsonText)
+            file.Close()
+        } catch {
+            LogError("Failed to save config: ")
+        }
+    }
+
+    StartWorkers() {
+        this.StartNextWorker()
+    }
+
+    StartNextWorker() {
+        ; read config file
+        jsonText := FileRead(CONFIG_FILE)
+        this.config := JSON.Parse(jsonText)
+        for rowIdx in range(1, this.config["workers"].Length) {
+            worker := this.config["workers"][rowIdx]
+            if (!this.workerStarted.Has(worker["id"]) && worker["status"] = "queued") {
+                cmd := Format('"{}" "{}" {}', 'AutoHotkey64.exe', WORKER_SCRIPT, worker["id"])
+
+                try {
+                    Run(cmd, , , &pid)
+                    this.workerProcesses[worker["id"]] := pid
+                    this.workerStarted[worker["id"]] := true
+
+                    worker["status"] := "starting"
+                    worker["current_status"] := Format("Batch {}/{} - Starting",
+                        this.currentBatchIndex, this.totalBatches)
+                    this.SaveConfig()
+
+                    LogMessage("INFO", Format("Started worker {} for batch {}/{}",
+                        worker["id"], this.currentBatchIndex, this.totalBatches))
+
+                    if (this.HasMoreQueuedWorkers()) {
+                        Sleep(WORKER_START_DELAY)
+                        this.StartNextWorker()
+                    }
+                    return
+                } catch {
+                    LogError("Failed to start worker " . worker["id"] . ": ")
+                    worker["status"] := "failed"
+                    worker["current_status"] := "Failed to start"
+                    this.SaveConfig()
+                }
+            }
+        }
+    }
+
+    HasMoreQueuedWorkers() {
+        for worker in this.config["workers"] {
+            if (!this.workerStarted.Has(worker["id"]) && worker["status"] = "queued") {
+                return true
+            }
+        }
+        return false
+    }
+
+    MonitorProgress() {
+        this.progressGui := Gui("+Resize", "Task Processing Progress")
+        this.progressGui.MarginX := 15
+        this.progressGui.MarginY := 15
+
+        ; Overall progress - use total tasks from all batches
+        this.overallText := this.progressGui.Add("Text", "w600", "Initializing...")
+        this.overallProgress := this.progressGui.Add("Progress", "w600 h30 Range0-" . this.allTasks.Length)
+
+        ; Batch info
+        batchText := this.progressGui.Add("Text", "w600", "")
+
+        ; Worker status
+        this.progressGui.Add("Text", "xs y+20", "Worker Status:")
+        this.workerListView := this.progressGui.Add("ListView", "w600 h200",
+            ["Worker", "Status", "Current Task", "Completed", "Current Activity"])
+
+        for worker in this.config["workers"] {
+            this.workerListView.Add(,
+                "Worker " . worker["id"],
+                worker["status"],
+                worker["currentTask"],
+                worker["completedTasks"],
+                worker["current_status"]
+            )
+        }
+
+        this.workerListView.ModifyCol(1, 80)
+        this.workerListView.ModifyCol(2, 80)
+        this.workerListView.ModifyCol(3, 150)
+        this.workerListView.ModifyCol(4, 80)
+        this.workerListView.ModifyCol(5, 210)
+
+        btnStop := this.progressGui.Add("Button", "w100", "&Stop All")
+        btnClose := this.progressGui.Add("Button", "x+10 w100", "&Close")
+
+        _BtnStopClickHandler(*) {
+            this.StopAllWorkers()
+        }
+        _BtnCloseClickHandler(*) {
+            asasd()
+        }
+        btnStop.OnEvent("Click", _BtnStopClickHandler)
+        btnClose.OnEvent("Click", _BtnCloseClickHandler)
+        asasd()
+        {
+            {
+                if (this.batchInProgress) {
+                    if (MsgBox("Processing is still active. Stop all workers and close?", "Confirm", 0x34) = "Yes") {
+                        this.StopAllWorkers()
+                        this.progressGui.Destroy()
+                    }
+                } else {
+                    this.progressGui.Destroy()
+                }
+            }
+        }
+        this.progressGui.Show()
+
+        ; Update timer
+        UpdateProgress() {
+            try {
+                this.workerListView.Opt("-Redraw")
+                jsonText := FileRead(CONFIG_FILE)
+                this.config := JSON.Parse(jsonText)
+
+                ; Count current batch progress
+                batchCompleted := 0
+                batchFailed := 0
+
+                for task in this.config["tasks"] {
+                    if (task["status"] = "completed") {
+                        batchCompleted++
+                    } else if (task["status"] = "failed") {
+                        batchFailed++
+                    }
+                }
+
+                ; Update overall progress bar (global progress)
+                totalProcessed := this.globalCompletedTasks + this.globalFailedTasks + batchCompleted + batchFailed
+                this.overallProgress.Value := totalProcessed
+                percentage := Round(totalProcessed / this.allTasks.Length * 100)
+
+                this.overallText.Text := Format("Overall: {}/{} ({}%) - Completed: {}, Failed: {}",
+                    totalProcessed,
+                    this.allTasks.Length,
+                    percentage,
+                    this.globalCompletedTasks + batchCompleted,
+                    this.globalFailedTasks + batchFailed
+                )
+
+                ; Update batch info
+                batchText.Text := Format("Current Batch: {}/{} | Batch Progress: {}/{}",
+                    this.currentBatchIndex,
+                    this.totalBatches,
+                    batchCompleted + batchFailed,
+                    this.config["tasks"].Length
+                )
+
+                ; Update worker status
+                this.workerListView.Delete()
+                for worker in this.config["workers"] {
+                    this.workerListView.Add(,
+                        "Worker " . worker["id"],
+                        worker["status"],
+                        worker["currentTask"],
+                        worker["completedTasks"],
+                        worker["current_status"]
+                    )
+                }
+
+                this.workerListView.ModifyCol(1, 80)
+                this.workerListView.ModifyCol(2, 80)
+                this.workerListView.ModifyCol(3, 150)
+                this.workerListView.ModifyCol(4, 80)
+                this.workerListView.ModifyCol(5, 210)
+                try {
+                    this.workerListView.Opt("+Redraw")
+                } catch {
+
+                }
+                ; Check if batch is complete
+                if (this.batchInProgress && this.CheckBatchComplete()) {
+                    ; All batches done
+                    SetTimer(UpdateProgress, 0)
+                    this.ShowSummary()
+                }
+
+            } catch {
+                try {
+                    this.workerListView.Opt("+Redraw")
+                } catch {
+                    ; Ignore redraw errors
+                }
+            }
+        }
+
+        SetTimer(UpdateProgress, REFRESH_INTERVAL)
+        UpdateProgress()
+    }
+
+    StopAllWorkers() {
+        KillAllWorkers()
+        this.batchInProgress := false
+        LogMessage("INFO", "All workers stopped")
+    }
+
+    ShowSummary() {
+        duration := DateDiff(A_Now, this.config["statistics"]["startTime"], "Minutes")
+
+        summary := Format("=== Processing Complete ===`n`n"
+            . "Total Tasks: {}`n"
+            . "Completed: {}`n"
+            . "Failed: {}`n"
+            . "Total Batches: {}`n"
+            . "Duration: {} minutes`n`n"
+            . "Check the logs folder for details.",
+            this.allTasks.Length,
+            this.globalCompletedTasks,
+            this.globalFailedTasks,
+            this.totalBatches,
+            duration
+        )
+
+        MsgBox(summary, "Task Processing Complete", 0x40)
+    }
+}
+
+; ==================== CONFIG PARSING ====================
+ParseConfigFiles() {
+    global Databases, RfcDestinations, ScriptTemplate
+
+    LogMessage("INFO", "Parsing configuration files...")
+
+    try {
+        dbContent := FileRead("databases.cfg")
+        tempDatabases := StrSplit(dbContent, "`n", "`r")
+        Databases := []
+        for db in tempDatabases {
+            if (Trim(db) != "") {
+                Databases.Push(Trim(db))
+            }
+        }
+        LogMessage("INFO", "Loaded " Databases.Length " databases")
+    } catch {
+        LogError("Failed to read databases.cfg: ")
+        return false
+    }
+
+    try {
+        rfcContent := FileRead("rfc_destinations.cfg")
+        tempRfc := StrSplit(rfcContent, "`n", "`r")
+        RfcDestinations := []
+        for rfc in tempRfc {
+            if (Trim(rfc) != "") {
+                RfcDestinations.Push(Trim(rfc))
+            }
+        }
+        LogMessage("INFO", "Loaded " RfcDestinations.Length " RFC destinations")
+    } catch {
+        LogError("Failed to read rfc_destinations.cfg: ")
+        return false
+    }
+
+    try {
+        ScriptTemplate := FileRead("script_template.txt")
+        LogMessage("INFO", "Loaded script template")
+    } catch {
+        LogError("Failed to read script_template.txt: ")
+        return false
+    }
+
+    return true
+}
+
+; ==================== GLOBAL STOP HANDLER ====================
+global MainDistributor := ""
+
+StopAllWorkersGlobal() {
+    if (IsSet(MainDistributor) && MainDistributor != "") {
+        MainDistributor.StopAllWorkers()
+    }
+}
+
+; ==================== MAIN EXECUTION ====================
+Main() {
+    LogMessage("INFO", "=== SAP Task Distributor Started ===")
+    LogMessage("INFO", "User: " A_UserName)
+    LogMessage("INFO", "Time: " FormatTime(, "yyyy-MM-dd HH:mm:ss"))
+
+    global MainDistributor := TaskDistributor()
+
+    if (!MainDistributor.Initialize()) {
+        MsgBox("Initialization failed. Check logs for details.", "Error", 0x10)
+        ExitApp()
+    }
+    ;save config
+    MainDistributor.SaveConfig()
+    MainDistributor.MonitorProgress()
+    MainDistributor.StartBatchProcessing()
+}
+
+; ==================== HOTKEYS ====================
+^Esc:: {
+    LogMessage("INFO", "Script terminated by user (Ctrl+Esc)")
+    StopAllWorkersGlobal()
+    Sleep(2000)
+    ExitApp()
+}
+
+Main()

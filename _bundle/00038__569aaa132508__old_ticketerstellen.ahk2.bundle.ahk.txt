@@ -1,0 +1,394 @@
+;; @bundle-id: 569aaa132508
+;; @source-rel: old/ticketerstellen.ahk2
+;; @source-sha1: c5db0a1749bf7c5208e4595e67bb1203bc8c69b6
+;; @note: Edit content below. Keep header lines starting with ';;' intact.
+;; -------------------------
+#Requires AutoHotkey v2.0
+#SingleInstance Force
+
+; ==================== INCLUDES ====================
+#Include "declarations.ahk2"
+#Include "utility.ahk2"
+#Include "excel_functions.ahk2"
+#Include "sap_functions.ahk2"
+
+; ==================== CONSTANTS ====================
+global TEMP_DIR := "C:\tmp\"
+global logFile := A_ScriptDir "\; logs\spool_processor.; log"
+
+; ==================== MAIN FUNCTION ====================
+ProcessSpoolFromExcel() {
+    ExcelFilePath := A_ScriptDir . "\excel_file.xlsx"
+    try {
+        ; Ensure temp directory exists
+        if (!DirExist(TEMP_DIR)) {
+            DirCreate(TEMP_DIR)
+        }
+
+        ; Connect to SAP
+        if (!ConnectSAP()) {
+            MsgBox("Failed to connect to SAP. Please ensure SAP GUI is open.", "Error", 0x10)
+            return
+        }
+
+        ; Open Excel and read current row
+        if (!ExcelOpen(ExcelFilePath)) {
+            MsgBox("Failed to open Excel file.", "Error", 0x10)
+            return
+        }
+
+        ; Assuming we're reading the current selected row or row 2 (first data row)
+        currentRow := 2  ; Adjust as needed or get from user selection
+
+        ;loop through rows until an empty jobname is found
+        while (true) {
+            jobname := ExcelReadCell(currentRow, 1) ; Jobname column
+            already_done := ExcelReadCell(currentRow, 6) ; Already done column
+            ;'X' = done
+            if (already_done = "X") {
+                currentRow++
+                continue
+            }
+            if (jobname = "") {
+                ; logMessage("INFO", "No more job entries found. Ending process.")
+                break
+            }
+            ProcessSingleJob(currentRow)
+            ;ask user if should mark as dne
+            response := MsgBox("Mark job as done in Excel?", "Mark as Done", 0x4) ; Yes/No
+            if (response = "Yes") {
+                ExcelWriteCell(currentRow, 6, "X") ; Mark as done
+            }
+            currentRow++
+        }
+
+
+        ; Close Excel
+        ExcelClose()
+
+    } catch {
+        ; logMessage("ERROR", "Error in main process: ")
+        MsgBox("An error occurred: ", "Error", 0x10)
+    }
+}
+ProcessSingleJob(currentRow)
+{
+
+    ; Read the data from Excel
+    jobData := ReadJobDataFromExcel(currentRow)
+
+    if (!jobData.jobname || !jobData.spoolnumber) {
+        MsgBox("Missing required data (jobname or spoolnumber)", "Error", 0x10)
+        ExcelClose()
+        return
+    }
+
+    ; logMessage("INFO", "Processing Job: " . jobData.jobname . " with Spool: " . jobData.spoolnumber)
+
+    ; Extract table name from jobname using regex
+    tableName := jobData.tabname
+
+    ; logMessage("INFO", "Extracted table name: " . tableName)
+
+    ; Download spool as HTML
+    spoolFile := DownloadSpoolAsHTML(jobData.spoolnumber)
+
+    if (!spoolFile) {
+        MsgBox("Failed to download spool list", "Error", 0x10)
+        ExcelClose()
+        return
+    }
+
+    ; Rename the file to spool.htm
+    finalSpoolFile := TEMP_DIR . jobData.tabname . ".htm"
+    try {
+        if (FileExist(finalSpoolFile)) {
+            FileDelete(finalSpoolFile)
+        }
+        FileMove(spoolFile, finalSpoolFile)
+    } catch {
+        ; logMessage("ERROR", "Could not rename spool file")
+    }
+
+    ; Step 1: Copy ticket name to clipboard
+    ticketName := "DEX-TM2-" . tableName . " DEX<=>W4P diff"
+    A_Clipboard := ticketName
+    MsgBox("click on category")
+    ;wait fro click
+    KeyWait("LButton", "D")
+    KeyWait("LButton")
+    Sleep(400)
+    Send("{Raw}Tr")
+    Sleep(100)
+    Send("{Enter}")
+    Sleep(100)
+    Send("{Tab}")
+    Sleep(100)
+    Send("{Space}")
+    Sleep(100)
+    Send("{Raw}_")
+    Sleep(100)
+    Send("{Enter}")
+    Sleep(100)
+    Send("{Tab}")
+    Sleep(100)
+    Send("{Space}")
+    Sleep(100)
+    Send("{Raw}MM")
+    Sleep(100)
+    Send("{Enter}")
+    Sleep(100)
+
+    TrayTip("Ticket name copied to clipboard:`n`n" . ticketName .
+        "`n`nPlease create the ticket in your ticketing system and attach the file:`n" .
+        finalSpoolFile, "Create Ticket", 0x40)
+    ;wait for ctrl + v and then put next doc in clipboard instead of msgbox
+    wait_for_ctrl_v(ticketName)
+    ; Step 2: Copy template text to clipboard
+    templateText := GenerateTicketDescription(tableName, jobData.spoolnumber)
+    A_Clipboard := templateText
+
+    TrayTip("Template text has been copied to clipboard.`n`nPaste it into the ticket description.",
+        "Template Copied", 0x40)
+    wait_for_ctrl_v(templateText)
+    drag_drop_file_at_click_pos(finalSpoolFile)
+}
+; ==================== HELPER FUNCTIONS ====================
+wait_for_ctrl_v(text) {
+    ; Use a local variable as a flag. This avoids conflicts with global variables.
+    local pressed := false
+
+    ; Define a nested function (a closure) to act as the hotkey's callback.
+    ; This keeps the handler logic contained within the parent method.
+    ctrl_v_handler(*) {
+        pressed := true
+    }
+
+    ; Create a Hotkey object.
+    ; The "$" prefix ensures that only a physical keypress from the user can
+    ; trigger this hotkey, preventing loops if the script itself sends Ctrl+V.
+    Hotkey("$^v", ctrl_v_handler, 'On')
+
+    ; Enable the hotkey.
+
+
+    ; Loop and sleep until the hotkey has been triggered.
+    ; This effectively pauses the script without consuming high CPU.
+    while !pressed {
+        Sleep 50
+    }
+
+    ; Disable the hotkey once it's no longer needed, restoring normal
+    ; Ctrl+V functionality.
+    Hotkey("$^v", ctrl_v_handler, 'Off')
+    ;paste the text we got inside this method,
+    ; clipboard is not possible so we wont use ^V as it won't work
+    ClipWait ; Wait for the clipboard to contain data
+    Send("{Raw}" . A_Clipboard) ; Send the clipboard content directly
+
+
+}
+
+/**
+ * Waits for a left mouse click and then drags a specified file to that location.
+ * This simulates a user dragging a file and dropping it onto an application.
+ * @param filepath The absolute path of the file to be dragged and dropped.
+ */
+drag_drop_file_at_click_pos(filepath) {
+    return
+    ;     if !FileExist(filepath) {
+    ;         MsgBox("File not found for drag-and-drop:`n" . filepath, "Error", "IconX")
+    ;         return
+    ;     }
+
+    ;     ; Inform the user to click at the drop target
+    ;     ToolTip("Click at the location where you want to drop the file.")
+    ;
+    ;     ; Wait for the user to press and release the left mouse button
+    ;     KeyWait("LButton", "D")
+    ;     KeyWait("LButton")
+    ;
+    ;     ; Get the final mouse position after the click
+    ;     MouseGetPos(&targetX, &targetY)
+    ;     ToolTip() ; Clear the tooltip
+
+    ;     ; The most reliable way to simulate a file drag is to use a temporary, hidden GUI
+    ;     ; with a ListView control containing the file.
+    ;     CoordMode("Mouse", "Screen") ; Ensure we use absolute screen coordinates
+
+    ;     tempGui := Gui("+ToolWindow -Caption") ; Create a borderless, tool window
+    ;     lv := tempGui.Add("ListView", "r1 w200", ["Name"])
+    ;     LV.Add("", filepath)
+    ;     LV.Modify(1, "Select Focus")
+    ;     ; Show the GUI far off-screen so it's not visible to the user
+    ;     tempGui.Show("x" . targetX -100 . "y" . targetY -100 )
+    ;     Sleep(4000)
+
+    ;     tempGui.Destroy() ; Clean up the temporary GUI
+}
+; Read job data from Excel
+ReadJobDataFromExcel(rowIndex) {
+    jobData := {
+        jobname: "",
+        spoolnumber: "",
+        status: "",
+        startdate: "",
+        starttime: "",
+        tabname: ""
+    }
+
+    try {
+        ; Column mapping based on your header
+        jobData.jobname := ExcelReadCell(rowIndex, 1)      ; Jobname
+        jobData.status := ExcelReadCell(rowIndex, 2)       ; Status
+        jobData.startdate := ExcelReadCell(rowIndex, 3)    ; Startdatum
+        jobData.starttime := ExcelReadCell(rowIndex, 4)    ; Startzeit
+        jobData.spoolnumber := ExcelReadCell(rowIndex, 5) ; spoolnummer
+        jobData.tabname := ExcelReadCell(rowIndex, 7)      ; tabname
+        ; Clean spoolnumber (remove any spaces or non-numeric characters)
+        jobData.spoolnumber := RegExReplace(jobData.spoolnumber, "[^\d]", "")
+
+    } catch {
+        ; logMessage("ERROR", "Error reading Excel data: ")
+    }
+
+    return jobData
+}
+
+; Download spool as HTML using SAP GUI scripting
+DownloadSpoolAsHTML(spoolNumber) {
+    global SapSession, TEMP_DIR
+
+    try {
+        ; Navigate to SP01
+        SapSession.FindById("wnd[0]/tbar[0]/okcd").Text := "/nsp01"
+        SapSession.FindById("wnd[0]").SendVKey(0)
+        Sleep(500)
+
+        ; Enter spool number
+        spoolField := "wnd[0]/usr/tabsTABSTRIP_BL1/tabpSCR1/ssub%_SUBSCREEN_BL1:RSPOSP01NR:0100/txtS_RQIDEN-LOW"
+        SapSession.FindById(spoolField).Text := spoolNumber
+        Sleep(200)
+
+        ; Execute search (F8)
+        SapSession.FindById("wnd[0]/tbar[1]/btn[8]").Press()
+        Sleep(1000)
+
+        ; Click on the spool entry (assuming it's at position 15,3)
+        SapSession.FindById("wnd[0]/usr/lbl[15,3]").SetFocus()
+        Sleep(200)
+
+        ; Double-click to open
+        SapSession.FindById("wnd[0]").SendVKey(2)
+        Sleep(500)
+
+        ; Display spool
+        SapSession.FindById("wnd[0]/tbar[1]/btn[46]").Press()
+        Sleep(500)
+
+        ; Close any popup that might appear
+        try {
+            SapSession.FindById("wnd[1]").Close()
+        } catch {
+            ; No popup, continue
+        }
+
+        ; Navigate to menu: System -> List -> Save -> Local File
+        SapSession.FindById("wnd[0]/mbar/menu[5]/menu[5]/menu[2]/menu[2]").Select()
+        Sleep(500)
+
+        ; Close any intermediate popup
+        try {
+            SapSession.FindById("wnd[1]").Close()
+        } catch {
+            ; No popup
+        }
+
+        ; Alternative menu path
+        SapSession.FindById("wnd[0]/mbar/menu[0]/menu[2]/menu[3]").Select()
+        Sleep(500)
+
+        ; Select HTML format (radio button at position [3,0])
+        radioButton := "wnd[1]/usr/subSUBSCREEN_STEPLOOP:SAPLSPO5:0150/sub:SAPLSPO5:0150/radSPOPLI-SELFLAG[3,0]"
+        SapSession.FindById(radioButton).Select()
+        SapSession.FindById(radioButton).SetFocus()
+        Sleep(200)
+
+        ; Confirm format selection
+        SapSession.FindById("wnd[1]/tbar[0]/btn[0]").Press()
+        Sleep(500)
+
+        ; Set file path and name
+        SapSession.FindById("wnd[1]/usr/ctxtDY_PATH").Text := TEMP_DIR
+        tempFileName := "spool.htm"
+        SapSession.FindById("wnd[1]/usr/ctxtDY_FILENAME").Text := tempFileName
+        Sleep(200)
+
+        ; Save the file
+        SapSession.FindById("wnd[1]/tbar[0]/btn[0]").Press()
+        Sleep(1000)
+
+        ; Check if file was created
+        fullPath := TEMP_DIR . tempFileName
+        if (FileExist(fullPath)) {
+            ; logMessage("INFO", "Spool downloaded successfully: " . fullPath)
+            return fullPath
+        } else {
+            ; logMessage("ERROR", "Spool file was not created")
+            return ""
+        }
+
+    } catch {
+        ; logMessage("ERROR", "Error downloading spool: ")
+        return ""
+    }
+}
+
+; Generate ticket description text
+GenerateTicketDescription(tableName, spoolNumber) {
+    ; German text with better formatting
+    germanText := "Beim Datenvergleich der Datenbanktabelle " . tableName . " wurden eine oder mehrere Differenzen festgestellt.`n`n"
+    germanText .= "Zum Testen gibt es folgende Möglichkeiten:`n"
+    germanText .= "1. Die angehängte Datei 'spool.htm' nutzen`n"
+    germanText .= "In der Transaktion SE16XXL den Script mit dem Namen '$" . tableName . "_COMP_01' aufrufen`n`n"
+    germanText .= "Spool-Nummer: " . spoolNumber . "`n"
+    germanText .= "Verarbeitet am: " . FormatTime(, "dd.MM.yyyy HH:mm:ss")
+
+    ; English translation
+    englishText := "`n`n--- English ---`n"
+    englishText .= "Data comparison of database table " . tableName . " revealed one or more differences.`n`n"
+    englishText .= "For testing, you have the following options:`n"
+    englishText .= "1. Use the attached file 'spool.htm'`n"
+    englishText .= "In transaction SE16XXL, call the script named '$" . tableName . "_COMP_01'`n`n"
+    englishText .= "Spool Number: " . spoolNumber . "`n"
+    englishText .= "Processed on: " . FormatTime(, "yyyy-MM-dd HH:mm:ss")
+
+    return germanText . englishText
+}
+
+; ==================== HOTKEYS ====================
+; Ctrl+Shift+S to start processing
+
+ProcessSpoolFromExcel()
+
+; Ctrl+Esc to exit
+^Esc:: {
+    ; logMessage("INFO", "Script terminated by user")
+    ExitApp()
+}
+
+; ==================== STARTUP ====================
+; Create ; logs directory
+if (!DirExist(A_ScriptDir "\; logs")) {
+    DirCreate(A_ScriptDir "\; logs")
+}
+
+; logMessage("INFO", "=== Spool Processor Started ===")
+; logMessage("INFO", "Press Ctrl+Shift+S to process spool from Excel")
+
+; Show tooltip
+ToolTip("Spool Processor Ready`nPress Ctrl+Shift+S to start", , , 1)
+_ClearTooltip1() {
+    ToolTip(, , , 1)
+}
+SetTimer(_ClearTooltip1, -3000)

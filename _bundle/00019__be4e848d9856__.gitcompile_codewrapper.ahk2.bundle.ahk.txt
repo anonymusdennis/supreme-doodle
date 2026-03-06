@@ -1,0 +1,508 @@
+;; @bundle-id: be4e848d9856
+;; @source-rel: .gitcompile/codewrapper.ahk2
+;; @source-sha1: 34f4840c83ee3ae797976be0c4b41dc59dbf9157
+;; @note: Edit content below. Keep header lines starting with ';;' intact.
+;; -------------------------
+#Requires AutoHotkey v2.0
+
+; ==================== ABAP CODE WRAPPER ====================
+; Wraps ABAP code at specified character count while preserving functionality
+
+/**
+ * Wraps ABAP code to specified line length
+ * @param code - The ABAP code to wrap
+ * @param maxChars - Maximum characters per line (default: 80)
+ * @return - Wrapped code
+ */
+code_wrap(code, maxChars := 80) {
+    lines := StrSplit(code, "`n", "`r")
+    wrappedLines := []
+
+    for line in lines {
+        if (StrLen(line) <= maxChars) {
+            wrappedLines.Push(line)
+            continue
+        }
+
+        ; Process long line
+        segments := WrapLongLine(line, maxChars)
+        for segment in segments {
+            wrappedLines.Push(segment)
+        }
+    }
+
+    ; Join all lines back together
+    result := ""
+    for wLine in wrappedLines {
+        result .= wLine . "`n"
+    }
+
+    return RTrim(result, "`n")
+}
+
+/**
+ * Wraps a single long line of ABAP code
+ * @param line - The line to wrap
+ * @param maxChars - Maximum characters per line
+ * @return - Array of wrapped line segments
+ */
+WrapLongLine(line, maxChars) {
+    result := []
+    currentLine := line
+
+    ; Keep processing until the line is short enough
+    while (StrLen(currentLine) > maxChars) {
+        ; Check context at the beginning
+        startContext := GetContextAt(currentLine, 1)
+
+        ; Calculate effective max chars based on what we'll need to add
+        effectiveMax := maxChars
+
+        ; If we're breaking inside a string, account for ' &&
+        if (startContext["inSingleQuoteString"]) {
+            effectiveMax := maxChars - 4  ; Reserve space for ' &&
+        } else if (startContext["inBacktickString"]) {
+            effectiveMax := maxChars - 5  ; Reserve space for `` &&
+        }
+
+        ; Find the best break point
+        breakPoint := FindBestBreakPoint(currentLine, 1, effectiveMax)
+
+        if (breakPoint > 0 && breakPoint < StrLen(currentLine)) {
+            ; Get context at break point
+            contextInfo := GetContextAt(currentLine, breakPoint)
+
+            ; Handle different contexts
+            if (contextInfo["inComment"]) {
+                ; ABAP comment - continue on next line with "
+                chunk := SubStr(currentLine, 1, breakPoint)
+                remaining := SubStr(currentLine, breakPoint + 1)
+
+                ; Remove trailing spaces from chunk
+                chunk := RTrim(chunk)
+                result.Push(chunk)
+
+                ; Skip leading spaces in remaining
+                remaining := LTrim(remaining)
+
+                if (remaining != "") {
+                    currentLine := '" ' . remaining
+                } else {
+                    break
+                }
+
+            } else if (contextInfo["inSingleQuoteString"]) {
+                ; We're breaking inside a single-quote string
+                ; Find the last space before or at the break point
+                lastSpace := -1
+                searchPos := breakPoint
+
+                while (searchPos > 0) {
+                    if (SubStr(currentLine, searchPos, 1) = " ") {
+                        lastSpace := searchPos
+                        break
+                    }
+                    searchPos--
+                }
+
+                ; If we found a space, break after it (keeping the space)
+                if (lastSpace > 0) {
+                    chunk := SubStr(currentLine, 1, lastSpace)  ; Include the space
+                    remaining := SubStr(currentLine, lastSpace + 1)  ; Start after the space
+                } else {
+                    ; No space found, break at the limit
+                    chunk := SubStr(currentLine, 1, breakPoint)
+                    remaining := SubStr(currentLine, breakPoint + 1)
+                }
+
+                ; Add the closing quote and concatenation operator
+                result.Push(chunk . "' &&")
+
+                ; Continue with opening quote for the remaining string
+                if (remaining != "") {
+                    ; Check if the remaining part still has the closing quote
+                    if (InStr(remaining, "'")) {
+                        currentLine := "'" . remaining
+                    } else {
+                        ; This shouldn't happen in valid ABAP
+                        currentLine := "'" . remaining . "'"
+                    }
+                } else {
+                    break
+                }
+
+            } else if (contextInfo["inStringTemplate"]) {
+                ; String template - use backslash continuation
+                ; Try to break at a space
+                lastSpace := -1
+                searchPos := breakPoint
+
+                while (searchPos > 0) {
+                    if (SubStr(currentLine, searchPos, 1) = " ") {
+                        ; Make sure we're not in the middle of an expression
+                        beforeChar := searchPos > 1 ? SubStr(currentLine, searchPos - 1, 1) : ""
+                        afterChar := searchPos < StrLen(currentLine) ? SubStr(currentLine, searchPos + 1, 1) : ""
+
+                        ; Avoid breaking right before or after {}
+                        if (afterChar != "{" && beforeChar != "}") {
+                            lastSpace := searchPos
+                            break
+                        }
+                    }
+                    searchPos--
+                }
+
+                if (lastSpace > 0) {
+                    chunk := SubStr(currentLine, 1, lastSpace - 1)  ; Don't include the space
+                    remaining := SubStr(currentLine, lastSpace + 1)  ; Skip the space
+                } else {
+                    chunk := SubStr(currentLine, 1, breakPoint)
+                    remaining := SubStr(currentLine, breakPoint + 1)
+                }
+
+                ; Add backslash for line continuation
+                result.Push(chunk . " ")
+                currentLine := remaining
+
+            } else if (contextInfo["inBacktickString"]) {
+                ; Backtick string
+                lastSpace := -1
+                searchPos := breakPoint
+
+                while (searchPos > 0) {
+                    if (SubStr(currentLine, searchPos, 1) = " ") {
+                        lastSpace := searchPos
+                        break
+                    }
+                    searchPos--
+                }
+
+                if (lastSpace > 0) {
+                    chunk := SubStr(currentLine, 1, lastSpace)  ; Include the space
+                    remaining := SubStr(currentLine, lastSpace + 1)
+                } else {
+                    chunk := SubStr(currentLine, 1, breakPoint)
+                    remaining := SubStr(currentLine, breakPoint + 1)
+                }
+
+                result.Push(chunk . "`` &&")
+
+                if (remaining != "") {
+                    currentLine := "``" . remaining
+                } else {
+                    break
+                }
+
+            } else {
+                ; Normal code - break at whitespace or operators
+                chunk := SubStr(currentLine, 1, breakPoint)
+                remaining := SubStr(currentLine, breakPoint + 1)
+
+                ; Only trim if we're breaking at a space
+                if (SubStr(chunk, -1) = " ") {
+                    chunk := RTrim(chunk)
+                    remaining := LTrim(remaining)
+                }
+
+                result.Push(chunk)
+                currentLine := remaining
+
+                if (currentLine = "") {
+                    break
+                }
+            }
+        } else {
+            ; No good break point found - add what's left
+            result.Push(currentLine)
+            break
+        }
+    }
+
+    ; Add any remaining content
+    if (currentLine != "" && StrLen(currentLine) <= maxChars) {
+        ; Check if we haven't already added this
+        if (!result.Length || result[result.Length] != currentLine) {
+            result.Push(currentLine)
+        }
+    }
+
+    return result
+}
+
+/**
+ * Finds the best position to break a line
+ * Looks for the last valid break point before maxPos
+ */
+FindBestBreakPoint(line, startPos, maxPos) {
+    bestPos := -1
+
+    ; Don't go beyond the line length
+    searchEnd := Min(maxPos, StrLen(line))
+
+    ; Look backwards from the max position to find a good break point
+    pos := searchEnd
+
+    while (pos >= startPos) {
+        char := SubStr(line, pos, 1)
+        context := GetContextAt(line, pos)
+
+        ; In strings or comments, prefer breaking at spaces
+        if (context["inSingleQuoteString"] || context["inComment"] ||
+            context["inBacktickString"] || context["inStringTemplate"]) {
+            if (char = " ") {
+                bestPos := pos
+                break
+            }
+        } else if (context["inCode"]) {
+            ; In code, we can break at various points
+            if (char = " " || char = "," || char = ".") {
+                ; Make sure we're not breaking operators
+                if (CanBreakAt(line, pos, context)) {
+                    bestPos := pos
+                    break
+                }
+            }
+        }
+
+        pos--
+    }
+
+    ; If no ideal break point found but we must break, use the position
+    if (bestPos = -1) {
+        bestPos := searchEnd
+    }
+
+    return bestPos
+}
+
+/**
+ * Determines the context at a specific position in the line
+ */
+GetContextAt(line, position) {
+    context := Map(
+        "inComment", false,
+        "inSingleQuoteString", false,
+        "inStringTemplate", false,
+        "inBacktickString", false,
+        "inCode", true
+    )
+
+    inSingleQuote := false
+    inBacktick := false
+    inStringTemplate := false
+    inComment := false
+
+    pos := 1
+    while (pos <= position && pos <= StrLen(line)) {
+        char := SubStr(line, pos, 1)
+        prevChar := pos > 1 ? SubStr(line, pos - 1, 1) : ""
+        nextChar := pos < StrLen(line) ? SubStr(line, pos + 1, 1) : ""
+
+        ; Check for comment (not inside strings)
+        if (!inSingleQuote && !inBacktick && !inStringTemplate && char = '"') {
+            inComment := true
+            context["inComment"] := true
+            context["inCode"] := false
+            ; Once we hit a comment, everything after is comment
+            return context
+        }
+
+        ; Skip if in comment
+        if (inComment) {
+            pos++
+            continue
+        }
+
+        ; Check for string template |...|
+        if (!inSingleQuote && !inBacktick) {
+            if (char = "|" && nextChar != "|" && prevChar != "|") {
+                ; This might be a string template boundary
+                if (!inStringTemplate) {
+                    ; Check if this starts a template (look for { after)
+                    scanPos := pos + 1
+                    while (scanPos <= StrLen(line) && scanPos <= pos + 10) {
+                        scanChar := SubStr(line, scanPos, 1)
+                        if (scanChar = "{") {
+                            inStringTemplate := true
+                            break
+                        } else if (scanChar != " " && scanChar != "`t") {
+                            break
+                        }
+                        scanPos++
+                    }
+                } else {
+                    ; Check if this ends a template
+                    inStringTemplate := false
+                }
+            }
+        }
+
+        ; Check for single quotes (not inside templates or backticks)
+        if (!inStringTemplate && !inBacktick && char = "'") {
+            ; Check if it's an escaped quote (two quotes)
+            if (nextChar = "'") {
+                pos += 2  ; Skip both quotes
+                continue
+            } else {
+                inSingleQuote := !inSingleQuote
+            }
+        }
+
+        ; Check for backticks (not inside templates or single quotes)
+        if (!inStringTemplate && !inSingleQuote && char = "``") {
+            inBacktick := !inBacktick
+        }
+
+        pos++
+    }
+
+    ; Set final context
+    context["inSingleQuoteString"] := inSingleQuote
+    context["inBacktickString"] := inBacktick
+    context["inStringTemplate"] := inStringTemplate
+    context["inCode"] := !inComment && !inSingleQuote && !inBacktick && !inStringTemplate
+
+    return context
+}
+
+/**
+ * Checks if we can break at a specific position
+ */
+CanBreakAt(line, position, context) {
+    if (position >= StrLen(line)) {
+        return true  ; Can always break at the end
+    }
+
+    char := SubStr(line, position, 1)
+
+    ; Don't break in the middle of operators
+    if (position > 1 && position < StrLen(line)) {
+        prevChar := SubStr(line, position - 1, 1)
+        nextChar := SubStr(line, position + 1, 1)
+
+        ; Don't break && or || or -> or => etc
+        if ((char = "&" && nextChar = "&") || (prevChar = "&" && char = "&")) {
+            return false
+        }
+        if ((char = "|" && nextChar = "|") || (prevChar = "|" && char = "|")) {
+            return false
+        }
+        if ((char = "-" && nextChar = ">") || (prevChar = "-" && char = ">")) {
+            return false
+        }
+        if ((char = "=" && nextChar = ">") || (prevChar = "=" && char = ">")) {
+            return false
+        }
+    }
+
+    return true
+}
+
+; ==================== HELPER FUNCTION ====================
+StrRepeat(str, count) {
+    result := ""
+    Loop count {
+        result .= str
+    }
+    return result
+}
+
+; ==================== TEST FUNCTION ====================
+TestCodeWrapper() {
+    testCases := [{
+        name: "Long comment",
+        code: '" This is a very long comment that needs to be wrapped because it exceeds the maximum character limit we have set for our code',
+        maxChars: 40
+    }, {
+        name: "String concatenation",
+        code: "DATA(lv_text) = 'This is a very long string that needs to be broken up into multiple lines for better readability'.",
+        maxChars: 50
+    }, {
+        name: "String template",
+        code: "DATA(lv_msg) = |{ lv_name } is processing { lv_count } items from table { lv_table } with status { lv_status }|.",
+        maxChars: 60
+    }, {
+        name: "Very long string needing multiple breaks",
+        code: "DATA(lv_long) = 'This is an extremely long string that will need to be broken multiple times because it is so incredibly long that a single break will not be sufficient to keep it under the limit'.",
+        maxChars: 40
+    }, {
+        name: "String with exact spacing",
+        code: "lv_test = 'The    spaces    between    these    words    must    be    preserved    exactly'.",
+        maxChars: 35
+    },
+    {
+        name: "Complex code with multiple statements",
+        code: "DATA(lv_a) = 'Short'. DATA(lv_b) = 'This is a longer string that needs to be wrapped properly'.",
+        maxChars: 50
+    }, {
+        name: "Code with operators",
+        code: "IF lv_a = 'Test' AND lv_b <> 'Example'. WRITE: / 'Condition met!'. ENDIF.",
+        maxChars: 45
+    },
+    {
+        name: "Code with nested structures",
+        code: "LOOP AT lt_items INTO DATA(ls_item). IF ls_item-field1 = 'Value'. WRITE: / ls_item-field2. ENDIF. ENDLOOP.",
+        maxChars: 50
+    }, {
+        name: "Long variable assignment",
+        code: "DATA(lv_long_var) = 'This is a very long variable assignment that should be wrapped correctly to avoid exceeding the maximum character limit'.",
+        maxChars: 60
+    } ,
+    {
+        name: "Complex expression",
+        code: "DATA(lv_result) = ( lv_a + lv_b ) * ( lv_c - lv_d ) / lv_e.",
+        maxChars: 50
+    }, {
+        name: "Long method call",
+        code: "CALL METHOD cl_example=>do_something_long( EXPORTING param1 = 'This is a very long parameter that needs to be wrapped' ).",
+        maxChars: 55
+    }
+    ]
+
+    outputFile := A_ScriptDir . "\code_wrapper_test.txt"
+
+    try {
+        FileDelete(outputFile)
+    } catch {
+        ; File doesn't exist
+    }
+
+    FileAppend("ABAP Code Wrapper Test Results`n", outputFile)
+    FileAppend("Generated: " . FormatTime(, "yyyy-MM-dd HH:mm:ss") . "`n", outputFile)
+    FileAppend(StrRepeat("=", 80) . "`n`n", outputFile)
+
+    for testCase in testCases {
+        FileAppend("=== Test: " . testCase.name . " ===`n", outputFile)
+        FileAppend("Max chars: " . testCase.maxChars . "`n", outputFile)
+        FileAppend("Original:`n" . testCase.code . "`n`n", outputFile)
+
+        wrapped := code_wrap(testCase.code, testCase.maxChars)
+
+        FileAppend("Wrapped:`n" . wrapped . "`n", outputFile)
+
+        ; Verify each line length
+        FileAppend("`nLine lengths:`n", outputFile)
+        wrappedLines := StrSplit(wrapped, "`n")
+        allWithinLimit := true
+        for idx, wLine in wrappedLines {
+            lineLen := StrLen(wLine)
+            FileAppend("  Line " . idx . ": " . lineLen . " chars", outputFile)
+            if (lineLen > testCase.maxChars) {
+                FileAppend(" - WARNING: Exceeds limit by " . (lineLen - testCase.maxChars) . " chars!", outputFile)
+                allWithinLimit := false
+            }
+            FileAppend("`n", outputFile)
+        }
+
+        if (allWithinLimit) {
+            FileAppend("✓ All lines within limit`n", outputFile)
+        }
+
+        FileAppend("`n" . StrRepeat("-", 80) . "`n`n", outputFile)
+    }
+
+    Run("notepad.exe " . outputFile)
+}
+
+; Run the test
+;TestCodeWrapper()

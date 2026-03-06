@@ -1,0 +1,611 @@
+;; @bundle-id: 7580fab38fff
+;; @source-rel: .gitcompile/excel_functions.ahk2
+;; @source-sha1: f5e21e23e32141fd71c0cb619172b8e81db0a610
+;; @note: Edit content below. Keep header lines starting with ';;' intact.
+;; -------------------------
+#Requires AutoHotkey v2.0
+#Include "../ahk2_sap_wrapper/src/SapWrapper.ahk"
+
+; ==================== EXCEL FUNCTIONS ====================
+ExcelOpen(filePath) {
+    try {
+        if (!FileExist(filePath)) {
+            LogMessage(LOG_INFO, "Excel file does not exist: " filePath)
+            return false
+        }
+
+        LogMessage(LOG_INFO, "Opening Excel file: " filePath)
+
+        ; Try to get existing Excel instance first
+        existingExcel := false
+        try {
+            global ExcelApp := ComObjActive("Excel.Application")
+            existingExcel := true
+            LogMessage(LOG_INFO, "Found existing Excel instance")
+        } catch {
+            ; No existing Excel, create new instance
+            global ExcelApp := ComObject("Excel.Application")
+            LogMessage(LOG_INFO, "Created new Excel instance")
+        }
+
+        if !IsSet(ExcelApp) {
+            LogMessage(LOG_INFO, "Failed to create/get Excel application")
+            return false
+        }
+
+        ExcelApp.Visible := true
+
+        ; Get just the filename from the full path for comparison
+        targetFileName := ""
+        SplitPath(filePath, &targetFileName)
+
+        ; Check if the file is already open in existing Excel
+        fileAlreadyOpen := false
+        global ExcelWorkbook := ""
+
+        if (existingExcel) {
+            try {
+                ; Check all open workbooks
+                for wb in ExcelApp.Workbooks {
+                    wbName := ""
+                    wbFullName := ""
+                    try {
+                        wbName := wb.Name
+                        wbFullName := wb.FullName
+                    } catch {
+                        continue
+                    }
+
+                    ; Compare both filename and full path
+                    if (wbName = targetFileName || wbFullName = filePath) {
+                        ExcelWorkbook := wb
+                        fileAlreadyOpen := true
+                        LogMessage(LOG_INFO, "File already open in Excel: " wbName)
+                        break
+                    }
+                }
+            } catch {
+                LogMessage(LOG_INFO, "Error checking open workbooks: ")
+            }
+        }
+
+        ; If file not already open, open it
+        if (!fileAlreadyOpen) {
+            global ExcelWorkbook := ExcelApp.Workbooks.Open(filePath)
+            LogMessage(LOG_INFO, "Opened file: " filePath)
+        }
+
+        if !IsSet(ExcelWorkbook) || !IsObject(ExcelWorkbook) {
+            LogMessage(LOG_INFO, "Failed to open workbook")
+            if (!existingExcel) {
+                ExcelApp.Quit()
+            }
+            ExcelApp := ""
+            return false
+        }
+
+        global ExcelWorksheet := ExcelWorkbook.Worksheets(1)
+        if !IsSet(ExcelWorksheet) {
+            LogMessage(LOG_INFO, "Failed to access worksheet")
+            if (!fileAlreadyOpen) {
+                ExcelWorkbook.Close(false)
+            }
+            if (!existingExcel) {
+                ExcelApp.Quit()
+            }
+            ExcelWorkbook := ""
+            ExcelApp := ""
+            return false
+        }
+
+        global ExcelIsOpen := true
+        LogMessage(LOG_INFO, "Excel file ready for use")
+        return true
+    } catch {
+        LogMessage(LOG_INFO, "Error opening Excel file: ")
+        CleanupExcel()
+        return false
+    }
+}
+ExcelReadCell(row, col) {
+    if (!ExcelIsOpen || !IsSet(ExcelWorksheet)) {
+        LogMessage(LOG_INFO, "Attempted to read Excel cell but worksheet is not open")
+        return ""
+    }
+
+    try {
+        value := ExcelWorksheet.Cells(row, col).Value
+        return value
+    } catch {
+        LogMessage(LOG_INFO, "Error reading cell [" row "," col "]: ")
+        return ""
+    }
+}
+
+ExcelWriteCell(row, col, value) {
+    if (!ExcelIsOpen || !IsSet(ExcelWorksheet)) {
+        LogMessage(LOG_INFO, "Attempted to write Excel cell but worksheet is not open")
+        return false
+    }
+
+    try {
+        ExcelWorksheet.Cells(row, col).Value := value
+        return true
+    } catch {
+        LogMessage(LOG_INFO, "Error writing to cell [" row "," col "]: ")
+        return false
+    }
+}
+
+ExcelSelectSheet(sheetNameOrIndex) {
+    if (!ExcelIsOpen || !IsSet(ExcelWorkbook)) {
+        LogMessage(LOG_INFO, "Attempted to select sheet but workbook is not open")
+        return false
+    }
+
+    try {
+        global ExcelWorksheet := ExcelWorkbook.Worksheets(sheetNameOrIndex)
+        ExcelWorksheet.Activate()
+        return true
+    } catch {
+        LogMessage(LOG_INFO, "Error selecting worksheet: ")
+        return false
+    }
+}
+
+ExcelGetLastRow(column := "A") {
+    if (!ExcelIsOpen || !IsSet(ExcelWorksheet)) {
+        LogMessage(LOG_INFO, "Attempted to get last row but worksheet is not open")
+        return 0
+    }
+
+    try {
+        lastRow := 1
+        while (ExcelWorksheet.Cells(lastRow, column).Value != "") {
+            lastRow++
+        }
+        return lastRow - 1
+    } catch {
+        LogMessage(LOG_INFO, "Error finding last row: ")
+        return 0
+    }
+}
+
+ExcelClose(saveChanges := false) {
+    if (!ExcelIsOpen) {
+        return true
+    }
+
+    try {
+        if (saveChanges && IsSet(ExcelWorkbook)) {
+            try {
+                ExcelWorkbook.Save()
+                LogMessage(LOG_INFO, "Excel file saved")
+                return true
+            } catch {
+                LogMessage(LOG_INFO, "Could not save Excel file: ")
+            }
+        }
+
+        if (IsSet(ExcelWorkbook)) {
+            try {
+                ; ExcelWorkbook.Close(false)
+            } catch {
+                LogMessage(LOG_INFO, "Could not close workbook properly: ")
+            }
+        }
+
+        if (IsSet(ExcelApp)) {
+            try {
+                ; ExcelApp.Quit()
+            } catch {
+                LogMessage(LOG_INFO, "Could not quit Excel properly: ")
+            }
+        }
+        return true
+    } catch {
+        LogMessage(LOG_INFO, "Error closing Excel: ")
+        CleanupExcel()
+        return false
+    }
+}
+
+CleanupExcel() {
+    return
+
+}
+
+; Create or ensure Sheet 5 exists for error logging
+EnsureErrorSheet() {
+    try {
+        global ExcelWorksheet
+        currentSheet := ExcelWorksheet
+
+        ; Try to select Sheet 5
+        if (!ExcelSelectSheet(ErrorLogSheet)) {
+            ; Create Sheet 5 if it doesn't exist
+            try {
+                sheetsCount := ExcelWorkbook.Worksheets.Count
+                while (sheetsCount < ErrorLogSheet) {
+                    ExcelWorkbook.Worksheets.Add(, ExcelWorkbook.Worksheets(sheetsCount))
+                    sheetsCount++
+                }
+
+                ExcelSelectSheet(ErrorLogSheet)
+                ExcelWorksheet.Name := "Error Log"
+
+                ; Add headers
+                ExcelWriteCell(1, 1, "Row")
+                ExcelWriteCell(1, 2, "Timestamp")
+                ExcelWriteCell(1, 3, "Error Type")
+                ExcelWriteCell(1, 4, "Error Message")
+                ExcelWriteCell(1, 5, "Step")
+                ExcelWriteCell(1, 6, "Vendor Name")
+
+                LogMessage(LOG_INFO, "Created Sheet 5 for error logging")
+            } catch {
+                LogMessage(LOG_INFO, "Could not create error sheet: ")
+                return false
+            }
+        }
+
+        ; Return to original sheet
+        ExcelWorksheet := currentSheet
+        return true
+    } catch {
+        LogMessage(LOG_INFO, "Error ensuring error sheet: ")
+        return false
+    }
+}
+; Function to handle protocol popup grid and log to Sheet 7
+HandleTableControlPopup(rowIndex, vendorName := "", lieferantenNr := "") {
+    global SapSession, ExcelWorksheet, ExcelWorkbook, ExcelIsOpen, ErrorLogSheet
+
+    if (!IsSet(SapSession)) {
+        LogMessage(LOG_INFO, "SAP session not available for table control handling")
+        return false
+    }
+    ; Check for messages after save
+    messages := CheckAndLogSapMessages("After save")
+    ;extract vendor number from messages "ntrag wurde mit Nummer 1000001626 gespeichert. "
+    ;extract number with regex [0-9]*
+    vendorNumber := []  ; Initialize vendorNumber as an array
+    if (RegExMatch(messages, "(\d+)", &vendorNumber)) {  ; Use VarRef for vendorNumber
+        LogMessage(LOG_INFO, "Vendor number for row " rowIndex ": " vendorNumber[1])
+        ;ExcelWriteCell(rowIndex, 31, vendorNumber[1])  ; Save vendor number to Sheet 1
+    } else {
+        LogMessage(LOG_WARNING, "No vendor number found in messages for row " rowIndex)
+        ;ExcelWriteCell(rowIndex, 31, "")  ; Clear vendor number cell
+    }
+    ;if message and vendornumber have been found, then write that to sheet and return:
+    if (messages != "" && vendorNumber[1] != "") {
+        LogMessage(LOG_INFO, "Writing protocol information to Sheet 7 for row " rowIndex)
+        if (!EnsureSheet7()) {
+            LogMessage(LOG_INFO, "Could not create/access Sheet 7 for protocol logs")
+            return false
+        }
+
+        ; Find next empty row in Sheet 7
+        lastRow := ExcelGetLastRow("A")
+        if (lastRow <= 2) {
+            lastRow := 2  ; Start from row 3 if empty (rows 1-2 for headers)
+        }
+
+        global excelRow := lastRow + 1
+
+        ExcelWriteCell(excelRow, 1, "Row Index")
+        ExcelWriteCell(excelRow, 2, "Vendor Name")
+        ExcelWriteCell(excelRow, 3, "Lieferanten Nr")
+        ExcelWriteCell(excelRow, 4, "Timestamp")
+
+        excelRow++
+        ExcelWriteCell(excelRow, 1, rowIndex)
+        ExcelWriteCell(excelRow, 2, vendorName)
+        ExcelWriteCell(excelRow, 3, lieferantenNr)
+        ExcelWriteCell(excelRow, 4, FormatTime(, "yyyy-MM-dd HH:mm:ss"))
+
+        ; Write messages
+        ExcelWriteCell(excelRow, 5, "Messages:")
+        ExcelWriteCell(excelRow, 6, messages)
+
+        excelRow++
+        ExcelWriteCell(excelRow, 1, "=====================================")
+
+        return true
+    }
+    try {
+        ; Check if popup exists (wnd[1])
+        popup := ""
+        try {
+            popup := SapSession.FindById("wnd[1]")
+            ; Verify it's the protocol popup
+            popupTitle := popup.Text
+            if (!InStr(popupTitle, "Protokoll")) {
+                LogMessage(LOG_INFO, "Popup is not a protocol window: " popupTitle)
+                return true
+            }
+            LogMessage(LOG_INFO, "Found protocol popup with title: " popupTitle)
+        } catch {
+            LogMessage(LOG_INFO, "No popup found after save for row " rowIndex)
+            return true  ; No popup is not an error
+        }
+
+        ; Get the grid control
+        gridControl := ""
+        try {
+            gridControl := SapSession.FindById("wnd[1]/usr/cntlGRID1/shellcont/shell")
+            LogMessage(LOG_INFO, "Found protocol grid control")
+        } catch {
+            LogMessage(LOG_INFO, "Could not find grid control: ")
+            return false
+        }
+
+        ; Switch to Sheet 7 (create if needed)
+        currentSheet := ExcelWorksheet
+        if (!EnsureSheet7()) {
+            LogMessage(LOG_INFO, "Could not create/access Sheet 7")
+            return false
+        }
+
+        ; Find next empty row in Sheet 7
+        lastRow := ExcelGetLastRow("A")
+        if (lastRow <= 2) {
+            lastRow := 2  ; Start from row 3 if empty (rows 1-2 for headers)
+        }
+
+        ; Write section header
+        headerRow := lastRow + 1  ; Leave a blank row
+        global excelRow
+
+        ExcelWriteCell(excelRow, 1, "Row Index")
+        ExcelWriteCell(excelRow, 2, "Vendor Name")
+        ExcelWriteCell(excelRow, 3, "Lieferanten Nr")
+        ExcelWriteCell(excelRow, 4, "Timestamp")
+
+        excelRow++
+        ExcelWriteCell(excelRow, 1, rowIndex)
+        ExcelWriteCell(excelRow, 2, vendorName)
+        ExcelWriteCell(excelRow, 3, lieferantenNr)
+        ExcelWriteCell(excelRow, 4, FormatTime(, "yyyy-MM-dd HH:mm:ss"))
+
+        excelRow += 2  ; Skip a row
+
+        ; Get grid dimensions from the properties documented in SAP API
+        columnCount := gridControl.ColumnCount
+        rowCount := gridControl.RowCount
+        LogMessage(LOG_INFO, "Grid has " columnCount " columns and " rowCount " rows")
+
+        ; Try to write column headers
+        headerRow := excelRow
+        columnNames := []
+
+        ; Using the correct method from SAP API documentation
+        for colIdx in Range(0, columnCount - 1) {
+            headerText := "Column " (colIdx + 1)
+
+            ; Try to get column title using the documented methods
+            try {
+                ; Get column name first
+                columnName := gridControl.ColumnOrder[colIdx]
+                ; Then try to get the displayed title for this column
+                try {
+                    headerText := gridControl.GetDisplayedColumnTitle(columnName)
+                } catch {
+                    try {
+                        ; Get column titles collection and use first item
+                        titles := gridControl.GetColumnTitles(columnName)
+                        if (titles && titles.Count > 0) {
+                            headerText := titles.Item(0)
+                        }
+                    } catch {
+                        ; Keep default header
+                    }
+                }
+            } catch {
+                ; Keep default header
+            }
+
+            columnNames.Push(headerText)
+            ExcelWriteCell(headerRow, colIdx + 1, headerText)
+        }
+
+        excelRow++
+
+        ; Log sheet for icons
+        iconLog := ""
+
+        ; Read grid data using the GetCellValue method from SAP API
+        cellsRead := 0
+        for rowIdx in Range(0, rowCount - 1) {
+            rowHasData := false
+
+            for colIdx in Range(0, columnCount - 1) {
+                ; Get the column name from the order collection
+                columnName := ""
+                try {
+                    columnName := gridControl.ColumnOrder[colIdx]
+                } catch {
+                    columnName := "COL" colIdx  ; Fallback
+                }
+
+                ; Read cell value using the documented GetCellValue method
+                cellValue := ""
+                iconInfo := ""
+
+                ; Try multiple approaches to get icon information
+                try {
+                    ; First, try to get the cell value
+                    cellValue := gridControl.GetCellValue(rowIdx, columnName)
+                    ; Try method 3: Look for @XX@ pattern in cell text
+                    if (InStr(cellValue, "@") && InStr(cellValue, "@", false, InStr(cellValue, "@") + 1)) {
+                        ; Extract all icon patterns using regex
+                        iconPattern := "@[0-9A-Z]{2,3}@"
+                        startPos := 1
+
+                        ; Find all occurrences of icon patterns
+                        while (foundPos := RegExMatch(cellValue, iconPattern, &iconMatch, startPos)) {
+                            iconCode := iconMatch[0]
+                            iconText := ConvertSapIconToEmoji(iconCode)
+
+                            if (iconText != "") {
+                                ; Replace the icon code with text representation
+                                cellValue := RegExReplace(cellValue, iconCode, iconText)
+                            }
+
+                            iconLog .= "Row " rowIdx ", Col " colIdx ": Icon in text = " iconCode "`n"
+                            startPos := foundPos + StrLen(iconMatch[0])
+                        }
+                    }
+
+
+                    if (cellValue != "") {
+                        rowHasData := true
+                        cellsRead++
+                    }
+                } catch {
+                    LogMessage(LOG_DEBUG, "Error reading cell [" rowIdx "," columnName "]: ")
+                }
+
+                ExcelWriteCell(excelRow, colIdx + 1, cellValue)
+            }
+
+            ; Only increment row if we found data
+            if (rowHasData) {
+                excelRow++
+            }
+        }
+
+        ; Try to get statusbar message as fallback
+        try {
+            statusBar := SapSession.FindById("wnd[1]/sbar")
+            if (statusBar) {
+                statusType := statusBar.MessageType
+                statusText := statusBar.Text
+
+                if (statusText != "") {
+                    excelRow++
+                    ExcelWriteCell(excelRow, 1, "Status Message:")
+                    excelRow++
+
+                    statusIcon := "[INFO] "  ; Default
+                    if (statusType = "E" || statusType = "A") {
+                        statusIcon := "[ERROR] "
+                    } else if (statusType = "W") {
+                        statusIcon := "[WARNING] "
+                    } else if (statusType = "S") {
+                        statusIcon := "[SUCCESS] "
+                    }
+
+                    ExcelWriteCell(excelRow, 1, statusIcon)
+                    ExcelWriteCell(excelRow, 2, statusText)
+                    excelRow++
+                }
+            }
+        } catch {
+            ; Ignore if no statusbar
+        }
+
+        ; Add separator line
+        ExcelWriteCell(excelRow + 1, 1, "=====================================")
+
+        ; Return to original sheet
+        ExcelWorksheet := currentSheet
+        ExcelWorksheet.Activate()
+
+        ; Try to close the popup using the OK button (btn[0])
+        try {
+            okButton := SapSession.FindById("wnd[1]/tbar[0]/btn[0]")
+            okButton.Press()
+            LogMessage(LOG_INFO, "Closed protocol popup")
+        } catch {
+            try {
+                popup.SendVKey(0)  ; Enter key as fallback
+            } catch {
+                LogMessage(LOG_INFO, "Could not close popup automatically")
+            }
+        }
+
+        return true
+
+    } catch {
+        LogMessage(LOG_INFO, "Error handling protocol popup: ")
+
+        ; Try to return to original sheet
+        try {
+            ExcelSelectSheet(1)
+        } catch {
+            ; Ignore
+        }
+
+        return false
+    }
+}
+
+; Function to convert SAP icons to emojis
+ConvertSapIconToEmoji(iconCode) {
+    ; Remove @ symbols if they exist
+    iconCode := RegExReplace(iconCode, "@", "")
+
+    ; Convert common SAP icons to emojis
+    switch iconCode {
+        case "0A": return "✅"  ; Success/Green check
+        case "09": return "❌"  ; Error/Red X
+        case "08": return "⚠️"  ; Warning/Yellow triangle
+        case "5C": return "ℹ️"  ; Information
+        case "2L": return "🔒"  ; Lock
+        case "16": return "💾"  ; Save
+        case "10": return "🗑️"  ; Delete
+        case "OZ": return "➕"  ; Create/Plus
+        case "BN": return "📄"  ; Document
+        case "3W": return "👤"  ; Person
+        case "1Q": return "📋"  ; Clipboard/List
+        case "15": return "🔍"  ; Search
+        case "HW": return "📊"  ; Chart
+        case "S_CHECK": return "✅"  ; Green check
+        case "S_CANCEL": return "❌"  ; Red X
+        case "S_WARNING": return "⚠️"  ; Warning
+        case "S_INFO": return "ℹ️"  ; Information
+        default: return ""  ; Unknown icon
+    }
+}
+
+; Helper function - Range function like in other languages
+Range(start, end) {
+    result := []
+    Loop (end - start + 1) {
+        result.Push(start + A_Index - 1)
+    }
+    return result
+}
+
+; Helper function to ensure Sheet 7 exists
+EnsureSheet7() {
+    try {
+        ; Try to select Sheet 7
+        if (ExcelSelectSheet(7)) {
+            return true
+        }
+
+        ; Create sheets until we have 7
+        sheetsCount := ExcelWorkbook.Worksheets.Count
+        while (sheetsCount < 7) {
+            ExcelWorkbook.Worksheets.Add(, ExcelWorkbook.Worksheets(sheetsCount))
+            sheetsCount++
+        }
+
+        ; Select and name Sheet 7
+        ExcelSelectSheet(7)
+        ExcelWorksheet.Name := "Protocol Logs"
+
+        ; Add main headers
+        ExcelWriteCell(1, 1, "SAP Protocol/Table Control Logs")
+        ExcelWriteCell(2, 1, "Generated: " FormatTime(, "yyyy-MM-dd HH:mm:ss"))
+
+        LogMessage(LOG_INFO, "Created Sheet 7 for protocol logs")
+        return true
+
+    } catch {
+        LogMessage(LOG_INFO, "Could not create Sheet 7: ")
+        return false
+    }
+}

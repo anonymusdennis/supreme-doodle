@@ -1,0 +1,293 @@
+;; @bundle-id: 73f2926f8850
+;; @source-rel: DumpComObject.ahk2
+;; @source-sha1: 7ac1501ea3127533af09eac130ea17e4ecd40c6b
+;; @note: Edit content below. Keep header lines starting with ';;' intact.
+;; -------------------------
+/**
+ * DumpComObject - Comprehensive COM object inspection utility
+ * Dumps properties, methods, and structure of a COM object to a log file
+ * 
+ * @param comObj - The COM object to inspect
+ * @param outputFileName - Optional: Custom output file name (default: auto-generated)
+ * @param maxDepth - Optional: Maximum recursion depth (default: 3)
+ * @param currentPath - Do not use: For internal recursion tracking
+ * @param visitedObjects - Do not use: For internal circular reference detection
+ * @return - True if successful, False otherwise
+ */
+DumpComObject(comObj, outputFileName := "", maxDepth := 3, currentPath := "", visitedObjects := 0) {
+    ; Generate default filename if not provided
+    if (outputFileName = "") {
+        timestamp := FormatTime(, "yyyyMMdd_HHmmss")
+        outputFileName := A_ScriptDir "\logs\ComObjectDump_" timestamp ".txt"
+    }
+    
+    ; Create logs directory if it doesn't exist
+    logDir := A_ScriptDir "\logs"
+    if (!DirExist(logDir))
+        DirCreate(logDir)
+    
+    ; Initialize visited objects Map for circular reference detection
+    if (visitedObjects = 0)
+        visitedObjects := Map()
+    
+    ; Check if object already visited (circular reference)
+    try {
+        objAddress := ComObjValue(comObj)
+        if (visitedObjects.Has(objAddress)) {
+            return AppendToLog(outputFileName, currentPath . " = [CIRCULAR REFERENCE]")
+        }
+        visitedObjects[objAddress] := true
+    } catch {
+        ; Not a COM object or can't get value
+    }
+    
+    ; Dump header information only at the start
+    if (currentPath = "") {
+        AppendToLog(outputFileName, "=== COM OBJECT INSPECTION ===")
+        AppendToLog(outputFileName, "Current Date and Time (UTC): " FormatTime(, "yyyy-MM-dd HH:mm:ss"))
+        AppendToLog(outputFileName, "Current User's Login: " A_UserName)
+        AppendToLog(outputFileName, "Maximum Recursion Depth: " maxDepth)
+        AppendToLog(outputFileName, "")
+        AppendToLog(outputFileName, "=== OBJECT STRUCTURE ===")
+        AppendToLog(outputFileName, "")
+    }
+    
+    ; Check if we've reached maximum depth
+    pathDepth := StrSplit(currentPath, ".").Length
+    if (pathDepth > maxDepth) {
+        AppendToLog(outputFileName, currentPath . " = [MAX DEPTH REACHED]")
+        return true
+    }
+    
+    ; Prepare indentation based on current depth
+    indent := ""
+    Loop pathDepth {
+        indent .= "  "
+    }
+    
+    ; Basic object information
+    if (!IsSet(comObj) || !IsObject(comObj)) {
+        AppendToLog(outputFileName, indent . currentPath . " = [NOT AN OBJECT]")
+        return true
+    }
+    
+    ; Write the object path
+    if (currentPath != "")
+        AppendToLog(outputFileName, indent . "Object: " . currentPath)
+    else
+        AppendToLog(outputFileName, indent . "Root Object")
+    
+    ; Try to get common properties first
+    commonProps := ["Type", "ID", "Name", "Text", "Count", "Length", "Value", "Class"]
+    
+    for prop in commonProps {
+        try {
+            value := comObj.%prop%
+            if (IsSet(value)) {
+                if (IsObject(value)) {
+                    AppendToLog(outputFileName, indent . "  ." prop " = [Object]")
+                    
+                    ; Recurse into this object if not too deep
+                    if (pathDepth < maxDepth) {
+                        newPath := (currentPath = "") ? prop : currentPath . "." . prop
+                        DumpComObject(value, outputFileName, maxDepth, newPath, visitedObjects)
+                    }
+                } else {
+                    AppendToLog(outputFileName, indent . "  ." prop " = " value)
+                }
+            }
+        } catch {
+            ; Property doesn't exist or can't be accessed
+        }
+    }
+    
+    ; Try to enumerate any collections
+    try {
+        ; Check if it's an array-like object
+        if (HasProp(comObj, "Length") || HasProp(comObj, "Count")) {
+            count := 0
+            try {
+                count := comObj.Count
+            } catch {
+                try {
+                    count := comObj.Length
+                } catch {
+                    count := 0
+                }
+            }
+            
+            AppendToLog(outputFileName, indent . "  Collection with " count " items")
+            
+            ; Sample the first few items
+            maxSampleSize := 5
+            sampleSize := (count < maxSampleSize) ? count : maxSampleSize
+            
+            Loop sampleSize {
+                i := A_Index - 1
+                try {
+                    item := ""
+                    try {
+                        item := comObj[i]
+                    } catch {
+                        try {
+                            item := comObj.Item(i)
+                        } catch {
+                            try {
+                                item := comObj.ElementAt(i)
+                            } catch {
+                                continue
+                            }
+                        }
+                    }
+                    
+                    if (IsObject(item)) {
+                        AppendToLog(outputFileName, indent . "  [" i "] = [Object]")
+                        
+                        ; Recurse into this object if not too deep
+                        if (pathDepth < maxDepth) {
+                            newPath := (currentPath = "") ? "[" i "]" : currentPath . "[" i "]"
+                            DumpComObject(item, outputFileName, maxDepth, newPath, visitedObjects)
+                        }
+                    } else {
+                        AppendToLog(outputFileName, indent . "  [" i "] = " item)
+                    }
+                } catch {
+                    ; Skip this item
+                }
+            }
+            
+            if (count > maxSampleSize) {
+                AppendToLog(outputFileName, indent . "  ... " (count - maxSampleSize) " more items ...")
+            }
+        }
+    } catch {
+        ; Not a collection
+    }
+    
+    ; Try to discover methods by common naming patterns
+    AppendToLog(outputFileName, indent . "  Exploring possible methods:")
+    
+    ; Common SAP GUI and COM methods to try
+    commonMethods := [
+        "Press", "Click", "DoubleClick", "Select", "SetFocus", "Clear", "Close", 
+        "GetCellValue", "GetColumnCount", "GetRowCount", "GetText", "GetType",
+        "GetProperty", "SetProperty", "FindById", "FindByName", "Children", 
+        "ElementAt", "Item", "FirstVisibleRow", "VisibleRowCount", "SelectedRows",
+        "GetCaretPosition", "Send", "SendVKey", "PressContextButton", "PressButton",
+        "SelectContextMenuItem", "GetContextMenu", "SetCurrentCell", "SelectColumn", 
+        "PressToolbarButton", "SetSelected", "ModifyCell", "GetColumnName", "GetColumnTitle"
+    ]
+    
+    methodsFound := 0
+    
+    for methodName in commonMethods {
+        try {
+            ; Check if it seems to be a method (there's no direct way in AHK)
+            if (IsObject(comObj.%methodName%) && !HasProp(comObj, methodName)) {
+                AppendToLog(outputFileName, indent . "  ." methodName "() - [Method]")
+                methodsFound++
+            }
+        } catch {
+            ; Not a method or can't be accessed
+        }
+    }
+    
+    if (methodsFound = 0) {
+        AppendToLog(outputFileName, indent . "  [No common methods discovered]")
+    }
+    
+    ; Special handling for Children collection which is common in SAP GUI
+    try {
+        children := comObj.Children
+        if (IsObject(children)) {
+            childCount := 0
+            try {
+                childCount := children.Count
+            } catch {
+                ; Can't get count
+            }
+            
+            AppendToLog(outputFileName, "")
+            AppendToLog(outputFileName, indent . "  Children collection with " childCount " items")
+            
+            ; Sample the first few children
+            maxChildSample := 5
+            sampleSize := (childCount < maxChildSample) ? childCount : maxChildSample
+            
+            Loop sampleSize {
+                i := A_Index - 1
+                try {
+                    child := children.ElementAt(i)
+                    
+                    if (IsObject(child)) {
+                        ; Try to get basic identification for this child
+                        childType := "Unknown"
+                        childId := ""
+                        
+                        try {
+                            childType := child.Type
+                        } catch {
+                            ; No Type property
+                        }
+                        
+                        try {
+                            childId := child.ID
+                        } catch {
+                            ; No ID property
+                        }
+                        
+                        AppendToLog(outputFileName, indent . "  Child[" i "]: " childType . (childId ? " (ID: " childId ")" : ""))
+                        
+                        ; Recurse into this child if not too deep
+                        if (pathDepth < maxDepth) {
+                            newPath := (currentPath = "") ? "Children[" i "]" : currentPath . ".Children[" i "]"
+                            DumpComObject(child, outputFileName, maxDepth, newPath, visitedObjects)
+                        }
+                    }
+                } catch {
+                    ; Skip this child
+                }
+            }
+            
+            if (childCount > maxChildSample) {
+                AppendToLog(outputFileName, indent . "  ... " (childCount - maxChildSample) " more children ...")
+            }
+        }
+    } catch {
+        ; No Children collection
+    }
+    
+    ; Add a separator if this is a non-root object
+    if (currentPath != "")
+        AppendToLog(outputFileName, "")
+    
+    return true
+}
+
+/**
+ * Helper function to append text to log file
+ */
+AppendToLog(filename, text) {
+    try {
+        FileAppend(text . "`n", filename)
+        return true
+    } catch {
+        MsgBox("Error writing to log file: ")
+        return false
+    }
+}
+
+/**
+ * Example usage:
+ * 
+ * ; Connect to SAP
+ * SapGui := ComObjGet("SAPGUI").GetScriptingEngine
+ * SapSession := SapGui.ActiveSession
+ * 
+ * ; Dump the session object
+ * DumpComObject(SapSession)
+ * 
+ * ; Or dump a specific control
+ * gridControl := SapSession.FindById("wnd[0]/usr/cntlGRID1/shellcont/shell")
+ * DumpComObject(gridControl, A_ScriptDir "\logs\GridControlDump.txt")
+ */

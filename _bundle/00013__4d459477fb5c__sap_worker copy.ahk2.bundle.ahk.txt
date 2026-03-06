@@ -1,0 +1,1097 @@
+;; @bundle-id: 4d459477fb5c
+;; @source-rel: sap_worker copy.ahk2
+;; @source-sha1: faeafeb3a7c926efd216e80f660ed696d166fc37
+;; @note: Edit content below. Keep header lines starting with ';;' intact.
+;; -------------------------
+/************************************************************************
+ * @description 
+ * @author 
+ * @date 2025/08/04
+ * @version 0.0.3
+ ***********************************************************************/
+
+#Requires AutoHotkey v2.0
+#SingleInstance Off ; Allow multiple instances
+; ==================== INCLUDES ====================
+#Include "declarations.ahk2"
+#Include "utility.ahk2"
+#Include "excel_functions.ahk2"
+#Include "sap_functions.ahk2"
+#Include "se16_selectionscreen.ahk2"
+#Include "JSON.ahk2"
+
+; ==================== CONSTANTS ====================
+global CONFIG_FILE := A_ScriptDir . "\sessions.json"
+global LOCK_FILE := A_ScriptDir . "\lockconfig"
+global WORKER_ID := A_Args.Length > 0 ? A_Args[1] : 0
+global CHECK_INTERVAL := 1000  ; ms
+global LOCK_RETRY_INTERVAL := 50 ; ms
+global MAX_LOCK_WAIT := 10000 ; ms
+SetWorkingDir(A_ScriptDir)
+ProcessSetPriority("High")
+; ==================== WORKER CLASS ====================
+class SAPWorker {
+    __New(workerId) {
+        this.workerId := workerId
+        this.session := ""
+        this.config := {}
+        this.last_config := ""  ; Store last known config state
+        this.isRunning := true
+        this.scriptTemplate := ""
+        this.commented_out_fields := [] ; insert {this_system : "NAME", other_system : "NAME_ALIKE"}; to add a later usable line.
+        this.removed_fields := [] ; array of fields like ["NAME","ANOTHER_NAME"]
+
+        this.current_dbtable := ""
+        this.current_rfc_destination := ""
+        
+
+        LogMessage("INFO", "Worker " . workerId . " starting...")
+    }
+
+    Initialize() {
+         ;  ; set_status(this, "Initializing worker")
+        try {
+            this.scriptTemplate := FileRead("script_template.txt")
+        } catch {
+            LogError("Worker " . this.workerId . ": Failed to load script template")
+             ;  ; set_status(this, "Error loading script_template.txt")
+            return false
+        }
+
+        if (!this.ConnectToSAP()) {
+             ;  ; set_status(this, "SAP connection failed")
+            return false
+        }
+
+         ;  ; set_status(this, "Worker initialized")
+        return true
+    }
+
+    LockConfig() {
+        startTime := A_TickCount
+        while (A_TickCount - startTime < MAX_LOCK_WAIT) {
+            try {
+                ; Check if lock file exists and read content
+                if (FileExist(LOCK_FILE)) {
+                    lockContent := FileRead(LOCK_FILE)
+                    ; If locked by another worker, wait
+                    if (Trim(lockContent) != "" && Trim(lockContent) != String(this.workerId)) {
+                        Sleep(LOCK_RETRY_INTERVAL)
+                        continue
+                    }
+                }
+
+                ; Try to acquire lock
+                file := FileOpen(LOCK_FILE, "w")
+                file.Write(String(this.workerId))
+                file.Close()
+
+                ; Verify we got the lock
+                Sleep(10)  ; Small delay to ensure file write completed
+                verifyContent := FileRead(LOCK_FILE)
+                if (Trim(verifyContent) = String(this.workerId)) {
+                    return true
+                }
+            } catch {
+                ; Continue trying
+            }
+            Sleep(LOCK_RETRY_INTERVAL)
+        }
+        return false
+    }
+
+    UnlockConfig() {
+        try {
+            if (FileExist(LOCK_FILE)) {
+                ; Only unlock if we own the lock
+                lockContent := FileRead(LOCK_FILE)
+                if (Trim(lockContent) = String(this.workerId)) {
+                    file := FileOpen(LOCK_FILE, "w")
+                    file.Write("")
+                    file.Close()
+                }
+            }
+        } catch {
+            ; Ignore unlock errors
+        }
+    }
+
+    LoadConfig() {
+         ;  ; set_status(this, "Loading config")
+
+        ; If last_config is empty, initialize
+        if (this.last_config = "") {
+            try {
+                this.last_config := FileRead(CONFIG_FILE)
+                this.config := JSON.Parse(this.last_config)
+                return true
+            } catch {
+                LogError("Worker " . this.workerId . ": Failed to initialize config - ")
+                 ;  ; set_status(this, "Failed to initialize config")
+                return false
+            }
+        }
+
+
+        try {
+            ; Read current config
+            currentConfigText := FileRead(CONFIG_FILE)
+            this.config := JSON.Parse(currentConfigText)
+
+            return true
+        } catch {
+            LogError("Worker " . this.workerId . ": Failed to load config - ")
+             ;  ; set_status(this, "Failed to load config")
+            return false
+        }
+    }
+
+    SaveConfig() {
+         ;  ; set_status(this, "Saving config")
+
+        ; Lock config file
+        if (!this.LockConfig()) {
+             ;  ; set_status(this, "Could not acquire config lock for save")
+            return false
+        }
+
+        try {
+            ; Read current file state
+            currentFileText := FileRead(CONFIG_FILE)
+            currentFileConfig := JSON.Parse(currentFileText)
+
+            ; Compare and apply only our changes
+            mergedConfig := this.MergeChanges(currentFileConfig)
+
+            ; Write merged config
+            newConfigText := JSON.Stringify(mergedConfig)
+            file := FileOpen(CONFIG_FILE, "w")
+            file.Write(newConfigText)
+            file.Close()
+
+            ; Update our last known state
+            this.last_config := newConfigText
+            this.config := mergedConfig
+
+            this.UnlockConfig()
+            return true
+        } catch {
+            this.UnlockConfig()
+            LogError("Worker " . this.workerId . ": Failed to save config - ")
+             ;  ; set_status(this, "Failed to save config")
+            return false
+        }
+    }
+
+    MergeChanges(currentFileConfig) {
+        ; This function merges our local changes with the current file state
+        ; Priority: File changes from other workers + our local changes
+
+        lastConfig := JSON.Parse(this.last_config)
+
+        ; For workers array
+        for idx, worker in this.config["workers"] {
+            if (worker["id"] = this.workerId) {
+                ; This is our worker - apply our changes
+                currentFileConfig["workers"][idx] := worker
+            }
+        }
+
+        ; For tasks array - find tasks we modified
+        for idx, task in this.config["tasks"] {
+            ; Check if this task was modified by us
+            lastTask := ""
+            for lt in lastConfig["tasks"] {
+                if (lt["id"] = task["id"]) {
+                    lastTask := lt
+                    break
+                }
+            }
+
+            ; If task changed in our local config, apply changes
+            if (JSON.Stringify(task) != JSON.Stringify(lastTask)) {
+                for fidx, ftask in currentFileConfig["tasks"] {
+                    if (ftask["id"] = task["id"]) {
+                        currentFileConfig["tasks"][fidx] := task
+                        break
+                    }
+                }
+            }
+        }
+
+        return currentFileConfig
+    }
+
+    UpdateWorkerStatus(status, currentTask) {
+         ;  ; set_status(this, Format("Worker status: {} - {}", status, currentTask))
+        this.LoadConfig()
+        for worker in this.config["workers"] {
+            if (worker["id"] == this.workerId) {
+                worker["status"] := status
+                worker["currentTask"] := currentTask
+                worker["lastUpdate"] := A_Now
+                break
+            }
+        }
+        this.SaveConfig()
+    }
+
+    UpdateTaskStatus(taskId, status, error := "") {
+         ;  ; set_status(this, Format("Updating task status ({}): {}", taskId, status))
+        this.LoadConfig()
+        for task in this.config["tasks"] {
+            if (task["id"] == taskId) {
+                task["status"] := status
+                task["working"] := false
+                task["endTime"] := A_Now
+                if (error) {
+                    task["error"] := error
+                }
+                break
+            }
+        }
+        this.SaveConfig()
+    }
+
+    GetNextTask() {
+         ;  ; set_status(this, "Acquiring next task")
+
+        ; Lock and load fresh config
+        if (!this.LockConfig()) {
+             ;  ; set_status(this, "Could not acquire lock for task")
+            return ""
+        }
+
+        try {
+            ; Read fresh config
+            currentConfigText := FileRead(CONFIG_FILE)
+            currentConfig := JSON.Parse(currentConfigText)
+
+            ; Find next available task
+            selectedTask := ""
+            for task in currentConfig["tasks"] {
+                if (task["status"] == "pending" && !task["working"]) {
+                    task["working"] := true
+                    task["startTime"] := A_Now
+                    selectedTask := task
+                    break
+                }
+            }
+
+            if (selectedTask) {
+                ; Save updated config
+                file := FileOpen(CONFIG_FILE, "w")
+                file.Write(JSON.Stringify(currentConfig))
+                file.Close()
+
+                ; Update our local state
+                this.config := currentConfig
+                this.last_config := JSON.Stringify(currentConfig)
+
+                this.UnlockConfig()
+                 ;  ; set_status(this, Format("Got task: {} -> {}", selectedTask["tableName"], selectedTask["destination"]))
+                return selectedTask
+            }
+
+            this.UnlockConfig()
+        } catch {
+            this.UnlockConfig()
+            LogError("GetNextTask error: ")
+        }
+
+         ;  ; set_status(this, "No pending task found")
+        return ""
+    }
+
+    ConnectToSAP() {
+         ;  ; set_status(this, "Connecting to SAP session")
+        try {
+            this.LoadConfig()
+            workerConfig := ""
+            for worker in this.config["workers"] {
+                if (worker["id"] = this.workerId) {
+                    workerConfig := worker
+                    break
+                }
+            }
+            if (!workerConfig) {
+                 ;  ; set_status(this, "Worker config not found")
+                Error("Worker config not found")
+            }
+
+            SapGuiAuto := ComObjGet("SAPGUI")
+            appCom := SapGuiAuto.GetScriptingEngine
+            policy := SapHookPolicy()
+            SapGui := GuiApplication(appCom, policy)
+
+            sessionFound := false
+            sessionIndex := 0
+            for connection in SapGui.Children {
+                for session in connection.Children {
+                    if (sessionIndex = workerConfig["sessionIndex"]) {
+                        this.session := session
+                        sessionFound := true
+                        break 2
+                    }
+                    sessionIndex++
+                }
+            }
+            if (!sessionFound) {
+                 ;  ; set_status(this, "Session not found")
+                Error("Session not found at index " . workerConfig["sessionIndex"])
+            }
+
+            info := this.session.Info
+            LogMessage("INFO", Format("Worker {} connected to SAP: {} / Client {} (User: {})",
+                this.workerId, info.SystemName, info.Client, info.User
+            ))
+            this.UpdateWorkerStatus("ready", "")
+             ;  ; set_status(this, "Connected to SAP session")
+            return true
+
+        } catch {
+            LogError("Worker " . this.workerId . ": Failed to connect to SAP - ")
+            this.UpdateWorkerStatus("error", "")
+             ;  ; set_status(this, "ConnectToSAP failed")
+            return false
+        }
+    }
+
+    Run() {
+        LogMessage("INFO", "Worker " . this.workerId . " started processing")
+         ;  ; set_status(this, "Waiting for tasks")
+        success := false
+        while (this.isRunning) {
+            task := this.GetNextTask()
+            if (task) {
+                 ;  ; set_status(this, Format("Processing: {} -> {}", task["tableName"], task["destination"]))
+                this.commented_out_fields := [] ; insert {this_system : "NAME", other_system : "NAME_ALIKE"}; to add a later usable line.
+                this.removed_fields := [] ; array of fields like ["NAME","ANOTHER_NAME"]
+                this.current_dbtable := task["tableName"]
+                this.current_rfc_destination := task["destination"]
+                try {
+                success := this.ProcessTask(task)
+                }
+                catch {}
+                if (success)
+                    {
+                        ; Update task status to completed
+                        this.UpdateTaskStatus(task["id"], "completed", "")
+                        LogMessage("INFO", Format("Worker {} completed task: {} -> {}", this.workerId, task["tableName"], task["destination"]))
+                         ;  ; set_status(this, Format("Task completed: {} -> {}", task["tableName"], task["destination"]))
+                    } else {
+                        ; Update task status to failed
+                        this.UpdateTaskStatus(task["id"], "failed", "Error processing task")
+                        LogMessage("ERROR", Format("Worker {} failed task: {} -> {}", this.workerId, task["tableName"], task["destination"]))
+                         ;  ; set_status(this, Format("Task failed: {} -> {}", task["tableName"], task["destination"]))
+                    }
+            } else {
+                 ;  ; set_status(this, "Idle - waiting for tasks")
+                Sleep(CHECK_INTERVAL)
+                this.LoadConfig()
+                allDone := true
+                for t in this.config["tasks"] {
+                    if (t["status"] == "pending" && t["assignedWorker"] == this.workerId && t["working"] == 0) {
+                        allDone := false
+                        break
+                    }
+                }
+                if (allDone) {
+                    LogMessage("INFO", "Worker " . this.workerId . " completed all tasks")
+                    this.UpdateWorkerStatus("completed", "")
+                     ;  ; set_status(this, "All tasks completed")
+                    break
+                }
+            }
+        }
+    }
+
+    ProcessTask(task) {
+        LogMessage("INFO", Format("Worker {} processing: {} -> {}",
+            this.workerId,
+            task["tableName"],
+            task["destination"]
+        ))
+            set_status(this, Format("Processing table {} for destination {}", task["tableName"], task["destination"]))
+        this.UpdateWorkerStatus("working", task["tableName"] . " -> " . task["destination"])
+        try {
+             ;  ; set_status(this, "Reading DD03L fields")
+            fields := this.ReadDD03LFields(task["tableName"])
+            if (fields.Length = 0) {
+                 ;  ; set_status(this, "No fields found for table " . task["tableName"])
+                Error("No fields found for table " . task["tableName"])
+            }
+             ;  ; set_status(this, "Processing table and generating script")
+            this.ProcessTable(task["tableName"], task["destination"], fields)
+             ;  ; set_status(this, "Task completed")
+            this.UpdateTaskStatus(task["id"], "completed", "")
+
+            ; Update completed tasks counter
+            this.LoadConfig()
+            for worker in this.config["workers"] {
+                if (worker["id"] = this.workerId) {
+                    worker["completedTasks"]++
+                    break
+                }
+            }
+            this.SaveConfig()
+            return true
+        } catch {
+
+            LogError(Format("Worker {} error: {} - {}", this.workerId, task["tableName"], ""))
+             ;  ; set_status(this, "Task failed: ")
+            this.UpdateTaskStatus(task["id"], "failed", "")
+            return false
+        }
+    }
+
+    ; [All other methods remain the same - ProcessTable, GenerateAndValidateScript, ReadDD03LFields, etc.]
+    ProcessTable(tableName, destination, fields) {
+           ; set_status(this, "SE16XXL for " . tableName . " to " . destination)
+        ExecuteSapCommand(this.session, "/n/TFTO/SE16XXL")
+        Sleep(200)
+         ;  ; set_status(this, "Selecting table mode in SE16XXL")
+        this.session.FindById("wnd[0]/usr/subSC:/TFTO/TX_BX:1111/radSP_TAB").Select()
+         ;  ; set_status(this, "Setting table name")
+        this.session.FindById("wnd[0]/usr/subSC:/TFTO/TX_BX:1111/ctxtSP_TABNA").Text := tableName
+         ;  ; set_status(this, "Opening select options")
+        ExecuteSapCommand(this.session, "ZZSHOW")
+         ;  ; set_status(this, "Setting max rows to 5")
+        this.session.FindById("wnd[0]/usr/ssubSUBMAIN:/TFTO/TX_SELECT_DYNPRO:9300/ssubOPTSEL:/TFTO/TX_SELECT_DYNPRO:9902/subOPTIONS:/TFTO/TX_SELECT_DYNPRO:9053/txtSP_MAX").Text := "5 "
+         ;  ; set_status(this, "Executing selection screen")
+        this.session.FindById("wnd[0]/tbar[1]/btn[8]").Press()
+         ;  ; set_status(this, "Opening RFC comparison dialog")
+        ExecuteSapCommand(this.session, "ZZOUTJOIN")
+        this.session.FindById("wnd[1]/usr/radG_OPTION_RFC").SetFocus()
+        this.session.FindById("wnd[1]/usr/radG_OPTION_RFC").Select()
+         ;  ; set_status(this, "Setting RFC destination")
+        this.session.FindById("wnd[1]/usr/ctxtG_DIA_DEST").Text := destination
+        this.session.FindById("wnd[1]/usr/ctxtG_DIA_DEST").CaretPosition := StrLen(destination)
+        this.session.FindById("wnd[1]/tbar[0]/btn[0]").Press()
+         ;  ; set_status(this, "Checking RFC destination popup")
+        try {
+            this.session.FindById("wnd[2]").Text
+            LogMessage("WARNING", "RFC destination " . destination . " does not exist, skipping")
+            this.session.FindById("wnd[2]/tbar[0]/btn[0]").Press()
+             ;  ; set_status(this, "RFC destination does not exist, skipping")
+            return
+        } catch {
+            LogMessage("INFO", "RFC destination " . destination . " exists, continuing")
+             ;  ; set_status(this, "RFC destination exists")
+        }
+         ;  ; set_status(this, "Setting table name for RFC")
+        this.session.FindById("wnd[1]/usr/ctxtG_TABNA_RFC").Text := tableName
+        this.session.FindById("wnd[1]/usr/ctxtG_TABNA_RFC").CaretPosition := StrLen(tableName)
+        this.session.FindById("wnd[1]/tbar[0]/btn[0]").Press()
+         ;  ; set_status(this, "Checking table existence in destination")
+        try {
+            this.session.FindById("wnd[2]").Text
+            LogMessage("WARNING", "Table " . tableName . " does not exist in destination " . destination . ", skipping")
+            this.session.FindById("wnd[2]/tbar[0]/btn[0]").Press()
+             ;  ; set_status(this, "Table does not exist in destination, skipping")
+            return 
+        } catch {
+            LogMessage("INFO", "Table " . tableName . " exists in destination " . destination . ", continuing")
+             ;  ; set_status(this, "Table exists in destination")
+        }
+         ;  ; set_status(this, "Counting keys and adding rows")
+        keyCount := 0
+        for fieldName, fieldData in fields {
+            if (fieldData.key = "X" && fieldData.fieldName != "MANDT" && fieldData.fieldName != "CLIENT") {
+                keyCount++
+                if (keyCount > 2) {
+                    this.session.FindById("wnd[1]/tbar[0]/btn[30]").Press()
+                }
+            }
+        }
+         ;  ; set_status(this, "Setting field mappings")
+        row := 0
+        for fieldName, fieldData in fields {
+            if (fieldData.key = "X" && fieldData.fieldName != "MANDT" && fieldData.fieldName != "CLIENT") {
+                this.session.FindById("wnd[1]/usr/tbl/TFTO/SAPLTX_SELFAETC/ctxtGS_JSEL-OLDF[0," . row . "]").Text := fieldData.fieldName
+                this.session.FindById("wnd[1]/usr/tbl/TFTO/SAPLTX_SELFAETC/ctxtGS_JSEL-NEWF[2," . row . "]").Text := fieldData.fieldName
+                row++
+            }
+        }
+         ;  ; set_status(this, "Confirming join")
+        this.session.FindById("wnd[1]/tbar[0]/btn[8]").Press()
+        Sleep(200)
+         ;  ; set_status(this, "Opening script editor")
+        this.session.FindById("wnd[0]/tbar[1]/btn[31]").Press()
+        Sleep(200)
+        rfcContent := FileRead("rfc_destinations.cfg")
+        tempRfc := StrSplit(rfcContent, "`n", "`r")
+        RfcDestinations := []
+        for rfc in tempRfc {
+            if (Trim(rfc) != "") {
+                RfcDestinations.Push(Trim(rfc))
+            }
+        }
+        number_cnt := 1
+        for rfc in RfcDestinations {
+            if (rfc != destination) {
+                number_cnt := number_cnt + 1
+            } else {
+                break
+            }
+        }
+        if (number_cnt < 9) {
+            scriptName := "$" . tableName . "_COMP_0" . number_cnt
+        } else {
+            scriptName := "$" . tableName . "_COMP_" . number_cnt
+        }
+         ;  ; set_status(this, "Generating and validating script")
+        this.GenerateAndValidateScript(tableName, destination, fields, scriptName)
+        
+        ;;;; BATCH JOB LAUNCHING ;;;;;
+        
+         ;  ; set_status(this, "Launching batch job in SE16XXL")
+        ExecuteSapCommand(this.session, "/n/TFTO/SE16XXL")
+        this.session.FindById("wnd[0]/usr/subSC:/TFTO/TX_BX:1111/radSP_SCR").Select()
+        Sleep(200)
+        this.session.FindById("wnd[0]/usr/subSC:/TFTO/TX_BX:1111/ctxtSP_SCRIP").Text := SubStr(scriptName,1, 23)
+        Sleep(200)
+        ExecuteSapCommand(this.session, "ZZSHOW")
+        Sleep(200)
+        ExecuteSapCommand(this.session, "ZZENTER")
+        Sleep(200)
+        this.session.FindById("wnd[0]/usr").Children[0].Children[0].Children[0].Children[3].Text := 50000
+        Sleep(200)
+        try
+            {
+        this.session.FindById("wnd[0]/usr").Children[0].Children[0].Children[0].Children[6].Text := 999
+            }
+        catch {
+        }
+        Sleep(200)
+        ExecuteSapCommand(this.session, "ZZBATCH")
+        Sleep(200)
+        this.session.FindById("wnd[1]/usr/chkGS_POP-NON_STD").Selected := 1
+        Sleep(200)
+        this.session.FindById("wnd[1]/usr/txtTBTCJOB-JOBNAME").Text := SubStr("Ascript_" . tableName . "_5k_des_" . number_cnt,1,31)
+        Sleep(200)
+        this.session.FindById("wnd[1]/usr/radGS_POP-START_IMMED").Select()
+        Sleep(200)
+        this.session.FindById("wnd[1]/usr/chkGS_POP-RMUS_FLAG").Selected := 1
+        Sleep(200)
+        this.session.FindById("wnd[1]/usr/chkGS_POP-TO_SPOOL").Selected := 1
+        Sleep(200)
+        this.session.FindById("wnd[1]/usr/chkGS_POP-NO_MAIL").Selected := 1
+        Sleep(200)
+        ExecuteSapCommand(this.session, "ZZOK")
+
+        ;;;; SETTINGS FOR PRINTING ;;;;;
+
+        Sleep(200)
+        this.session.FindById("wnd[1]/usr/ctxtPRI_PARAMS-PDEST").Text := "LOCAL"
+
+        Sleep(200)
+        try
+            {
+                ; if popup saying Aufbereitung auf 'X_65_255' gesetzt appears, we need to handle it
+                this.session.FindById("wnd[2]")
+            	ExecuteSapCommand(this.session, "WEIT")
+            }
+        catch {
+            LogMessage("INFO", "No export popup found: ")
+        }
+        /*
+        ExecuteSapCommand(this.session, "EXPT")
+        Sleep(200)
+        try
+            {
+                this.session.FindById("wnd[2]")
+        ExecuteSapCommand(this.session, "WEIT")
+            }
+        catch {
+            LogMessage("INFO", "No export popup found: ")
+        }
+        Sleep(200)
+        try
+            {
+        this.session.FindById("wnd[2]/usr/tabsTABSTRIP/tabpTAB2/ssubSUBSCREEN:SAPLSPRI:0500/cntlCUSTOM/shellcont/shell").doubleclickNode("PAART")
+        Sleep(200)
+        this.session.FindById("wnd[2]/usr/tabsTABSTRIP/tabpTAB2/ssubSUBSCREEN:SAPLSPRI:0500/ssubSUBSCREEN:SAPLSPRI:0600/ctxtPRI_PARAMS-PAART").Text := "X_PAPER"
+        Sleep(200)
+        this.session.FindById("wnd[2]/usr/tabsTABSTRIP/tabpTAB2/ssubSUBSCREEN:SAPLSPRI:0500/ssubSUBSCREEN:SAPLSPRI:0600/txtPRI_PARAMS-LINSZ").Text := 1023
+            }
+        catch {
+            LogMessage("INFO", "Failed to set print parameters: ")
+        }
+        Sleep(200)
+        try
+            {
+        ExecuteSapCommand(this.session, "WEIT")
+            }
+        catch {
+            LogMessage("INFO", "Failed to wait for print parameters: ")
+        }
+        */
+        try
+            {
+                this.session.FindById("wnd[2]")
+        ExecuteSapCommand(this.session, "WEIT")
+            }
+        Sleep(200)
+        try
+            {
+        ExecuteSapCommand(this.session, "SAVE")
+            }
+        catch {
+            LogMessage("INFO", "Failed to save print parameters: ")
+        }
+
+        Sleep(200)
+        try
+            {
+        ExecuteSapCommand(this.session, "WEIT")
+            }
+        catch {
+            LogMessage("INFO", "Failed to wait after saving print parameters: ")
+        }
+        Sleep(200)
+         ;  ; set_status(this, "Batch job launched")
+    }
+
+    GenerateAndValidateScript(tableName, destination, fields, scriptName) {
+         ;  ; set_status(this, "Validating SE16XXL script")
+        validFields := Map()
+        for fieldName, fieldData in fields {
+            validFields[fieldName] := fieldData
+        }
+        maxAttempts := 35
+        attempts := 0
+        scriptGenerated := false
+        harderror := false
+        while (!scriptGenerated && attempts < maxAttempts) {
+            harderror := false
+            attempts++
+            script := this.GenerateScriptFromTemplate(tableName, validFields)
+             ;  ; set_status(this, "Inserting script and syntax check")
+            this.session.FindById("wnd[0]/usr/cntlCC/shellcont/shell/shellcont[0]/shell").Text := script
+            this.session.FindById("wnd[0]/tbar[1]/btn[27]").Press()
+            Sleep(200)
+            try {
+                errorPopup := this.session.FindById("wnd[1]")
+                errorText := ""
+                has_errored := false
+                message_row := 1
+                while (has_errored == false)  ; Loop until we have the entire message
+                {
+                    try {
+                        errorText .= errorPopup.FindById("usr/lbl[0," . message_row . "]").Text
+                        message_row := message_row + 1
+                        has_errored := false
+                    } catch {
+                        has_errored := true
+                    }
+                }
+                LogMessage("DEBUG", "Syntax error detected: " . errorText)
+                invalidField := this.ExtractInvalidFieldFromError(errorText, tableName)
+                if (invalidField != "") {
+                    LogMessage("INFO", "Removing invalid field: " . invalidField)
+                     ;  ; set_status(this, "Syntax error: removing field " . invalidField)
+                    for index, fieldData in validFields {
+                        if (fieldData.fieldName == invalidField) {
+                            LogMessage("DEBUG", "Removing field " . invalidField . " from valid fields")
+                            validFields.Delete(index)
+                        }
+                    }
+                    this.removed_fields.Push(invalidField)  ; Store removed field for later use
+                }
+                else {
+                    LogMessage("ERROR", "Unexpected syntax error in generated Script: " . errorText)
+                     ;  ; set_status(this, "Unexpected syntax error in script refer logs")
+                    harderror := true
+                    Error("Unexpected syntax error: " . errorText)
+                }
+                this.session.FindById("wnd[1]/tbar[0]/btn[0]").Press()
+                Sleep(100)
+            } catch {
+                if (!harderror)
+                {
+                    LogMessage("INFO", "Script syntax check passed for table " . tableName)
+                     ;  ; set_status(this, "Script syntax check passed")
+                    scriptGenerated := true
+                    try {
+                        colnames := this.session.FindById("wnd[0]/usr/cntlGRID1/shellcont/shell/shellcont[1]/shell").ColumnOrder
+                    } catch {
+                        ;try setting grid
+                        try
+                            {
+                        ExecuteSapCommand(this.session, "ZZUSPARM")
+                        this.session.FindById("wnd[1]/usr/tabsTABS/tabpZDTBR/ssubTABSUB:/TFTO/SAPLTX_USER_SETT:9100/radGS_DIA-TBALV_GRID").Select()
+                        this.session.FindById("wnd[1]/usr/tabsTABS/tabpZDTBR/ssubTABSUB:/TFTO/SAPLTX_USER_SETT:9100/chkGS_DIA-TBCOUNT").Selected := true
+                        this.session.FindById("wnd[1]/usr/tabsTABS/tabpZDTBR/ssubTABSUB:/TFTO/SAPLTX_USER_SETT:9100/radGS_DIA-FIELDNAME").Select()
+                        this.session.FindById("wnd[1]/usr/tabsTABS/tabpZDTBR/ssubTABSUB:/TFTO/SAPLTX_USER_SETT:9100/radGS_DIA-FIELDNAME").SetFocus()
+                        this.session.FindById("wnd[1]/tbar[0]/btn[0]").Press()
+                        colnames := this.session.FindById("wnd[0]/usr/cntlGRID1/shellcont/shell/shellcont[1]/shell").ColumnOrder
+                            }
+
+                        catch {
+                            LogMessage("ERROR", "Failed to set grid: ")
+                             ;  ; set_status(this, "Failed to set grid")
+                            Error("Failed to set grid")
+                            return false
+                        }
+                    }
+
+                    for rowIdx in range(0, colnames.Length - 1) {
+                        if (SubStr(colnames[rowIdx], 1, 3) = "_XX") {
+                            this.session.FindById("wnd[0]/usr/cntlGRID1/shellcont/shell/shellcont[1]/shell").SelectColumn(colnames[rowIdx])
+                            ExecuteSapCommand(this.session, "ZZFILTER")
+                            ExecuteSapCommand(this.session, "ZZMORE_001")
+                            ExecuteSapCommand(this.session, "ZOPTI001")
+                            this.session.FindById("wnd[3]/usr/cntlOPTION_CONTAINER/shellcont/shell").SelectedRows(5)
+                            ExecuteSapCommand(this.session, "OKAY")
+                            ExecuteSapCommand(this.session, "ZZOKAY")
+                            ExecuteSapCommand(this.session, "ZZKEEP")
+                            break
+                        }
+                    }
+                    this.session.FindById("wnd[0]/tbar[0]/btn[11]").Press()
+                    Sleep(200)
+                    try {
+                        this.session.FindById("wnd[1]/usr/ctxtSP_SCRIP").Text := SubStr( scriptName , 1, 23)
+                        this.session.FindById("wnd[1]/usr/chkSP_SGLOB").Selected := 1
+                        timestamp := FormatTime(, "yyyy_MM_dd HH:mm:ss")
+                        this.session.FindById("wnd[1]/usr/txtSP_STEXT").Text := SubStr( "[" . timestamp . "]: Autogen For " . tableName . " & " . destination,1, 59 )
+                        this.session.FindById("wnd[1]/tbar[0]/btn[0]").Press()
+                        try {
+                            ExecuteSapCommand(this.session, "YES")
+                            this.session.FindById("wnd[2]/tbar[0]/btn[0]").Press()
+                        } catch {
+                            ; No overwrite needed
+                        }
+                        LogMessage("INFO", "Script saved: " . scriptName)
+                        LogSuccess(tableName . " -> " . destination . " : " . scriptName)
+                         ;  ; set_status(this, "Script saved: " . scriptName)
+                    } catch {
+                        LogMessage("ERROR", "Failed to save script: ")
+                         ;  ; set_status(this, "Failed to save script")
+                        Error("Failed to save script")
+                    }
+                }
+            }
+        }
+        if (!scriptGenerated || harderror) {
+             ;  ; set_status(this, "Failed to generate valid script after " . attempts . " attempts")
+            Error("Failed to generate valid script after " . attempts . " attempts")
+        }
+    }
+
+    ReadDD03LFields(tableName) {
+           ; set_status(this, "Reading DD03L for " . tableName)
+        try {
+            LogMessage(LOG_INFO, "Reading DD03L fields for table: " tableName)
+            this.session.FindById("wnd[0]/tbar[0]/okcd").Text := "/nSE16N"
+            this.session.FindById("wnd[0]").SendVKey(0)
+            Sleep(200)
+            this.session.FindById("wnd[0]/usr/ctxtGD-TAB").Text := "DD03L"
+            this.session.FindById("wnd[0]").SendVKey(0)
+            Sleep(200)
+            ExecuteSapCommand(this.session, "REMARKALL")
+            SetSapFieldDirect("wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,7]", "", this.session)
+            SetSapFieldDirect("wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,7]", "", this.session)
+            this.session.FindById("wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,7]").SetFocus()
+            Sleep(200)
+            ExecuteSapCommand(this.session, "OPTION")
+            Sleep(200)
+            ControlSelectOptionPopup("NE", this.session)
+            Sleep(200)
+            SetSapFieldDirect("wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/ctxtGS_SELFIELDS-LOW[1,0]", tableName, this.session)
+            SetSapFieldDirect("wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/chkGS_SELFIELDS-MARK[5,1]", "X", this.session)
+            SetSapFieldDirect("wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC/chkGS_SELFIELDS-MARK[5,5]", "X", this.session)
+            Sleep(200)
+            ExecuteSapCommand(this.session, "EXEC")
+            Sleep(500)
+            try {
+                popup := this.session.FindById("wnd[1]")
+                if (IsSet(popup)) {
+                    try {
+                        this.session.FindById("wnd[1]/tbar[0]/btn[0]").Press()
+                        Sleep(200)
+                    } catch {
+                        this.session.FindById("wnd[1]").SendVKey(0)
+                    }
+                }
+            } catch {
+            }
+            gridControl := ""
+            try {
+                gridControl := this.session.FindById("wnd[0]/usr/cntlRESULT_LIST/shellcont/shell")
+                LogMessage(LOG_INFO, "Found results grid at standard path")
+            } catch {
+                LogMessage(LOG_ERROR, "Could not find results grid")
+                 ;  ; set_status(this, "Could not find results grid")
+                return []
+            }
+            rowCount := gridControl.RowCount
+            LogMessage(LOG_INFO, "Result grid has " rowCount " rows")
+            results := []
+            LogMessage(LOG_INFO, "Extracting " . rowCount . "FIELDNAMEs")
+            griddata := LoadAllGridData(gridControl)
+            for rowIdx in range(1, griddata.Length) {
+                try {
+                    fieldName := ""
+                    is_key := ""
+                    try {
+                        fieldName := griddata[rowIdx]["FIELDNAME"]
+                    } catch {
+                    }
+                    try {
+                        is_key := griddata[rowIdx]["KEYFLAG"]
+                    } catch {
+                    }
+                    results.Push({
+                        fieldName: fieldName,
+                        key: is_key
+                    })
+                } catch {
+                    continue
+                }
+            }
+            LogMessage(LOG_INFO, "Extracted " results.Length " fields with data elements from table " tableName)
+            ExecuteSapCommand(this.session, "/n")
+             ;  ; set_status(this, "DD03L read completed")
+            ;remove illegal field names from list
+            for index, fieldData in results {
+                if (fieldData.key = "X") {
+                    continue
+                }
+                if (fieldData.fieldName = "" || fieldData.fieldName = "MANDT" || fieldData.fieldName = "CLIENT"
+                ;regex must match : [A-Za-z0-9_]+, no special characters allowed
+                || !RegExMatch(fieldData.fieldName, "^[\/A-Za-z0-9_]+$")
+                ) {
+                    LogMessage(LOG_INFO, "Removing illegal field: " . fieldData.fieldName)
+                    this.removed_fields.Push(fieldData.fieldName)  ; Store removed field for later use
+                    results.Delete(index)
+                }
+            }
+            return results
+        }
+        
+        
+        catch {
+            LogError("Worker " . this.workerId . ": Failed to read DD03L fields for table " . tableName . " - ")
+             ;  ; set_status(this, "ReadDD03L failed: ")
+            return []
+        }
+    }
+    replace_placeholders(script, fname,this_system := fname, other_system := fname) {
+        script := StrReplace(script, "$TABLENAME$", this.current_dbtable)
+        script := StrReplace(script, "$DESTINATION$", this.current_rfc_destination)
+        script := StrReplace(script, "$FNAME$", fname)
+        ;THIS_SYSTEM
+        script := StrReplace(script, "$THIS_SYSTEM$", this_system)
+        ;OTHER_SYSTEM
+        script := StrReplace(script, "$OTHER_SYSTEM$", other_system)
+        return script
+    }
+    GenerateScriptFromTemplate(tableName, validFields) {
+         ;  ; set_status(this, "Generating SE16XXL script for " . tableName)
+        templateContent := FileRead("script_template.txt")
+        rowisePattern := "mis)<rowise>(.*?)</rowise>"
+        rowise_removedPattern := "mis)<rowise_removed>(.*?)</rowise_removed>"
+        rowise_commented_outPattern := "mis)<rowise_commented_out>(.*?)</rowise_commented_out>"
+        rowiseMatch := ""
+        if (RegExMatch(templateContent, rowisePattern, &rowiseMatch)) {
+            rowiseTemplate := rowiseMatch[1]
+            rowiseCode := ""
+            for fieldName, fieldData in validFields {
+                if (fieldData.fieldName != "MANDT" && fieldData.fieldName != "CLIENT") {
+                    fieldCode := this.replace_placeholders(rowiseTemplate, fieldData.fieldName)
+                    rowiseCode .= fieldCode . "`r`n"
+                }
+            }
+            script := RegExReplace(templateContent, rowisePattern, rowiseCode)
+        } else {
+            script := templateContent
+        }
+        ; Handle rowise_removed
+        rowiseRemovedMatch := ""
+        if (RegExMatch(script, rowise_removedPattern, &rowiseRemovedMatch)) {
+            rowiseRemovedTemplate := rowiseRemovedMatch[1]
+            rowiseRemovedCode := ""
+            for index, field in this.removed_fields {
+                    fieldCode := this.replace_placeholders(rowiseRemovedTemplate, field,field,"") ;does not exist on other system
+                    rowiseRemovedCode .= fieldCode 
+                
+            }
+            script := RegExReplace(script, rowise_removedPattern, rowiseRemovedCode)
+        }
+        ; Handle rowise_commented_out
+        rowiseCommentedOutMatch := ""
+        if (RegExMatch(script, rowise_commented_outPattern, &rowiseCommentedOutMatch)) {
+            rowiseCommentedOutTemplate := rowiseCommentedOutMatch[1]
+            rowiseCommentedOutCode := ""
+            for field_index, field in this.commented_out_fields {
+                fieldCode := this.replace_placeholders(rowiseCommentedOutTemplate, field.this_system, field.this_system, field.other_system)
+                rowiseCommentedOutCode .= fieldCode . "`r`n"
+            }
+            script := RegExReplace(script, rowise_commented_outPattern, rowiseCommentedOutCode)
+        }
+        script := StrReplace(script, "$TABLENAME$", tableName)
+         ;  ; set_status(this, "SE16XXL script generated")
+        return script
+    }
+
+    ExtractInvalidFieldFromError(errorText, currentDatabase := "") {
+        ; Find all string fields in quotes
+        stringFields := []
+        pos := 1
+        while (pos := RegExMatch(errorText, '"([A-Za-z_-]+)"', &match, pos)) {
+            stringFields.Push(match[1])
+            pos += StrLen(match[0])
+        }
+
+        ; Determine which field to return
+        fieldToReturn := ""
+
+        if (stringFields.Length >= 2) {
+            ; If we have 2 or more, return the second one if it matches pattern
+            if (RegExMatch(stringFields[2], "[A-Za-z_]+")) {
+                fieldToReturn := stringFields[2]
+            }
+        } else if (stringFields.Length = 1) {
+            ; If we have 1, return it if it matches pattern
+            if (RegExMatch(stringFields[1], "[A-Za-z_]+")) {
+                fieldToReturn := stringFields[1]
+            }
+        }
+        if (stringFields.Length >= 3) {
+            ;we have a lookalike field on the other system, add it to this.commented_out_fields
+            this.commented_out_fields.Push({this_system: stringFields[2], other_system: stringFields[3]})
+        }
+
+        ; Log the information to removed_fields file
+        if (fieldToReturn != "" || stringFields.Length > 0) {
+            logFile := A_ScriptDir . "\removed_fields.log"
+
+            ; Prepare log entry
+            logEntry .= "DB:" . currentDatabase . ",miss:" . fieldToReturn . ",AorB:" . (stringFields.Length > 1 ? stringFields[1] : "?:-(?") . "`r`n"
+
+            ; Append to file
+            try {
+                FileAppend(logEntry, logFile)
+            } catch {
+                ; If we can't write to the log file, at least output to debug
+                OutputDebug("Failed to write to removed_fields.log: ")
+            }
+        }
+        
+        return fieldToReturn
+    }
+
+}
+
+; ==================== GLOBAL FUNCTIONS ====================
+Main() {
+    workerr := SAPWorker(WORKER_ID)
+    if (!workerr.Initialize()) {
+        LogError("Worker " . WORKER_ID . " failed to initialize")
+            set_status(workerr, "Initialization failed, exiting")
+        ExitApp(1)
+    }
+        set_status(workerr, "Worker main loop started")
+    workerr.Run()
+    LogMessage("INFO", "Worker " . WORKER_ID . " finished")
+        set_status(workerr, "Worker finished, exiting")
+    ExitApp(0)
+}
+
+Main()
+
+LoadAllGridData(grid) {
+    totalRows := grid.rowCount
+    visibleRows := grid.visibleRowCount
+    data := []
+    grid.firstVisibleRow := 0
+    Sleep(100)
+    currentRow := 0
+    while (currentRow < totalRows) {
+        Loop Min(visibleRows, totalRows - currentRow) {
+            rowIndex := currentRow + A_Index - 1
+            try {
+                check := grid.getCellValue(rowIndex, grid.ColumnOrder[0])
+                rowData := Map()
+                for rowIdx in range(0, grid.ColumnOrder.Length - 1) {
+                    colName := grid.ColumnOrder[rowIdx]
+                    value := grid.getCellValue(rowIndex, colName)
+                    rowData[colName] := value
+                }
+                data.Push(rowData)
+            }
+        }
+        currentRow += visibleRows
+        try {
+            grid.setCurrentCell(currentRow, grid.ColumnOrder[0])
+        } catch {
+        }
+        if (currentRow < totalRows) {
+            grid.firstVisibleRow := currentRow
+            Sleep(200)
+        }
+    }
+    return data
+}
+
+    set_status(this, text) {
+    ; Use simple lock mechanism for status updates too
+    
+    startTime := A_TickCount
+    while (A_TickCount - startTime < 5000) {
+        try {
+            ; Check lock
+            if (FileExist(LOCK_FILE)) {
+                lockContent := FileRead(LOCK_FILE)
+                if (Trim(lockContent) != "" && Trim(lockContent) != String(this.workerId)) {
+                    Sleep(20)
+                    continue
+                }
+            }
+
+            ; Acquire lock
+            file := FileOpen(LOCK_FILE, "w")
+            file.Write(String(this.workerId))
+            file.Close()
+
+            ; Update status
+            jsonText := FileRead(A_ScriptDir "\sessions.json")
+            config := JSON.Parse(jsonText)
+            for idx, worker in config["workers"] {
+                if (worker["id"] == this.workerId || worker["sessionIndex"] == this.workerId) {
+                    worker["current_status"] := text
+                    worker["lastUpdate"] := A_Now
+                    break
+                }
+            }
+            newJsonText := JSON.Stringify(config)
+            file := FileOpen(A_ScriptDir "\sessions.json", "w")
+            file.Write(newJsonText)
+            file.Close()
+
+            ; Release lock
+            file := FileOpen(LOCK_FILE, "w")
+            file.Write("")
+            file.Close()
+            return
+        } catch {
+            ; Release lock on error
+            try {
+                file := FileOpen(LOCK_FILE, "w")
+                file.Write("")
+                file.Close()
+            } catch {
+                ; ignore
+            }
+            Sleep(20)
+        }
+    }
+    LogMessage("ERROR", "Failed to update worker status: timeout")
+}
+
+^Esc:: {
+    LogMessage("INFO", "Script terminated by user")
+    ExitApp()
+}

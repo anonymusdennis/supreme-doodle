@@ -1,0 +1,463 @@
+;; @bundle-id: c11e59f99b5d
+;; @source-rel: old/datenvalidakkktor/utility.ahk2
+;; @source-sha1: 215170fcb01720d4147b258d9ce479fbd7bda7bf
+;; @note: Edit content below. Keep header lines starting with ';;' intact.
+;; -------------------------
+#Requires AutoHotkey v2.0
+
+; ==================== LOGGING FUNCTIONS ====================
+LogMessage(level, message) {
+    global LogFile
+    timestamp := FormatTime(A_Now, "yyyy-MM-dd HH:mm:ss")
+    logEntry := timestamp " [" level "] " message "`n"
+
+    try {
+        FileAppend(logEntry, LogFile)
+    } catch {
+        OutputDebug("Log Error: " " - Original message: " logEntry)
+    }
+}
+
+LogError(message) {
+    global ErrorLog
+    timestamp := FormatTime(A_Now, "yyyy-MM-dd HH:mm:ss")
+    errorEntry := timestamp " - " message "`n"
+
+    try {
+        FileAppend(errorEntry, ErrorLog)
+    } catch {
+        OutputDebug("Error Log Error: ")
+    }
+
+    ; Also log to main log
+    LogMessage("ERROR", message)
+}
+
+LogSuccess(message) {
+    global SuccessLog
+    timestamp := FormatTime(, "yyyy-MM-dd HH:mm:ss")
+    successEntry := timestamp " - " message "`n"
+
+    try {
+        FileAppend(successEntry, SuccessLog)
+    } catch {
+        OutputDebug("Success Log Error: ")
+    }
+
+    ; Also log to main log
+    LogMessage("SUCCESS", message)
+}
+
+
+; ==================== ADVANCED COM OBJECT DUMPER ====================
+DumpCOMObjectAdvanced(comObj, objectName := "Unknown") {
+    ; Create dump file
+    dumpFile := A_ScriptDir "\logs\COM_" . objectName . "_" . FormatTime(, "yyyyMMdd_HHmmss") . ".dump"
+
+    ; Ensure logs directory exists
+    if (!DirExist(A_ScriptDir "\logs")) {
+        DirCreate(A_ScriptDir "\logs")
+    }
+
+    ; Start dump content
+    dumpContent := "=== ADVANCED COM Object Dump ===`n"
+    dumpContent .= "Object Name: " . objectName . "`n"
+    dumpContent .= "Generated: " . FormatTime(, "yyyy-MM-dd HH:mm:ss") . "`n"
+    dumpContent .= "User: " . A_UserName . "`n"
+    dumpContent .= "========================================`n`n"
+
+    try {
+        ; Get basic type info
+        objType := Type(comObj)
+        dumpContent .= "AutoHotkey Type: " . objType . "`n"
+
+        ; Try to get the actual COM object pointer
+        ptr := ComObjValue(comObj)
+        dumpContent .= "COM Object Pointer: " . Format("0x{:X}", ptr) . "`n"
+
+        ; Get type info using ComObjType
+        typeInfo := ComObjType(comObj)
+        dumpContent .= "COM Type Info: " . typeInfo . "`n"
+
+        ; Try to get ITypeInfo
+        try {
+            ; Get interface name
+            interfaceName := ComObjType(comObj, "Name")
+            dumpContent .= "Interface Name: " . interfaceName . "`n"
+
+            ; Get IID
+            iid := ComObjType(comObj, "IID")
+            dumpContent .= "Interface ID: " . iid . "`n"
+
+            ; Get class name
+            className := ComObjType(comObj, "Class")
+            dumpContent .= "Class Name: " . className . "`n"
+
+            ; Get CLSID
+            clsid := ComObjType(comObj, "CLSID")
+            dumpContent .= "Class ID: " . clsid . "`n"
+        } catch {
+            dumpContent .= "Could not retrieve extended type information`n"
+        }
+
+    } catch {
+        dumpContent .= "Error getting basic info: " . "`n"
+    }
+
+    dumpContent .= "`n=== Property/Method Discovery ===`n"
+
+    ; Create a comprehensive test list based on object name
+    testList := GetTestListForObject(objectName)
+
+    ; Test each property/method
+    testedItems := Map()
+    successfulProps := []
+    successfulMethods := []
+
+    for itemName in testList {
+        if (!testedItems.Has(itemName)) {
+            result := TestCOMItem(comObj, itemName)
+            testedItems[itemName] := result
+
+            if (result.success) {
+                if (result.type = "property") {
+                    successfulProps.Push({ name: itemName, value: result.value, valueType: result.valueType })
+                } else if (result.type = "method") {
+                    successfulMethods.Push({ name: itemName, callable: true })
+                }
+            }
+        }
+    }
+
+    ; Output successful properties
+    dumpContent .= "`n=== Accessible Properties ===`n"
+    for prop in successfulProps {
+        if (prop.valueType = "ComObject") {
+            dumpContent .= prop.name . ": [COM Object]"
+
+            ; Try to get more info about the COM object
+            try {
+                subType := ComObjType(prop.value, "Name")
+                dumpContent .= " (" . subType . ")"
+            } catch {
+                ; Ignore
+            }
+            dumpContent .= "`n"
+
+            ; Recursively dump important sub-objects
+            if (InStr(prop.name, "Info") || InStr(prop.name, "Connection") || InStr(prop.name, "Parent")) {
+                dumpContent .= "  --> Dumping sub-object " . prop.name . ":`n"
+                subDump := DumpCOMSubObject(prop.value, prop.name, "    ")
+                dumpContent .= subDump
+            }
+        } else {
+            dumpContent .= prop.name . ": " . prop.value . " [" . prop.valueType . "]`n"
+        }
+    }
+
+    ; Output successful methods
+    dumpContent .= "`n=== Accessible Methods ===`n"
+    for method in successfulMethods {
+        dumpContent .= method.name . "()`n"
+    }
+
+    ; Special handling for collections
+    dumpContent .= "`n=== Collection Analysis ===`n"
+    AnalyzeCollection(comObj, &dumpContent)
+
+    ; Special handling for SAP objects
+    if (InStr(objectName, "SAP") || InStr(objectName, "Session") || InStr(objectName, "Connection")) {
+        dumpContent .= "`n=== SAP-Specific Analysis ===`n"
+        AnalyzeSAPObject(comObj, objectName, &dumpContent)
+    }
+
+    ; Write to file
+    try {
+        FileAppend(dumpContent, dumpFile)
+        LogMessage("DEBUG", "Advanced COM dump created: " . dumpFile)
+
+        ; Open the file automatically
+        Run("notepad.exe " . dumpFile)
+    } catch {
+        LogError("Failed to write COM dump: ")
+    }
+
+    return dumpFile
+}
+
+; Helper function to dump sub-objects
+DumpCOMSubObject(comObj, objName, indent := "") {
+    subDump := ""
+
+    try {
+        ; Get common properties for sub-objects
+        subProps := ["Name", "Type", "Value", "Text", "Key", "Count", "Length",
+            "SystemName", "Client", "User", "Language", "Transaction",
+            "Program", "ScreenNumber", "ApplicationServer", "SystemNumber",
+            "IsConnected", "Connected", "System", "Host", "SystemId"]
+
+        for propName in subProps {
+            try {
+                value := comObj.%propName%
+                valueType := Type(value)
+                if (valueType != "ComObject") {
+                    subDump .= indent . propName . ": " . value . "`n"
+                }
+            } catch {
+                ; Property not accessible
+            }
+        }
+    } catch {
+        subDump .= indent . "[Could not analyze sub-object]`n"
+    }
+
+    return subDump
+}
+
+; Helper function to get test list based on object type
+GetTestListForObject(objectName) {
+    ; Base list
+    baseList := ["Name", "Type", "Value", "Text", "Count", "Length", "Parent",
+        "Application", "Id", "Key", "Item", "Add", "Remove"]
+
+    ; SAP GUI specific
+    sapGuiList := ["findById", "sendVKey", "Children", "Info", "ActiveWindow",
+        "ActiveSession", "Connections", "Sessions", "GetScriptingEngine",
+        "OpenConnection", "Connection", "SystemName", "Client", "User",
+        "Language", "Transaction", "Program", "ScreenNumber", "Busy",
+        "Changeable", "GuiCodepage", "SystemSessionId", "IsActive",
+        "ApplicationServer", "SystemNumber", "SessionNumber", "Info",
+        "StartTransaction", "EndTransaction", "LockSessionUI", "UnlockSessionUI"]
+
+    ; SAP Functions specific
+    sapFuncList := ["Connection", "Add", "Remove", "Item", "Count", "Exports",
+        "Imports", "Tables", "Call", "Execute", "Exception", "Metadata",
+        "Name", "FunctionName", "GroupName"]
+
+    ; Connection specific
+    connList := ["System", "SystemName", "Client", "User", "Password", "Language",
+        "Host", "SystemNumber", "GatewayHost", "GatewayService", "Connected",
+        "IsConnected", "Connect", "Disconnect", "Logon", "Logoff",
+        "ApplicationServer", "MessageServer", "Group", "SAPRouter"]
+
+    ; Build combined list based on object name
+    testList := baseList
+
+    if (InStr(objectName, "Session")) {
+        testList.Push(sapGuiList*)
+    }
+    if (InStr(objectName, "Function")) {
+        testList.Push(sapFuncList*)
+    }
+    if (InStr(objectName, "Connection")) {
+        testList.Push(connList*)
+    }
+    if (InStr(objectName, "SAP")) {
+        testList.Push(sapGuiList*)
+        testList.Push(sapFuncList*)
+    }
+
+    return testList
+}
+
+; Test a COM item (property or method)
+TestCOMItem(comObj, itemName) {
+    result := { success: false, type: "unknown", value: "", valueType: "", error: "" }
+
+    ; First try as property
+    try {
+        value := comObj.%itemName%
+        result.success := true
+        result.value := value
+        result.valueType := Type(value)
+
+        ; Determine if it's a property or method
+        if (result.valueType = "ComObject" || result.valueType = "String" ||
+            result.valueType = "Integer" || result.valueType = "Float") {
+            result.type := "property"
+        } else {
+            result.type := "method"
+        }
+
+        ; Special handling for string values
+        if (result.valueType = "String" && StrLen(value) > 100) {
+            result.value := SubStr(value, 1, 100) . "..."
+        }
+
+    } catch {
+        ; Try as method with no parameters
+        try {
+            comObj.%itemName%()
+            result.success := true
+            result.type := "method"
+            result.value := "[Callable]"
+        } catch {
+            result.error := ""
+        }
+    }
+
+    return result
+}
+
+; Analyze collection objects
+AnalyzeCollection(comObj, &dumpContent) {
+    try {
+        count := comObj.Count
+        dumpContent .= "Collection with " . count . " items`n"
+
+        if (count > 0) {
+            ; Test different indexing methods
+            dumpContent .= "Testing collection access methods:`n"
+
+            ; Try 0-based indexing
+            try {
+                item := comObj.Item(0)
+                dumpContent .= "  - 0-based indexing works`n"
+                dumpContent .= "    First item type: " . Type(item) . "`n"
+
+                ; Try to get name of first item
+                try {
+                    itemName := item.Name
+                    dumpContent .= "    First item name: " . itemName . "`n"
+                } catch {
+                    ; No name property
+                }
+            } catch {
+                ; Try 1-based indexing
+                try {
+                    item := comObj.Item(1)
+                    dumpContent .= "  - 1-based indexing works`n"
+                    dumpContent .= "    First item type: " . Type(item) . "`n"
+                } catch {
+                    dumpContent .= "  - Could not access collection items`n"
+                }
+            }
+
+            ; Try enumeration
+            try {
+                dumpContent .= "  - Attempting enumeration:`n"
+                maxItems := Min(count, 5)
+                Loop maxItems {
+                    try {
+                        item := comObj.Item(A_Index - 1)
+                        itemInfo := "    [" . (A_Index - 1) . "]: " . Type(item)
+
+                        ; Try to get item details
+                        try {
+                            if (item.Name) {
+                                itemInfo .= " - " . item.Name
+                            }
+                        } catch {
+                            ; No name
+                        }
+
+                        dumpContent .= itemInfo . "`n"
+                    } catch {
+                        ; Try 1-based
+                        try {
+                            item := comObj.Item(A_Index)
+                            dumpContent .= "    [" . A_Index . "]: " . Type(item) . "`n"
+                        } catch {
+                            ; Skip
+                        }
+                    }
+                }
+            } catch {
+                dumpContent .= "  - Enumeration failed`n"
+            }
+        }
+    } catch {
+        dumpContent .= "Not a collection or Count property not accessible`n"
+    }
+}
+
+; Special analysis for SAP objects
+AnalyzeSAPObject(comObj, objectName, &dumpContent) {
+    ; Try to identify object type and provide specific analysis
+
+    if (InStr(objectName, "Session")) {
+        dumpContent .= "Analyzing as SAP Session object:`n"
+
+        ; Try to get session info
+        try {
+            info := comObj.Info
+            dumpContent .= "  Session.Info accessible - dumping properties:`n"
+
+            infoProps := ["SystemName", "Client", "User", "Language", "Transaction",
+                "Program", "ScreenNumber", "SessionNumber", "GuiCodepage",
+                "SystemSessionId", "ApplicationServer", "SystemNumber",
+                "GroupName", "Server", "ResponseTime", "RoundTrips",
+                "InterpretationTime", "Flushes", "IsLowSpeed"]
+
+            for prop in infoProps {
+                try {
+                    value := info.%prop%
+                    dumpContent .= "    Info." . prop . ": " . value . "`n"
+                } catch {
+                    ; Property not available
+                }
+            }
+        } catch {
+            dumpContent .= "  Session.Info not accessible`n"
+        }
+
+        ; Try to get parent connection
+        try {
+            parent := comObj.Parent
+            dumpContent .= "  Parent (Connection) accessible`n"
+
+            ; Try to get connection properties
+            try {
+                dumpContent .= "    Connection.Name: " . parent.Name . "`n"
+            } catch {
+                ; No name
+            }
+
+            try {
+                dumpContent .= "    Connection.Description: " . parent.Description . "`n"
+            } catch {
+                ; No description
+            }
+
+            try {
+                dumpContent .= "    Connection.Id: " . parent.Id . "`n"
+            } catch {
+                ; No ID
+            }
+
+            try {
+                dumpContent .= "    Connection.ConnectionString: " . parent.ConnectionString . "`n"
+            } catch {
+                ; No connection string
+            }
+        } catch {
+            dumpContent .= "  Parent not accessible`n"
+        }
+    }
+
+    if (InStr(objectName, "Function")) {
+        dumpContent .= "Analyzing as SAP Functions object:`n"
+
+        ; Check connection property
+        try {
+            conn := comObj.Connection
+            dumpContent .= "  Connection property accessible`n"
+
+            ; Dump connection properties
+            connProps := ["System", "SystemName", "Client", "User", "Language",
+                "IsConnected", "Connected", "ApplicationServer", "SystemNumber",
+                "Host", "GatewayHost", "GatewayService"]
+
+            for prop in connProps {
+                try {
+                    value := conn.%prop%
+                    dumpContent .= "    Connection." . prop . ": " . value . "`n"
+                } catch {
+                    ; Property not available
+                }
+            }
+        } catch {
+            dumpContent .= "  Connection property not accessible`n"
+        }
+    }
+}

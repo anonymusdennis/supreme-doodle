@@ -1,0 +1,114 @@
+;; @bundle-id: 2c866b3a579a
+;; @source-rel: old/datenvalidakkktor/sessionfix.ahk2
+;; @source-sha1: 3acf6431fb8c9f82e025cb22fdb2e083685a047f
+;; @note: Edit content below. Keep header lines starting with ';;' intact.
+;; -------------------------
+#Requires AutoHotkey v2.0
+
+class SyncSession {
+    __New(session) {
+        ; Store as defined property to avoid __Get loops
+        this.DefineProp("_raw", {Value: session})
+        
+        ; Try to set sync mode
+        try {
+            this._raw.Sync := true
+        }
+    }
+    
+    ; Proxy all calls through synchronization
+    __Call(method, params) {
+        ; Debug output
+        OutputDebug("Calling method: " . method)
+        
+        ; Wait before
+        this.WaitReady()
+        
+        ; Call method
+        result := this._raw.%method%(params*)
+        
+        ; If result is a COM object, wrap it too
+        if (IsObject(result) && ComObjType(result)) {
+            result := SyncWrapper(result, this)
+        }
+        
+        ; Wait after
+        this.WaitReady()
+        
+        return result
+    }
+    
+    ; Proxy property access
+    __Get(property, params) {
+        ; Debug output
+        OutputDebug("Getting property: " . property)
+        
+        value := this._raw.%property%
+        
+        ; Only wait for properties that might change state
+        if (!InStr("Busy,Info,Id,Name,Type,Children,Parent", property)) {
+            this.WaitReady()
+        }
+        
+        return value
+    }
+    
+    __Set(property, params, value) {
+        OutputDebug("Setting property: " . property . " = " . value)
+        
+        this._raw.%property% := value
+        this.WaitReady()
+    }
+    
+    WaitReady(timeout := 10000) {
+        startTime := A_TickCount
+        loops := 0
+        
+        while this._raw.Busy {
+            loops++
+            if (A_TickCount - startTime > timeout) {
+                 Error("Session timeout after " . timeout . "ms")
+            }
+            Sleep(50)
+        }
+        
+        if (loops > 0) {
+            OutputDebug("Waited " . loops . " loops (" . (A_TickCount - startTime) . "ms)")
+        }
+    }
+    
+    ; Direct access to findById that ensures waiting
+    findById(id) {
+        OutputDebug("Finding element: " . id)
+        this.WaitReady()
+        element := this._raw.FindById(id)
+        this.WaitReady()
+        return SyncWrapper(element, this)
+    }
+}
+
+; Wrapper for child elements
+class SyncWrapper {
+    __New(element, parentSession) {
+        this.DefineProp("_raw", {Value: element})
+        this.DefineProp("_session", {Value: parentSession})
+    }
+    
+    __Get(property, params) {
+        OutputDebug("SyncWrapper getting: " . property)
+        return this._raw.%property%
+    }
+    
+    __Set(property, params, value) {
+        OutputDebug("SyncWrapper setting: " . property . " = " . value)
+        this._raw.%property% := value
+        this._session.WaitReady()
+    }
+    
+    __Call(method, params) {
+        OutputDebug("SyncWrapper calling: " . method)
+        result := this._raw.%method%(params*)
+        this._session.WaitReady()
+        return result
+    }
+}

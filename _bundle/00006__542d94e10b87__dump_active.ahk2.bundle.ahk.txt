@@ -1,0 +1,44 @@
+;; @bundle-id: 542d94e10b87
+;; @source-rel: dump_active.ahk2
+;; @source-sha1: eea3c1a0d494ac0c1109f1facf871f11ed40c2d5
+;; @note: Edit content below. Keep header lines starting with ';;' intact.
+;; -------------------------
+#Requires AutoHotkey v2.0
+#SingleInstance Force
+
+; ==================== INCLUDES ====================
+#Include "declarations.ahk2"
+#Include "utility.ahk2"
+#Include "excel_functions.ahk2"
+#Include "sap_functions.ahk2"
+; ==================== CONSTANTS ====================
+global THREAD_COUNT := 2  ; Number of concurrent threads
+global MAX_ENTRIES := 5   ; Max entries for SE16XXL
+global SleepTimeShort := 20
+global SleepTimeMedium := 50
+global SleepTimeLong := 200
+; ==================== GLOBAL VARIABLES ====================
+global SapSessions := Map()  ; Will hold both SAP sessions
+global Databases := []
+global RfcDestinations := []
+global ScriptTemplate := ""
+
+global SuccessLog := A_ScriptDir "\logs\success.txt"
+global ErrorLog := A_ScriptDir "\logs\error.txt"
+global ProcessingQueue := []
+global QueueLock := 0
+
+; ==================== INITIAL SETUP ====================
+SetWorkingDir(A_ScriptDir)
+ProcessSetPriority("High")
+
+; Create logs directory
+if (!DirExist(A_ScriptDir "\logs")) {
+    DirCreate(A_ScriptDir "\logs")
+}
+; a simple script, that connects to sap and then dumps the active screen
+; Initialize SAP GUI
+SapGui := ConnectSAP()
+
+
+DumpSapScreen("DUMP_SE16nResultlist.txt")

@@ -1,0 +1,688 @@
+;; @bundle-id: 26f57f43f03e
+;; @source-rel: old/datenvalidakkktor - Kopie/se16_selectionscreen.ahk2
+;; @source-sha1: a5321b012f533b4cea0b9a9082617970c5cc6191
+;; @note: Edit content below. Keep header lines starting with ';;' intact.
+;; -------------------------
+#Requires AutoHotkey v2.0
+
+; ==================== SE16N SELECTION SCREEN FUNCTIONS ====================
+; Function to mark/unmark a specific field by name using direct path
+MarkField(fieldName, on := true, localSession := SapSession) {
+     if (!IsSet(localSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for marking field")
+        return false
+    }
+
+    try {
+        ; Define the base table ID
+        tableId := "wnd[0]/usr/tblSAPLSE16NSELFIELDS_TC"
+
+        ; First, we need to find which row contains our field name
+        rowCount := 0
+
+        try {
+            ; Try to get row count from table control
+            rowCount := localSession.FindById(tableId).RowCount
+            LogMessage(LOG_DEBUG, "Table has " rowCount " rows")
+        } catch {
+            ; If can't get row count directly, use a reasonable default
+            rowCount := 50  ; Try up to 50 rows
+            LogMessage(LOG_WARNING, "Could not get row count, will try up to " rowCount " rows: ")
+        }
+
+        ; Column indices - these are fixed in SE16N
+        fieldNameColIdx := 2    ; Column index for field names (typically column 2)
+        markColIdx := 1         ; Column index for checkboxes (typically column 1)
+
+        ; Find the row containing our field
+        targetRow := -1
+
+        Loop rowCount {
+            rowIdx := A_Index - 1  ; Convert to 0-based index
+
+            ; Check if we've gone beyond visible rows and need to scroll
+            ;            if (rowIdx > 0 && rowIdx % 20 == 0) {  ; Assuming 20 visible rows at a time
+            ;                try {
+            ;                    ; Try to page down
+            ;                    localSession.FindById(tableId).verticalScrollbar.position := rowIdx
+            ;                    Sleep SleepTimeShort
+            ;                } catch {
+            ;                    ; If scrolling fails, we may have reached the end
+            ;                }
+            ;            }
+
+            ; Check if this row contains our field name
+            try {
+                ; Construct path to the field name cell
+                fieldNamePath := tableId . "/txtGS_SELFIELDS-FIELDNAME[" . fieldNameColIdx . "," . rowIdx . "]"
+
+                ; Get the field name at this row
+                cellValue := localSession.FindById(fieldNamePath).Text
+
+                if (cellValue = fieldName) {
+                    targetRow := rowIdx
+                    LogMessage(LOG_DEBUG, "Found field '" fieldName "' at row " targetRow)
+                    break
+                }
+            } catch {
+                ; Cell might not exist or be accessible, continue searching
+            }
+        }
+
+        if (targetRow = -1) {
+            LogMessage(LOG_WARNING, "Field '" fieldName "' not found in table")
+            return false
+        }
+
+        ; Construct the path to the checkbox
+        checkboxPath := tableId . "/chkGS_SELFIELDS-MARK[" . markColIdx . "," . targetRow . "]"
+
+        ; Use SetSapFieldDirect to set the value
+        markValue := on ? "X" : ""
+
+        if (SetSapFieldDirect(checkboxPath, markValue)) {
+            LogMessage(LOG_INFO, "Field '" fieldName "' " (on ? "marked" : "unmarked") " using direct path")
+            return true
+        } else {
+            LogMessage(LOG_ERROR, "Failed to mark field using direct path")
+
+            ; Fallback method: try clicking the checkbox directly
+            try {
+                checkBox := localSession.FindById(checkboxPath)
+                if (on) {
+                    if (!checkBox.Selected) {
+                        checkBox.Selected := true
+                    }
+                } else {
+                    if (checkBox.Selected) {
+                        checkBox.Selected := false
+                    }
+                }
+                LogMessage(LOG_INFO, "Field '" fieldName "' " (on ? "marked" : "unmarked") " using fallback method")
+                return true
+            } catch {
+                LogMessage(LOG_ERROR, "Fallback method also failed: ")
+                return false
+            }
+        }
+
+    } catch {
+        LogMessage(LOG_ERROR, "Error in MarkField: ")
+        return false
+    }
+}
+
+; Function to unmark all fields using the REMARKALL command
+UnmarkAll(localSession := SapSession) {
+    
+
+    if (!IsSet(localSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for unmarking all")
+        return false
+    }
+
+    try {
+        LogMessage(LOG_INFO, "Unmarking all fields in SE16N")
+
+        ; Execute the REMARKALL command
+        ExecuteSapCommand(localSession,"REMARKALL")
+        Sleep SleepTimeMedium
+
+        LogMessage(LOG_INFO, "All fields unmarked successfully")
+        return true
+
+    } catch {
+        LogMessage(LOG_ERROR, "Error unmarking all fields: ")
+        return false
+    }
+}
+; Function to set field selection values
+; Function to set field selection values
+SetFieldValue(fieldName, valueFrom, valueTo := "", selectOption := "EQ", localSession := SapSession) {
+    
+
+    if (!IsSet(localSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for setting field value")
+        return false
+    }
+
+    try {
+
+
+        ; Find the field in the selection grid
+        gridControlId := "wnd[0]/usr/cntlGRID_CONT/shellcont/shell"
+
+        ; Define the field column name/index
+        fieldColumn := "FIELDNAME"  ; This was missing in the previous version
+
+        ; Get the row index for the field
+        rowCount := 0
+        fieldRowIndex := -1
+
+        try {
+            ; Get row count via property
+            rowCount := localSession.FindById(gridControlId).RowCount
+
+            ; Find our field
+            Loop rowCount {
+                rowIdx := A_Index - 1
+                cellPath := gridControlId . "/cell[" . fieldColumn . "," . rowIdx . "]"
+
+                try {
+                    cellValue := localSession.FindById(cellPath).Text
+                    if (cellValue = fieldName) {
+                        fieldRowIndex := rowIdx
+                        break
+                    }
+                } catch {
+                    ; Try alternative method - using column index if name doesn't work
+                    try {
+                        cellPath := gridControlId . "/cell[0," . rowIdx . "]"
+                        cellValue := localSession.FindById(cellPath).Text
+                        if (cellValue = fieldName) {
+                            fieldRowIndex := rowIdx
+                            break
+                        }
+                    } catch {
+                        continue
+                    }
+                }
+            }
+        } catch {
+            LogMessage(LOG_WARNING, "Could not use cell paths, trying direct access: ")
+
+            ; Alternative: Try to find field using button press
+            try {
+                ; Set the cursor in the first row
+                localSession.FindById(gridControlId).SetFocus()
+
+                ; Try to search for the field by name
+                localSession.FindById("wnd[0]").SendVKey(70)  ; F7 for search
+                Sleep SleepTimeShort
+
+                ; Enter field name in search box
+                try {
+                    localSession.FindById("wnd[1]/usr/txtGS_SEARCH-VALUE").Text := fieldName
+                    localSession.FindById("wnd[1]/tbar[0]/btn[0]").Press()  ; Execute search
+                    Sleep SleepTimeShort
+
+                    ; If search succeeded, we're now at the right row
+                    fieldRowIndex := 0  ; Assume current row
+                } catch {
+                    ; Search dialog not found or failed
+                }
+            } catch {
+                ; Alternative method failed
+            }
+        }
+
+        if (fieldRowIndex = -1) {
+            LogMessage(LOG_ERROR, "Field '" fieldName "' not found for value setting")
+            return false
+        }
+
+        ; Set the selection values
+        try {
+            ; Click the OPTION button to open the popup
+            optionButtonId := gridControlId . "/btnPUSH[1," . fieldRowIndex . "]"  ; Assuming OPTION is column 1
+
+            try {
+                localSession.FindById(optionButtonId).Press()
+            } catch {
+                LogMessage(LOG_WARNING, "Could not press option button directly: ")
+
+                ; Try alternative approach - click OPTION cell
+                try {
+                    optionCellId := gridControlId . "/cell[1," . fieldRowIndex . "]"
+                    localSession.FindById(optionCellId).SetFocus()
+                    localSession.FindById("wnd[0]").SendVKey(2)  ; F2 or double-click
+                } catch {
+                    LogMessage(LOG_ERROR, "Could not open option popup: ")
+                    return false
+                }
+            }
+
+            Sleep SleepTimeMedium  ; Give time for popup to open
+
+            ; Handle the option selection popup
+            if (!ControlSelectOptionPopup(selectOption)) {
+                LogMessage(LOG_ERROR, "Failed to select option '" selectOption "' for field '" fieldName "'")
+                return false
+            }
+
+            ; Set the FROM value using direct cell
+            lowCellId := gridControlId . "/cell[2," . fieldRowIndex . "]"  ; Assuming LOW is column 2
+
+            try {
+                localSession.FindById(lowCellId).SetFocus()
+                localSession.FindById(lowCellId).Text := valueFrom
+            } catch {
+                LogMessage(LOG_WARNING, "Could not set LOW value directly: ")
+
+                ; Try alternative method - modifyCell if available
+                try {
+                    localSession.FindById(gridControlId).modifyCell(fieldRowIndex, "LOW", valueFrom)
+                } catch {
+                    LogMessage(LOG_ERROR, "Could not set LOW value: ")
+                    return false
+                }
+            }
+
+            ; Set the TO value if provided (for ranges)
+            if (valueTo != "" && (selectOption = "BT" || selectOption = "NB")) {
+                highCellId := gridControlId . "/cell[3," . fieldRowIndex . "]"  ; Assuming HIGH is column 3
+
+                try {
+                    localSession.FindById(highCellId).SetFocus()
+                    localSession.FindById(highCellId).Text := valueTo
+                } catch {
+                    LogMessage(LOG_WARNING, "Could not set HIGH value directly: ")
+
+                    ; Try alternative method
+                    try {
+                        localSession.FindById(gridControlId).modifyCell(fieldRowIndex, "HIGH", valueTo)
+                    } catch {
+                        LogMessage(LOG_ERROR, "Could not set HIGH value: ")
+                        return false
+                    }
+                }
+            }
+
+            LogMessage(LOG_INFO, "Set field '" fieldName "' with option '" selectOption "', value from '" valueFrom "'" (valueTo != "" ? " to '" valueTo "'" : ""))
+            return true
+
+        } catch {
+            LogMessage(LOG_ERROR, "Error setting values for field '" fieldName "': ")
+            return false
+        }
+
+    } catch {
+        LogMessage(LOG_ERROR, "Error in SetFieldValue: ")
+        return false
+    }
+}
+; Function to handle the grid-based option selection popup
+ControlSelectOptionPopup(option, localSession := SapSession) {
+    
+
+    if (!IsSet(localSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for option popup control")
+        return false
+    }
+
+    try {
+        ; Check if popup exists
+        popup := localSession.FindById("wnd[1]")
+
+        ; Access the grid control
+        optionGrid := localSession.FindById("wnd[1]/usr/cntlGRID/shellcont/shell")
+
+        ; Map option codes to their SAP icons
+        iconMap := Map(
+            "BT", "@26\Q@",    ; Row 0: Selektieren: Interv. einschl.
+            "CP", "@28\Q@",    ; Row 1: Selektieren: Muster einschl.
+            "NP", "@29\Q@",    ; Row 2: Selektieren: Muster ausschl.
+            "EQ", "@20\Q@",    ; Row 3: Selektieren: Gleich
+            "NB", "@27\Q@",    ; Row 4: Selektieren: Interv. ausschl.
+            "NE", "@21\Q@",    ; Row 5: Selektieren: Ungleich
+            "GT", "@22\Q@",    ; Row 6: Selektieren: Größer
+            "LT", "@23\Q@",    ; Row 7: Selektieren: Kleiner
+            "GE", "@24\Q@",    ; Row 8: Selektieren: Größer gleich
+            "LE", "@25\Q@",    ; Row 9: Selektieren: Kleiner gleich
+            "XB", "@2G\Q@",    ; Row 10: Nicht selekt.: Interv einschl.
+            "XP", "@2I\Q@",    ; Row 11: Nicht selekt.: Muster einschl.
+            "XM", "@2J\Q@",    ; Row 12: Nicht selekt.: Muster ausschl.
+            "EX", "@2A\Q@",    ; Row 13: Nicht selektieren: Gleich
+            "XI", "@2H\Q@",    ; Row 14: Nicht selekt.: Interv ausschl.
+            "XN", "@2B\Q@",    ; Row 15: Nicht selektieren: Ungleich
+            "XG", "@2C\Q@",    ; Row 16: Nicht selektieren: Größer
+            "XL", "@2D\Q@",    ; Row 17: Nicht selektieren: Kleiner
+            "XE", "@2E\Q@",    ; Row 18: Nicht selekt.: Größer gleich
+            "XF", "@2F\Q@"     ; Row 19: Nicht selekt.: Kleiner gleich
+        )
+
+        ; Check if we have a mapping for this option
+        if (!iconMap.Has(option)) {
+            LogMessage(LOG_ERROR, "Unknown option code: " option)
+            return false
+        }
+
+        targetIcon := iconMap[option]
+        rowCount := optionGrid.RowCount
+
+        ; Find the row with matching icon
+        Loop rowCount {
+            rowIdx := A_Index - 1
+
+            iconValue := optionGrid.GetCellValue(rowIdx, "ICON")
+
+            if (iconValue = targetIcon) {
+                ; Select the row
+                optionGrid.SelectedRows := rowIdx
+                Sleep SleepTimeShort
+                ; Double-click to confirm selection
+                localSession.FindById("wnd[1]").SendVKey(0)  ; F2 or double-click
+
+
+                LogMessage(LOG_INFO, "Selected option '" option "' (icon: " targetIcon ") at row " rowIdx)
+                return true
+            }
+        }
+
+        LogMessage(LOG_ERROR, "Option '" option "' with icon '" targetIcon "' not found")
+        return false
+
+    } catch {
+        LogMessage(LOG_ERROR, "Error in ControlSelectOptionPopup: ")
+        return false
+    }
+}
+
+; Function to execute the selection and display results
+ExecuteSelection(maxRows := 500, localSession := SapSession) {
+
+    if (!IsSet(localSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for executing selection")
+        return false
+    }
+
+    try {
+        ; Set maximum number of rows if needed
+        try {
+            maxRowsField := localSession.FindById("wnd[0]/usr/txtMAXSEL")
+            maxRowsField.Text := maxRows
+            LogMessage(LOG_INFO, "Set maximum rows to: " maxRows)
+        } catch {
+            LogMessage(LOG_DEBUG, "Could not set max rows field")
+        }
+
+        ; Execute the selection (F8)
+        localSession.FindById("wnd[0]").SendVKey(8)
+        Sleep SleepTimeLong
+
+        LogMessage(LOG_INFO, "Selection executed")
+        return true
+
+    } catch {
+        LogMessage(LOG_ERROR, "Error executing selection: ")
+        return false
+    }
+}
+
+; Function to switch to technical field names view
+SetTechnicalView(enable := true , localSession := SapSession) {
+
+    if (!IsSet(localSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for technical view")
+        return false
+    }
+
+    try {
+        if (enable) {
+            ExecuteSapCommand(localSession,"TECH_NAMES")
+        } else {
+            ExecuteSapCommand(localSession,"TECH_NAMES_OFF")
+        }
+
+        Sleep SleepTimeMedium
+        LogMessage(LOG_INFO, "Technical view " (enable ? "enabled" : "disabled"))
+        return true
+
+    } catch {
+        LogMessage(LOG_ERROR, "Error setting technical view: ")
+        return false
+    }
+}
+
+; Function to select specific fields by providing a list
+SelectFields(fieldList, localSession := SapSession) {
+
+    if (!IsSet(localSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for selecting fields")
+        return false
+    }
+
+    try {
+        ; First unmark all fields
+        UnmarkAll()
+        Sleep SleepTimeShort
+
+        ; Mark each field in the list
+        successCount := 0
+        for fieldName in fieldList {
+            if (MarkField(fieldName, true)) {
+                successCount++
+            }
+        }
+
+        LogMessage(LOG_INFO, "Selected " successCount " out of " fieldList.Length " fields")
+        return successCount > 0
+
+    } catch {
+        LogMessage(LOG_ERROR, "Error selecting fields: ")
+        return false
+    }
+}
+
+; Function to add a new selection criterion
+AddSelectionCriterion(fieldName, valueFrom, valueTo := "", selectOption := "EQ", localSession := SapSession) {
+
+    if (!IsSet(localSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for adding selection criterion")
+        return false
+    }
+
+    try {
+        ; Navigate to the selection criteria section
+        ; In SE16N, you typically need to be in the selection screen
+
+        ; Add the field to selection if not already there
+        if (!MarkField(fieldName, true)) {
+            LogMessage(LOG_ERROR, "Could not add field '" fieldName "' to selection")
+            return false
+        }
+
+        ; Set the values
+        return SetFieldValue(fieldName, valueFrom, valueTo, selectOption)
+
+    } catch {
+        LogMessage(LOG_ERROR, "Error adding selection criterion: ")
+        return false
+    }
+}
+
+; Function to clear all selection values
+ClearAllSelections(localSession := SapSession) {
+
+
+    if (!IsSet(localSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for clearing selections")
+        return false
+    }
+
+    try {
+        ; Execute the clear all command
+        ExecuteSapCommand(localSession,"DELALL")
+        Sleep SleepTimeMedium
+
+        LogMessage(LOG_INFO, "All selection values cleared")
+        return true
+
+    } catch {
+        LogMessage(LOG_ERROR, "Error clearing selections: ")
+        return false
+    }
+}
+
+; Function to export results to file
+ExportResults(filePath := "", format := "XLSX", localSession := SapSession) {
+    
+
+    if (!IsSet(localSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for exporting results")
+        return false
+    }
+
+    try {
+        ; Navigate to export menu
+        ; System -> List -> Save -> Local File
+
+        ; Open system menu
+        localSession.FindById("wnd[0]/mbar/menu[4]").Select()
+        Sleep SleepTimeShort
+
+        ; Navigate to List
+        localSession.FindById("wnd[0]/mbar/menu[4]/menu[5]").Select()
+        Sleep SleepTimeShort
+
+        ; Navigate to Save
+        localSession.FindById("wnd[0]/mbar/menu[4]/menu[5]/menu[2]").Select()
+        Sleep SleepTimeShort
+
+        ; Select Local File
+        localSession.FindById("wnd[0]/mbar/menu[4]/menu[5]/menu[2]/menu[2]").Select()
+        Sleep SleepTimeMedium
+
+        ; Handle file format selection popup
+        try {
+            ; Select format based on parameter
+            formatMap := Map(
+                "XLSX", 0,  ; Excel
+                "TXT", 1,   ; Text
+                "CSV", 2,   ; CSV
+                "HTML", 3   ; HTML
+            )
+
+            if (formatMap.Has(format)) {
+                radioButton := localSession.FindById("wnd[1]/usr/subSUBSCREEN_STEPLOOP:SAPLSPO5:0150/sub:SAPLSPO5:0150/radSPOPLI-SELFLAG[" formatMap[format] ",0]")
+                radioButton.Select()
+            }
+
+            ; Confirm format selection
+            localSession.FindById("wnd[1]/tbar[0]/btn[0]").Press()
+            Sleep SleepTimeMedium
+
+        } catch {
+            LogMessage(LOG_WARNING, "Could not select export format")
+        }
+
+        ; Handle file save dialog
+        if (filePath != "") {
+            try {
+                filePathField := localSession.FindById("wnd[1]/usr/ctxtDY_PATH")
+                fileNameField := localSession.FindById("wnd[1]/usr/ctxtDY_FILENAME")
+
+                ; Split path and filename
+                SplitPath(filePath, &fileName, &dirPath)
+
+                filePathField.Text := dirPath
+                fileNameField.Text := fileName
+
+                ; Confirm save
+                localSession.FindById("wnd[1]/tbar[0]/btn[11]").Press()
+
+                LogMessage(LOG_INFO, "Results exported to: " filePath)
+                return true
+
+            } catch {
+                LogMessage(LOG_ERROR, "Error saving export file: ")
+                return false
+            }
+        }
+
+    } catch {
+        LogMessage(LOG_ERROR, "Error exporting results: ")
+        return false
+    }
+}
+
+; Function to get the current table name
+GetCurrentTable(localSession := SapSession) {
+    
+
+    if (!IsSet(localSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available")
+        return ""
+    }
+
+    try {
+        ; The table name is usually in a field at the top of SE16N
+        tableField := localSession.FindById("wnd[0]/usr/ctxtGD-TAB")
+        return tableField.Text
+
+    } catch {
+        LogMessage(LOG_ERROR, "Error getting current table: ")
+        return ""
+    }
+}
+
+; Function to set a new table
+SetTable(tableName, localSession := SapSession) {
+    
+
+    if (!IsSet(localSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available")
+        return false
+    }
+
+    try {
+        ; Set the table name
+        tableField := localSession.FindById("wnd[0]/usr/ctxtGD-TAB")
+        tableField.Text := tableName
+
+        ; Press Enter to load the table
+        localSession.FindById("wnd[0]").SendVKey(0)
+        Sleep SleepTimeLong
+
+        LogMessage(LOG_INFO, "Table set to: " tableName)
+        return true
+
+    } catch {
+        LogMessage(LOG_ERROR, "Error setting table: ")
+        return false
+    }
+}
+
+; Function to save current selection as variant
+SaveVariant(variantName, description := "", localSession := SapSession) {
+
+    if (!IsSet(localSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for saving variant")
+        return false
+    }
+
+    try {
+        ; Navigate to variant save
+        ; Goto -> Variants -> Save
+        ExecuteSapCommand(localSession,"VARI")
+        Sleep SleepTimeMedium
+
+        ; Fill variant details in popup
+        try {
+            ; Variant name
+            varNameField := localSession.FindById("wnd[1]/usr/ctxtRS38L-VARIANT")
+            varNameField.Text := variantName
+
+            ; Description if provided
+            if (description != "") {
+                descField := localSession.FindById("wnd[1]/usr/txtRS38L-VARIANT_TEXT")
+                descField.Text := description
+            }
+
+            ; Save the variant
+            localSession.FindById("wnd[1]/tbar[0]/btn[0]").Press()
+            Sleep SleepTimeMedium
+
+            LogMessage(LOG_INFO, "Variant '" variantName "' saved successfully")
+            return true
+
+        } catch {
+            LogMessage(LOG_ERROR, "Error filling variant details: ")
+            return false
+        }
+
+    } catch {
+        LogMessage(LOG_ERROR, "Error saving variant: ")
+        return false
+    }
+}

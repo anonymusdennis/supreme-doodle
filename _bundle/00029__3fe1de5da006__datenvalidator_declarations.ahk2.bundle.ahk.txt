@@ -1,0 +1,92 @@
+;; @bundle-id: 3fe1de5da006
+;; @source-rel: datenvalidator/declarations.ahk2
+;; @source-sha1: 4747409aa7a53a9418475ae66caa2252f3aeff40
+;; @note: Edit content below. Keep header lines starting with ';;' intact.
+;; -------------------------
+#Requires AutoHotkey v2.0
+#Include "../ahk2_sap_wrapper/src/SapWrapper.ahk"
+
+; ==================== CONSTANTS ====================
+; Sleep time constants
+global SleepTimeShort := 20
+global SleepTimeMedium := 50
+global SleepTimeLong := 200
+
+; Logging constants
+global LOG_INFO := "INFO"
+global LOG_WARNING := "WARNING"
+global LOG_ERROR := "ERROR"
+global LOG_DEBUG := "DEBUG"
+; ==================== GLOBAL VARIABLES ====================
+global SapGui := ""
+global SapSession := ""
+global SapApp := ""
+global ExcelApp := ""
+global ExcelWorkbook := ""
+global ExcelWorksheet := ""
+global ExcelFilePath := A_ScriptDir "\Lieferanten.xlsx"
+global ExcelIsOpen := false
+global LogFile := A_ScriptDir "\logs\SAPAutomation_" FormatTime(, "yyyy-MM-dd") ".log"
+global ErrorLogSheet := 5  ; Sheet number for error logging
+global Error_while_running := false  ; Track if any error occurred during processing
+global ErrorLog := LogFile
+global SuccessLog := LogFile
+; ==================== STRUCTURE DEFINITIONS ====================
+; Structure definition for Sheet 1 (Central Data)
+global Row_structured_empty := {
+    ANREDE: "",
+    ANREDETEXT: "",
+    NAME: "",
+    NAME2: "",
+    SUCHBEGRIFF1: "",
+    SUCHBEGRIFF2: "",
+    STRASSE: "",
+    HAUSNUMMER: "",
+    STRASSE2: "",
+    STRASSE3: "",
+    STRASSE4: "",
+    PLZ: "",
+    ORT: "",
+    ORTSTEIL: "",
+    LAND: "",
+    BUNDESLAND: "",
+    ZEITZONE: "",
+    POSTFACH: "",
+    FIRMEN_PLZ: "",
+    POSTFACH_PLZ: "",
+    SPRACHE: "",
+    TELEFON: "",
+    DURCHWAHL: "",
+    MOBILTELEFON: "",
+    FAX: "",
+    GEBAEUDE: "",
+    RAUM: "",
+    STOCKWERK: ""
+}
+
+; Structure definition for Sheet 2 (KREDDATA0002 - Vendor/Tax Data)
+global KredData_structured_empty := {
+    STEUERNUMMER: "",
+    STEUERNUMMER1: "",
+    STEUERNUMMER3: "",
+    STEUERNUMMER4: "",
+    STEUERNUMMER5: "",
+    UST_ID_NR: "",
+    LOKATIONSNR1: "",
+    LOKATIONSNR2: "",
+    PRUEFZIFFER: "",
+    DUNS_NUMMER: "",
+    PARTNERGESELLSCHAFT: "",
+    BRANCHE: "",
+    SPERRFUNKTION: "",
+    SPERRGRUND: "",
+    ZUSTAENDIGES_FINANZAMT: ""
+}
+
+; Structure definition for Sheet 3 (Document Attachments)
+global DocData_structured_empty := {
+    DOKUMENTART: "",
+    PFAD: "",
+    KOMMENTAR: ""
+}
+global excelRow := 1

@@ -1,0 +1,348 @@
+{
+  "createdAt": "2026-02-20T12:30:59.359Z",
+  "root": "C:\\Users\\wn00224895\\OneDrive - WGS 365\\Desktop\\datenvalidierung",
+  "files": [
+    {
+      "id": "2617f641b289",
+      "rel": "codewrapper.ahk2",
+      "sha1": "34f4840c83ee3ae797976be0c4b41dc59dbf9157",
+      "bundleFile": "00001__2617f641b289__codewrapper.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "2a0bf772d5d1",
+      "rel": "declarations.ahk2",
+      "sha1": "4747409aa7a53a9418475ae66caa2252f3aeff40",
+      "bundleFile": "00002__2a0bf772d5d1__declarations.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "7166b5e2dd6e",
+      "rel": "disclaimer.ahk2",
+      "sha1": "52610a1a71d9ecef23239fd9f65297a3de45cebc",
+      "bundleFile": "00003__7166b5e2dd6e__disclaimer.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "73f2926f8850",
+      "rel": "DumpComObject.ahk2",
+      "sha1": "7ac1501ea3127533af09eac130ea17e4ecd40c6b",
+      "bundleFile": "00004__73f2926f8850__DumpComObject.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "489a403afd66",
+      "rel": "dump_active copy.ahk2",
+      "sha1": "1a88c9dca3686199e67285b4d33ff8ea065d0edd",
+      "bundleFile": "00005__489a403afd66__dump_active copy.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "542d94e10b87",
+      "rel": "dump_active.ahk2",
+      "sha1": "eea3c1a0d494ac0c1109f1facf871f11ed40c2d5",
+      "bundleFile": "00006__542d94e10b87__dump_active.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "a5b697504cd2",
+      "rel": "dump_popup.ahk2",
+      "sha1": "431fba2f5e8dd2945f6b66011415de5c03d9597b",
+      "bundleFile": "00007__a5b697504cd2__dump_popup.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "96a7783a2bd3",
+      "rel": "excel_functions.ahk2",
+      "sha1": "f5e21e23e32141fd71c0cb619172b8e81db0a610",
+      "bundleFile": "00008__96a7783a2bd3__excel_functions.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "53a396397753",
+      "rel": "JSON.ahk2",
+      "sha1": "6126a42860f00b844b5cb9ebab8a6f2571a2af98",
+      "bundleFile": "00009__53a396397753__JSON.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "59545c4ea0f7",
+      "rel": "main.ahk2",
+      "sha1": "775f819bee1c0a9aab7b085b8a5dd495ca4ad03c",
+      "bundleFile": "00010__59545c4ea0f7__main.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "45fa58d9a51a",
+      "rel": "patch_stash.ahk2",
+      "sha1": "e3bf12807ed2477c19c108cdf49a1f68617978dc",
+      "bundleFile": "00011__45fa58d9a51a__patch_stash.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "11f11e211936",
+      "rel": "sap_functions.ahk2",
+      "sha1": "14f1bf4dff849638349c85717c77cfd1e85889ba",
+      "bundleFile": "00012__11f11e211936__sap_functions.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "4d459477fb5c",
+      "rel": "sap_worker copy.ahk2",
+      "sha1": "faeafeb3a7c926efd216e80f660ed696d166fc37",
+      "bundleFile": "00013__4d459477fb5c__sap_worker copy.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "269f530b0324",
+      "rel": "sap_worker.ahk2",
+      "sha1": "52236b7675d5ae299724057f263235578e65448f",
+      "bundleFile": "00014__269f530b0324__sap_worker.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "f402a2ec2b81",
+      "rel": "se16_selectionscreen.ahk2",
+      "sha1": "a5321b012f533b4cea0b9a9082617970c5cc6191",
+      "bundleFile": "00015__f402a2ec2b81__se16_selectionscreen.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "8d987ca460c2",
+      "rel": "sessionfix.ahk2",
+      "sha1": "3acf6431fb8c9f82e025cb22fdb2e083685a047f",
+      "bundleFile": "00016__8d987ca460c2__sessionfix.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "7961f0fb4544",
+      "rel": "transaction_specific.ahk2",
+      "sha1": "39796b6c611d96a7db99220cc47c1a764999c343",
+      "bundleFile": "00017__7961f0fb4544__transaction_specific.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "dbf5307372c8",
+      "rel": "utility.ahk2",
+      "sha1": "215170fcb01720d4147b258d9ce479fbd7bda7bf",
+      "bundleFile": "00018__dbf5307372c8__utility.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "be4e848d9856",
+      "rel": ".gitcompile/codewrapper.ahk2",
+      "sha1": "34f4840c83ee3ae797976be0c4b41dc59dbf9157",
+      "bundleFile": "00019__be4e848d9856__.gitcompile_codewrapper.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "3f35b69d7c96",
+      "rel": ".gitcompile/declarations.ahk2",
+      "sha1": "4747409aa7a53a9418475ae66caa2252f3aeff40",
+      "bundleFile": "00020__3f35b69d7c96__.gitcompile_declarations.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "7580fab38fff",
+      "rel": ".gitcompile/excel_functions.ahk2",
+      "sha1": "f5e21e23e32141fd71c0cb619172b8e81db0a610",
+      "bundleFile": "00021__7580fab38fff__.gitcompile_excel_functions.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "6e133798b1a8",
+      "rel": ".gitcompile/JSON.ahk2",
+      "sha1": "6126a42860f00b844b5cb9ebab8a6f2571a2af98",
+      "bundleFile": "00022__6e133798b1a8__.gitcompile_JSON.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "ea6abf2b7c86",
+      "rel": ".gitcompile/sap_functions.ahk2",
+      "sha1": "14f1bf4dff849638349c85717c77cfd1e85889ba",
+      "bundleFile": "00023__ea6abf2b7c86__.gitcompile_sap_functions.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "c05b5e4482e5",
+      "rel": ".gitcompile/sap_worker.ahk2",
+      "sha1": "ef18f3cdd9113606ca4072e2c06692b37d1d8126",
+      "bundleFile": "00024__c05b5e4482e5__.gitcompile_sap_worker.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "ee0068d5cd49",
+      "rel": ".gitcompile/se16_selectionscreen.ahk2",
+      "sha1": "a5321b012f533b4cea0b9a9082617970c5cc6191",
+      "bundleFile": "00025__ee0068d5cd49__.gitcompile_se16_selectionscreen.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "f913d8b03ff5",
+      "rel": ".gitcompile/sessionfix.ahk2",
+      "sha1": "3acf6431fb8c9f82e025cb22fdb2e083685a047f",
+      "bundleFile": "00026__f913d8b03ff5__.gitcompile_sessionfix.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "e3ae2dedb580",
+      "rel": ".gitcompile/utility.ahk2",
+      "sha1": "215170fcb01720d4147b258d9ce479fbd7bda7bf",
+      "bundleFile": "00027__e3ae2dedb580__.gitcompile_utility.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "3268b31e18ad",
+      "rel": "datenvalidator/codewrapper.ahk2",
+      "sha1": "34f4840c83ee3ae797976be0c4b41dc59dbf9157",
+      "bundleFile": "00028__3268b31e18ad__datenvalidator_codewrapper.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "3fe1de5da006",
+      "rel": "datenvalidator/declarations.ahk2",
+      "sha1": "4747409aa7a53a9418475ae66caa2252f3aeff40",
+      "bundleFile": "00029__3fe1de5da006__datenvalidator_declarations.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "04399fd6fae2",
+      "rel": "datenvalidator/excel_functions.ahk2",
+      "sha1": "f5e21e23e32141fd71c0cb619172b8e81db0a610",
+      "bundleFile": "00030__04399fd6fae2__datenvalidator_excel_functions.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "08c10da7c14c",
+      "rel": "datenvalidator/JSON.ahk2",
+      "sha1": "0dfb8f07355b62558fdc0b3c280737bec5a72fae",
+      "bundleFile": "00031__08c10da7c14c__datenvalidator_JSON.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "4257ca10c55d",
+      "rel": "datenvalidator/sap_functions.ahk2",
+      "sha1": "14f1bf4dff849638349c85717c77cfd1e85889ba",
+      "bundleFile": "00032__4257ca10c55d__datenvalidator_sap_functions.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "f01f6c8f1fe4",
+      "rel": "datenvalidator/sap_worker.ahk2",
+      "sha1": "6f1ffdd1e333fbb6f2ab709fb9c18b3ad818e659",
+      "bundleFile": "00033__f01f6c8f1fe4__datenvalidator_sap_worker.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "9b6eeda74b3e",
+      "rel": "datenvalidator/se16_selectionscreen.ahk2",
+      "sha1": "a5321b012f533b4cea0b9a9082617970c5cc6191",
+      "bundleFile": "00034__9b6eeda74b3e__datenvalidator_se16_selectionscreen.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "12e55e10e5e9",
+      "rel": "datenvalidator/sessionfix.ahk2",
+      "sha1": "3acf6431fb8c9f82e025cb22fdb2e083685a047f",
+      "bundleFile": "00035__12e55e10e5e9__datenvalidator_sessionfix.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "9b7a22036a2d",
+      "rel": "datenvalidator/utility.ahk2",
+      "sha1": "215170fcb01720d4147b258d9ce479fbd7bda7bf",
+      "bundleFile": "00036__9b7a22036a2d__datenvalidator_utility.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "60b23fd59e87",
+      "rel": "ahk_sap_api/examples/demo_rot_attach.ahk2",
+      "sha1": "33f385c84db15e84b7fe50f2aeec5c5e7cd8faa2",
+      "bundleFile": "00037__60b23fd59e87__ahk_sap_api_examples_demo_rot_attach.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "569aaa132508",
+      "rel": "old/ticketerstellen.ahk2",
+      "sha1": "c5db0a1749bf7c5208e4595e67bb1203bc8c69b6",
+      "bundleFile": "00038__569aaa132508__old_ticketerstellen.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "cc2f006eb947",
+      "rel": "old/datenvalidakkktor - Kopie/codewrapper.ahk2",
+      "sha1": "34f4840c83ee3ae797976be0c4b41dc59dbf9157",
+      "bundleFile": "00039__cc2f006eb947__old_datenvalidakkktor - Kopie_codewrapper.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "a4b340abc1bc",
+      "rel": "old/datenvalidakkktor - Kopie/declarations.ahk2",
+      "sha1": "4747409aa7a53a9418475ae66caa2252f3aeff40",
+      "bundleFile": "00040__a4b340abc1bc__old_datenvalidakkktor - Kopie_declarations.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "f349d329c4ec",
+      "rel": "old/datenvalidakkktor - Kopie/excel_functions.ahk2",
+      "sha1": "f5e21e23e32141fd71c0cb619172b8e81db0a610",
+      "bundleFile": "00041__f349d329c4ec__old_datenvalidakkktor - Kopie_excel_functions.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "a131d9e2f99a",
+      "rel": "old/datenvalidakkktor - Kopie/JSON.ahk2",
+      "sha1": "6126a42860f00b844b5cb9ebab8a6f2571a2af98",
+      "bundleFile": "00042__a131d9e2f99a__old_datenvalidakkktor - Kopie_JSON.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "b2ac846bbd21",
+      "rel": "old/datenvalidakkktor - Kopie/sap_functions.ahk2",
+      "sha1": "14f1bf4dff849638349c85717c77cfd1e85889ba",
+      "bundleFile": "00043__b2ac846bbd21__old_datenvalidakkktor - Kopie_sap_functions.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "e5c195f0ca11",
+      "rel": "old/datenvalidakkktor - Kopie/sap_worker.ahk2",
+      "sha1": "728d851a3f61ad1f8640eb1a8459fe8fa0aa64cc",
+      "bundleFile": "00044__e5c195f0ca11__old_datenvalidakkktor - Kopie_sap_worker.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "26f57f43f03e",
+      "rel": "old/datenvalidakkktor - Kopie/se16_selectionscreen.ahk2",
+      "sha1": "a5321b012f533b4cea0b9a9082617970c5cc6191",
+      "bundleFile": "00045__26f57f43f03e__old_datenvalidakkktor - Kopie_se16_selectionscreen.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "4bbcbcd84b2c",
+      "rel": "old/datenvalidakkktor - Kopie/sessionfix.ahk2",
+      "sha1": "3acf6431fb8c9f82e025cb22fdb2e083685a047f",
+      "bundleFile": "00046__4bbcbcd84b2c__old_datenvalidakkktor - Kopie_sessionfix.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "7092775276cd",
+      "rel": "old/datenvalidakkktor - Kopie/utility.ahk2",
+      "sha1": "215170fcb01720d4147b258d9ce479fbd7bda7bf",
+      "bundleFile": "00047__7092775276cd__old_datenvalidakkktor - Kopie_utility.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "c3db4dff4b26",
+      "rel": "old/ref/oldclass.ahk2",
+      "sha1": "177f75981e9040d7f57cb966fcc347e6538b58cf",
+      "bundleFile": "00048__c3db4dff4b26__old_ref_oldclass.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "918ae10b44dc",
+      "rel": "old/datenvalidakkktor/codewrapper.ahk2",
+      "sha1": "34f4840c83ee3ae797976be0c4b41dc59dbf9157",
+      "bundleFile": "00049__918ae10b44dc__old_datenvalidakkktor_codewrapper.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "4e4e1058e9b4",
+      "rel": "old/datenvalidakkktor/declarations.ahk2",
+      "sha1": "4747409aa7a53a9418475ae66caa2252f3aeff40",
+      "bundleFile": "00050__4e4e1058e9b4__old_datenvalidakkktor_declarations.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "5519891c32b2",
+      "rel": "old/datenvalidakkktor/excel_functions.ahk2",
+      "sha1": "f5e21e23e32141fd71c0cb619172b8e81db0a610",
+      "bundleFile": "00051__5519891c32b2__old_datenvalidakkktor_excel_functions.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "747a7e2182ed",
+      "rel": "old/datenvalidakkktor/JSON.ahk2",
+      "sha1": "6126a42860f00b844b5cb9ebab8a6f2571a2af98",
+      "bundleFile": "00052__747a7e2182ed__old_datenvalidakkktor_JSON.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "65ec5746c11f",
+      "rel": "old/datenvalidakkktor/sap_functions.ahk2",
+      "sha1": "14f1bf4dff849638349c85717c77cfd1e85889ba",
+      "bundleFile": "00053__65ec5746c11f__old_datenvalidakkktor_sap_functions.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "c500849139b0",
+      "rel": "old/datenvalidakkktor/sap_worker.ahk2",
+      "sha1": "728d851a3f61ad1f8640eb1a8459fe8fa0aa64cc",
+      "bundleFile": "00054__c500849139b0__old_datenvalidakkktor_sap_worker.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "ec371562bdac",
+      "rel": "old/datenvalidakkktor/se16_selectionscreen.ahk2",
+      "sha1": "a5321b012f533b4cea0b9a9082617970c5cc6191",
+      "bundleFile": "00055__ec371562bdac__old_datenvalidakkktor_se16_selectionscreen.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "2c866b3a579a",
+      "rel": "old/datenvalidakkktor/sessionfix.ahk2",
+      "sha1": "3acf6431fb8c9f82e025cb22fdb2e083685a047f",
+      "bundleFile": "00056__2c866b3a579a__old_datenvalidakkktor_sessionfix.ahk2.bundle.ahk.txt"
+    },
+    {
+      "id": "c11e59f99b5d",
+      "rel": "old/datenvalidakkktor/utility.ahk2",
+      "sha1": "215170fcb01720d4147b258d9ce479fbd7bda7bf",
+      "bundleFile": "00057__c11e59f99b5d__old_datenvalidakkktor_utility.ahk2.bundle.ahk.txt"
+    }
+  ]
+}

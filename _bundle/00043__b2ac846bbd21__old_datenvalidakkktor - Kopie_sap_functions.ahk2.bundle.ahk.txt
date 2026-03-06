@@ -1,0 +1,1634 @@
+;; @bundle-id: b2ac846bbd21
+;; @source-rel: old/datenvalidakkktor - Kopie/sap_functions.ahk2
+;; @source-sha1: 14f1bf4dff849638349c85717c77cfd1e85889ba
+;; @note: Edit content below. Keep header lines starting with ';;' intact.
+;; -------------------------
+#Requires AutoHotkey v2.0
+
+; ==================== SAP FUNCTIONS ====================
+WaitForSAPReady(session) {
+    while session.Busy {
+        Sleep(50)  ; Wait 50ms before checking again
+    }
+}
+ConnectSAP() {
+    try {
+        WinWaitActive("ahk_exe" "saplogon.exe")
+        SapGuiAuto := ComObjGet("SAPGUI")
+        appCom := SapGuiAuto.GetScriptingEngine
+        policy := SapHookPolicy()
+        global SapApp := GuiApplication(appCom, policy)
+        global SapGui := SapApp.Children[0]
+        global SapSession := SapGui.Children[0]
+        LogMessage(LOG_INFO, "Successfully connected to SAP")
+        return true
+    } catch {
+        LogMessage(LOG_ERROR, "Failed to connect to SAP: ")
+        return false
+    }
+}
+
+ExecuteSapCommand(session, command, pressEnterAgain := " ") {
+    try {
+        session.FindById("wnd[0]/tbar[0]/okcd").Text := command
+        Sleep SleepTimeMedium
+        session.FindById("wnd[0]").SendVKey(0)
+
+        if (pressEnterAgain = "X") {
+            Sleep SleepTimeMedium
+            session.FindById("wnd[0]").SendVKey(0)
+        }
+        return true
+    } catch {
+        LogMessage(LOG_ERROR, "Error executing SAP command '" command "': ")
+        return false
+    }
+}
+
+SetSapFieldDirect(fullPath, value,session := SapSession) {
+    try {
+        field := session.FindById(fullPath)
+        fieldType := field.Type
+
+        if (fieldType = "GuiComboBox") {
+            field.Key := value
+        } else if (fieldType = "GuiTextField" || fieldType = "GuiCTextField") {
+            field.Text := value
+        } else if (fieldType = "GuiCheckBox") {
+            if (value = true || value = 1 || value = "X")
+                field.Selected := true
+            else
+                field.Selected := false
+        } else {
+            field.Text := value
+        }
+        return true
+    } catch {
+        LogMessage(LOG_ERROR, "Error setting field '" fullPath "' to '" value "': ")
+        return false
+    }
+}
+
+SelectTreeNode(nodeName, treeControlId := "wnd[0]/usr/cntlCANVAS_TREE/shellcont/shell",local_session := SapSession) {
+    if (!IsSet(local_session)) {
+        LogMessage(LOG_ERROR, "SAP session not available for tree node selection")
+        return false
+    }
+
+    try {
+        treeControl := local_session.FindById(treeControlId)
+        treeControl.SelectedNode := nodeName
+        LogMessage(LOG_INFO, "Selected tree node: " nodeName)
+        return true
+    } catch {
+        LogMessage(LOG_ERROR, "Error selecting tree node " nodeName ": ")
+        return false
+    }
+}
+
+DoubleClickTreeNode(nodeName, treeControlId := "wnd[0]/usr/cntlCANVAS_TREE/shellcont/shell", local_session := SapSession) {
+    if (!IsSet(local_session)) {
+        LogMessage(LOG_ERROR, "SAP session not available for tree node double-click")
+        return false
+    }
+
+    try {
+        treeControl := local_session.FindById(treeControlId)
+        treeControl.DoubleClickNode(nodeName)
+        LogMessage(LOG_INFO, "Double-clicked tree node: " nodeName)
+        return true
+    } catch {
+        LogMessage(LOG_ERROR, "Error double-clicking tree node " nodeName ": ")
+        return false
+    }
+}
+
+CHECK_SCREENNAME(screenName, local_session := SapSession) {
+    if (!IsSet(local_session)) {
+        LogMessage(LOG_ERROR, "SAP session not available for screen check")
+        return false
+    }
+    
+    try {
+        statusBarText := local_session.FindById("wnd[0]/sbar").Text
+        titlebarText := local_session.FindById("wnd[0]/titl").Text
+
+        if (InStr(statusBarText, screenName) || InStr(titlebarText, screenName)) {
+            LogMessage(LOG_INFO, "Screen verified: " screenName)
+            return true
+        }
+        return false
+    } catch {
+        LogMessage(LOG_ERROR, "Error checking screen name: ")
+        return false
+    }
+}
+
+; Check and log SAP messages (statusbar or popup)
+CheckAndLogSapMessages(context := "", local_session := SapSession) {
+    if (!IsSet(local_session)) {
+        return ""
+    }
+    
+    allMessages := ""
+    
+    ; Check for popup messages first
+    try {
+        popup := local_session.FindById("wnd[1]")
+        popupTitle := ""
+        popupMessage := ""
+        
+        try {
+            popupTitle := popup.Text
+        } catch {
+            popupTitle := "[Unknown Popup]"
+        }
+        
+        ; Extract message text
+        try {
+            messagePaths := [
+                "wnd[1]/usr/txtMESSTXT1",
+                "wnd[1]/usr/txtMESSAGE",
+                "wnd[1]/usr/lbl[1]",
+                "wnd[1]/usr/lbl[2]"
+            ]
+            
+            for path in messagePaths {
+                try {
+                    msgField := local_session.FindById(path)
+                    text := msgField.Text
+                    if (text != "" && !InStr(text, "___")) {
+                        popupMessage .= text . " "
+                    }
+                } catch {
+                    ; Continue
+                }
+            }
+            
+            ; If no message found, scan the popup
+            if (popupMessage = "") {
+                userArea := popup.FindById("usr")
+                popupMessage := ScanPopupForText(userArea)
+            }
+        } catch {
+            ; Could not extract message
+        }
+        
+        if (popupMessage != "") {
+            LogMessage(LOG_INFO, "POPUP MESSAGE" (context ? " (" context ")" : "") ": " popupTitle " - " popupMessage)
+            allMessages .= "POPUP: " popupMessage . "`n"
+            
+            ; Try to close the popup
+            try {
+                popup.FindById("tbar[0]/btn[0]").Press()
+            } catch {
+                try {
+                    popup.SendVKey(0)
+                } catch {
+                    ; Could not close
+                }
+            }
+        }
+    } catch {
+        ; No popup found
+    }
+    
+    ; Check statusbar
+    try {
+        statusBar := local_session.FindById("wnd[0]/sbar")
+        statusText := statusBar.Text
+        statusMessageType := statusBar.MessageType
+        
+        if (statusText != "") {
+            messageSeverity := "INFO"
+            if (statusMessageType = "E") {
+                messageSeverity := "ERROR"
+            } else if (statusMessageType = "W") {
+                messageSeverity := "WARNING"
+            } else if (statusMessageType = "S") {
+                messageSeverity := "SUCCESS"
+            }
+            
+            LogMessage(LOG_INFO, "STATUSBAR " messageSeverity (context ? " (" context ")" : "") ": " statusText)
+            allMessages .= "STATUSBAR [" messageSeverity "]: " statusText . "`n"
+        }
+    } catch {
+        ; Could not check statusbar
+    }
+    
+    return Trim(allMessages)
+}
+
+; Helper function to scan popup for text
+ScanPopupForText(control) {
+    allText := ""
+
+    if (!IsObject(control)) {
+        return ""
+    }
+
+    try {
+        controlType := control.Type
+
+        if (controlType = "GuiTextField" || controlType = "GuiLabel" || controlType = "GuiTitlebar") {
+            try {
+                text := control.Text
+                if (text != "" && !InStr(text, "___")) {
+                    allText .= text . " "
+                }
+            } catch {
+                ; No text available
+            }
+        }
+
+        try {
+            children := control.Children
+            if (IsObject(children)) {
+                childCount := children.Count
+                Loop childCount {
+                    try {
+                        child := children.ElementAt(A_Index - 1)
+                        childText := ScanPopupForText(child)
+                        if (childText != "") {
+                            allText .= childText . " "
+                        }
+                    } catch {
+                        ; Skip this child
+                    }
+                }
+            }
+        } catch {
+            ; No children
+        }
+    } catch {
+        ; Skip this control
+    }
+
+    return Trim(allText)
+}
+; Add this function around line 850 (after other dump functions)
+DumpPopupFields(waitForPopup := true, maxWaitTime := 5000 , local_session := SapSession) {
+    if (!IsSet(local_session)) {
+        LogMessage(LOG_ERROR, "SAP session not available for popup field dump")
+        return false
+    }
+    
+    ; Generate output filename
+    outputFile := A_ScriptDir "\logs\PopupFieldDump_" FormatTime(, "yyyy-MM-dd_HH-mm-ss") ".txt"
+    
+    try {
+        ; Wait for popup if requested
+        if (waitForPopup) {
+            startTime := A_TickCount
+            popupFound := false
+            
+            while (A_TickCount - startTime < maxWaitTime) {
+                try {
+                    popup := local_session.FindById("wnd[1]")
+                    popupFound := true
+                    break
+                } catch {
+                    Sleep 100  ; Check every 100ms
+                }
+            }
+            
+            if (!popupFound) {
+                LogMessage(LOG_WARNING, "No popup appeared within " maxWaitTime "ms")
+                return false
+            }
+        } else {
+            ; Try to access popup directly
+            popup := local_session.FindById("wnd[1]")
+        }
+        
+        ; Clear/create the output file
+        try {
+            FileDelete(outputFile)
+        } catch {
+            ; File doesn't exist, that's fine
+        }
+        
+        ; Write header
+        FileAppend("=== SAP POPUP FIELD DUMP ===`n", outputFile)
+        FileAppend("Date: " FormatTime(, "yyyy-MM-dd HH:mm:ss") "`n", outputFile)
+        FileAppend("User: " A_UserName "`n", outputFile)
+        FileAppend("Generated by: anonymusdennis`n`n", outputFile)
+        
+        ; Get popup title
+        popupTitle := ""
+        try {
+            popupTitle := popup.Text
+            FileAppend("Popup Title: " popupTitle "`n", outputFile)
+        } catch {
+            FileAppend("Popup Title: [Could not retrieve]`n", outputFile)
+        }
+        
+        ; Get popup type
+        popupType := ""
+        try {
+            popupType := popup.Type
+            FileAppend("Popup Type: " popupType "`n", outputFile)
+        } catch {
+            FileAppend("Popup Type: [Could not retrieve]`n", outputFile)
+        }
+        
+        FileAppend("`n=== INTERACTIVE FIELDS ONLY ===`n", outputFile)
+        FileAppend("(Fields you can fill/interact with)`n`n", outputFile)
+        
+        ; Scan for interactive fields only
+        interactiveFields := []
+        ScanForInteractiveFields(popup, "wnd[1]", &interactiveFields)  ; Pass by reference
+        
+        ; Sort and write interactive fields
+        if (interactiveFields.Length > 0) {
+            for field in interactiveFields {
+                FileAppend(field "`n", outputFile)
+            }
+        } else {
+            FileAppend("[No interactive fields found]`n", outputFile)
+        }
+        
+        FileAppend("`n=== ALL CONTROLS (DETAILED) ===`n`n", outputFile)
+        
+        ; Do a complete scan
+        ScanPopupControl(popup, "wnd[1]", outputFile, 0)
+        
+        ; Log success
+        LogMessage(LOG_INFO, "Popup field dump created: " outputFile)
+        
+        ; Show notification with file location
+        TrayTip("Popup fields dumped!`nCheck: " outputFile, "Success", 0x1)
+        
+        ; Also create a simplified field list
+        CreateSimplifiedFieldList(outputFile)
+        
+        return true
+        
+    } catch {
+        LogMessage(LOG_ERROR, "Error dumping popup fields: ")
+        FileAppend("`nERROR: " "`n", outputFile)
+        return false
+    }
+}
+
+; Helper function to scan specifically for interactive fields
+ScanForInteractiveFields(control, path, &fieldArray) {  ; fieldArray is already a reference parameter
+    if (!IsObject(control)) {
+        return
+    }
+    
+    try {
+        ; Check if this is an interactive field
+        controlType := ""
+        try {
+            controlType := control.Type
+        } catch {
+            ; Type not available
+        }
+        
+        ; Interactive field types
+        interactiveTypes := ["GuiTextField", "GuiCTextField", "GuiPasswordField", 
+                           "GuiComboBox", "GuiCheckBox", "GuiRadioButton", "GuiButton"]
+        
+        isInteractive := false
+        for iType in interactiveTypes {
+            if (controlType = iType) {
+                isInteractive := true
+                break
+            }
+        }
+        
+        if (isInteractive) {
+            fieldInfo := "Path: " path "`n"
+            fieldInfo .= "Type: " controlType "`n"
+            
+            ; Get additional properties
+            try {
+                fieldInfo .= "Name: " control.Name "`n"
+            } catch {
+                ; No name
+            }
+            
+            try {
+                if (controlType = "GuiTextField" || controlType = "GuiCTextField") {
+                    fieldInfo .= "Current Value: " control.Text "`n"
+                } else if (controlType = "GuiComboBox") {
+                    fieldInfo .= "Current Key: " control.Key "`n"
+                    fieldInfo .= "Current Text: " control.Text "`n"
+                }
+            } catch {
+                ; No value
+            }
+            
+            try {
+                fieldInfo .= "Changeable: " (control.Changeable ? "Yes" : "No") "`n"
+            } catch {
+                ; Property not available
+            }
+            
+            fieldInfo .= "---`n"
+            fieldArray.Push(fieldInfo)
+        }
+        
+        ; Scan children
+        try {
+            children := control.Children
+            if (IsObject(children)) {
+                childCount := children.Count
+                Loop childCount {
+                    try {
+                        child := children.ElementAt(A_Index - 1)
+                        childPath := path "/" child.Id
+                        ScanForInteractiveFields(child, childPath, &fieldArray)  ; Pass reference
+                    } catch {
+                        ; Skip this child
+                    }
+                }
+            }
+        } catch {
+            ; No children
+        }
+    } catch {
+        ; Skip this control
+    }
+}
+; Enhanced popup control scanner
+ScanPopupControl(control, id, outputFile, depth := 0) {
+    if (!IsObject(control)) {
+        return
+    }
+    
+    try {
+        ; Create indent
+        indent := ""
+        Loop depth {
+            indent .= "  "
+        }
+        
+        ; Get control type
+        controlType := "[Unknown]"
+        try {
+            controlType := control.Type
+        } catch {
+            ; Type not available
+        }
+        
+        ; Write control info
+        FileAppend(indent "ID: " id "`n", outputFile)
+        FileAppend(indent "Type: " controlType "`n", outputFile)
+        
+        ; Get all available properties based on type
+        if (InStr(controlType, "Field") || InStr(controlType, "Combo")) {
+            try {
+                FileAppend(indent "Text: " control.Text "`n", outputFile)
+            } catch {
+                ; Property not available
+            }
+            
+            try {
+                FileAppend(indent "Name: " control.Name "`n", outputFile)
+            } catch {
+                ; Property not available
+            }
+            
+            try {
+                FileAppend(indent "Tooltip: " control.Tooltip "`n", outputFile)
+            } catch {
+                ; Property not available
+            }
+            
+            try {
+                FileAppend(indent "MaxLength: " control.MaxLength "`n", outputFile)
+            } catch {
+                ; Property not available
+            }
+        }
+        
+        ; Check standard properties
+        try {
+            FileAppend(indent "Visible: " (control.Visible ? "Yes" : "No") "`n", outputFile)
+        } catch {
+            ; Property not available
+        }
+        
+        try {
+            FileAppend(indent "Changeable: " (control.Changeable ? "Yes" : "No") "`n", outputFile)
+        } catch {
+            ; Property not available
+        }
+        
+        FileAppend(indent "---`n", outputFile)
+        
+        ; Process children
+        try {
+            children := control.Children
+            if (IsObject(children)) {
+                childCount := children.Count
+                Loop childCount {
+                    try {
+                        child := children.ElementAt(A_Index - 1)
+                        childId := id "/" child.Id
+                        ScanPopupControl(child, childId, outputFile, depth + 1)
+                    } catch {
+                        ; Skip this child
+                    }
+                }
+            }
+        } catch {
+            ; No children
+        }
+    } catch {
+        FileAppend(indent "[Error scanning control]`n", outputFile)
+    }
+}
+; Create a simplified field list for easy reference
+CreateSimplifiedFieldList(dumpFile) {
+    simplifiedFile := StrReplace(dumpFile, ".txt", "_SIMPLE.txt")
+    
+    try {
+        FileAppend("=== SIMPLIFIED FIELD REFERENCE ===`n", simplifiedFile)
+        FileAppend("Generated: " FormatTime(, "yyyy-MM-dd HH:mm:ss") "`n", simplifiedFile)
+        FileAppend("Use these paths in SetSapFieldDirect()`n`n", simplifiedFile)
+        
+        ; Read the dump file and extract field paths
+        dumpContent := FileRead(dumpFile)
+        
+        ; Extract paths for common field types
+        Loop Parse, dumpContent, "`n" {
+            if (InStr(A_LoopField, "Path: wnd[1]/usr/")) {
+                nextLine := A_Index + 1
+                if (RegExMatch(dumpContent, "(?<=Type: )(GuiTextField|GuiCTextField|GuiComboBox)", &fieldType)) {
+                    FileAppend(A_LoopField "`n", simplifiedFile)
+                }
+            }
+        }
+        
+        LogMessage(LOG_INFO, "Simplified field list created: " simplifiedFile)
+    } catch {
+        LogMessage(LOG_WARNING, "Could not create simplified list: ")
+    }
+}
+; Debug function to analyze and extract information about SAP grid controls
+DebugSapGridControl(rowIndex, vendorName := "", local_session := SapSession) {
+    global  ExcelWorksheet, ExcelWorkbook, ExcelIsOpen
+    
+    if (!IsSet(local_session)) {
+        LogMessage(LOG_ERROR, "SAP session not available for grid debugging")
+        return false
+    }
+    
+    ; Create a debug log file
+    debugLogFile := A_ScriptDir "\logs\sap_grid_debug_" FormatTime(, "yyyyMMdd_HHmmss") ".txt"
+    
+    ; Function to append to debug log
+    AppendDebugLog(text) {
+        try {
+            FileAppend(text . "`n", debugLogFile)
+            LogMessage(LOG_DEBUG, text)
+        } catch {
+            LogMessage(LOG_ERROR, "Error writing to debug log: ")
+        }
+    }
+    
+    ; Function to safely try methods and properties
+    TryMethod(control, methodName, params := "") {
+        result := ""
+        try {
+            if (params = "") {
+                result := control.%methodName%()
+            } else {
+                result := control.%methodName%(params*)
+            }
+            return Map("success", true, "value", result)
+        } catch {
+            return Map("success", false, "error", "")
+        }
+    }
+    
+    TryProperty(control, propName) {
+        result := ""
+        try {
+            result := control.%propName%
+            return Map("success", true, "value", result)
+        } catch {
+            return Map("success", false, "error", "")
+        }
+    }
+    
+    try {
+        ; Start debug log
+        AppendDebugLog("=== SAP GRID CONTROL DEBUG LOG ===")
+        AppendDebugLog("Date: " FormatTime(, "yyyy-MM-dd HH:mm:ss"))
+        AppendDebugLog("Row Index: " rowIndex)
+        AppendDebugLog("Vendor Name: " vendorName)
+        AppendDebugLog("")
+        
+        ; Check for popup
+        popup := ""
+        try {
+            popup := local_session.FindById("wnd[1]")
+            popupTitle := popup.Text
+            AppendDebugLog("Found popup with title: " popupTitle)
+        } catch {
+            AppendDebugLog("No popup found: ")
+            return false
+        }
+        
+        ; Try to find grid control with multiple possible paths
+        gridPaths := [
+            "wnd[1]/usr/cntlGRID1/shellcont/shell",
+            "wnd[1]/usr/cntlGRID1",
+            "wnd[1]/usr/tbl*",
+            "wnd[1]/usr/shell*",
+            "wnd[1]/usr/*Grid*",
+            "wnd[1]/usr/*Table*"
+        ]
+        
+        gridControl := ""
+        foundPath := ""
+        
+        ; First try exact paths
+        for path in gridPaths {
+            if (InStr(path, "*")) {
+                continue  ; Skip wildcard paths for now
+            }
+            
+            try {
+                gridControl := local_session.FindById(path)
+                foundPath := path
+                AppendDebugLog("Found grid control at path: " path)
+                break
+            } catch {
+                AppendDebugLog("No grid at path: " path)
+            }
+        }
+        
+        ; If not found, try wildcard matching
+        if (!IsSet(gridControl) || !IsObject(gridControl)) {
+            AppendDebugLog("Trying wildcard paths...")
+            
+            ; Get all controls in usr area
+            try {
+                usrArea := local_session.FindById("wnd[1]/usr")
+                children := usrArea.Children
+                
+                if (IsObject(children)) {
+                    AppendDebugLog("Found " children.Count " children in usr area")
+                    
+                    Loop children.Count {
+                        i := A_Index - 1
+                        child := children.ElementAt(i)
+                        childType := child.Type
+                        childId := child.Id
+                        
+                        AppendDebugLog("Child " i ": Type=" childType ", ID=" childId)
+                        
+                        ; Look for likely grid controls
+                        if (InStr(childType, "Grid") || InStr(childType, "Table") || 
+                            InStr(childType, "Shell") || InStr(childType, "List")) {
+                            gridControl := child
+                            foundPath := childId
+                            AppendDebugLog("Found likely grid control: " childId)
+                            break
+                        }
+                    }
+                }
+            } catch {
+                AppendDebugLog("Error listing children: ")
+            }
+        }
+        
+        ; If still not found, give up
+        if (!IsSet(gridControl) || !IsObject(gridControl)) {
+            AppendDebugLog("Could not find any grid control in popup")
+            
+            ; Log all visible text as fallback
+            try {
+                usrArea := local_session.FindById("wnd[1]/usr")
+                AppendDebugLog("User area text: " usrArea.Text)
+            } catch {
+                AppendDebugLog("Could not get user area text")
+            }
+            
+            return false
+        }
+        
+        ; Log grid control details
+        AppendDebugLog("")
+        AppendDebugLog("=== GRID CONTROL DETAILS ===")
+        AppendDebugLog("Path: " foundPath)
+        
+        ; Try common properties
+        commonProps := ["Type", "ID", "Name", "Text", "ScreenLeft", "ScreenTop", "Width", "Height", 
+                       "ColumnCount", "RowCount", "VisibleRowCount", "FirstVisibleRow", "VisibleColCount"]
+        
+        for prop in commonProps {
+            result := TryProperty(gridControl, prop)
+            if (result["success"]) {
+                AppendDebugLog(prop ": " result["value"])
+            } else {
+                AppendDebugLog(prop ": <Not available> (" result["error"] ")")
+            }
+        }
+        
+        ; Try common methods
+        AppendDebugLog("")
+        AppendDebugLog("=== GRID METHODS ===")
+        commonMethods := ["GetColumnCount", "GetRowCount", "GetColumnNames", "GetColumnTitles", 
+                         "GetVisibleRows", "GetVisibleRowCount"]
+        
+        for method in commonMethods {
+            result := TryMethod(gridControl, method)
+            if (result["success"]) {
+                AppendDebugLog(method "(): " result["value"])
+                
+                ; For collection results, expand them
+                if (IsObject(result["value"])) {
+                    try {
+                        Loop result["value"].Count {
+                            i := A_Index - 1
+                            item := result["value"].Item(i)
+                            AppendDebugLog("  [" i "]: " item)
+                        }
+                    } catch {
+                        AppendDebugLog("  <Could not enumerate collection>")
+                    }
+                }
+            } else {
+                AppendDebugLog(method "(): <Not available> (" result["error"] ")")
+            }
+        }
+        
+        ; Try to get column information
+        AppendDebugLog("")
+        AppendDebugLog("=== COLUMN INFORMATION ===")
+        
+        columnCount := 0
+        result := TryProperty(gridControl, "ColumnCount")
+        if (result["success"]) {
+            columnCount := result["value"]
+        } else {
+            result := TryMethod(gridControl, "GetColumnCount")
+            if (result["success"]) {
+                columnCount := result["value"]
+            } else {
+                ; Guess column count (try up to 20)
+                Loop 20 {
+                    i := A_Index - 1
+                    colResult := TryMethod(gridControl, "GetColumnName", [i])
+                    if (colResult["success"] && colResult["value"] != "") {
+                        columnCount := i + 1
+                    }
+                }
+            }
+        }
+        
+        AppendDebugLog("Detected column count: " columnCount)
+        
+        ; Try different column access methods
+        Loop columnCount {
+            i := A_Index - 1
+            AppendDebugLog("Column " i ":")
+            
+            ; Try different methods to get column name/title
+            methods := ["GetColumnName", "GetColumnHeader", "GetColumnTitle", "ColumnTitle", "GetColumnTitleFromName"]
+            
+            for method in methods {
+                result := TryMethod(gridControl, method, [i])
+                if (result["success"]) {
+                    AppendDebugLog("  " method "(): " result["value"])
+                }
+            }
+        }
+        
+        ; Try to get row information
+        AppendDebugLog("")
+        AppendDebugLog("=== ROW INFORMATION ===")
+        
+        rowCount := 0
+        result := TryProperty(gridControl, "RowCount")
+        if (result["success"]) {
+            rowCount := result["value"]
+        } else {
+            result := TryMethod(gridControl, "GetRowCount")
+            if (result["success"]) {
+                rowCount := result["value"]
+            } else {
+                ; Default
+                rowCount := 10
+            }
+        }
+        
+        AppendDebugLog("Detected row count: " rowCount)
+        
+        ; Try to read first few rows with different methods
+        maxRowsToTest := (rowCount < 5) ? rowCount : 5
+        
+        Loop maxRowsToTest {
+            rowIdx := A_Index - 1
+            AppendDebugLog("Row " rowIdx ":")
+            
+            ; Try to select row first
+            try {
+                gridControl.SelectedRows := rowIdx
+                AppendDebugLog("  Selected row " rowIdx)
+            } catch {
+                AppendDebugLog("  Could not select row " rowIdx)
+            }
+            
+            ; Try different cell access methods for this row
+            Loop columnCount {
+                colIdx := A_Index - 1
+                AppendDebugLog("  Column " colIdx ":")
+                
+                ; Try different cell access methods
+                methods := ["GetCellValue", "GetCell", "getCellData", "getText"]
+                
+                for method in methods {
+                    result := TryMethod(gridControl, method, [rowIdx, colIdx])
+                    if (result["success"]) {
+                        AppendDebugLog("    " method "(): " result["value"])
+                    }
+                }
+                
+                ; Try other approaches
+                try {
+                    gridControl.setCurrentCell(rowIdx, colIdx)
+                    value := gridControl.currentCellValue
+                    AppendDebugLog("    currentCellValue: " value)
+                } catch {
+                    AppendDebugLog("    currentCellValue: <not available>")
+                }
+            }
+        }
+        
+        ; Add popup buttons information
+        AppendDebugLog("")
+        AppendDebugLog("=== POPUP BUTTONS ===")
+        
+        try {
+            toolbar := local_session.FindById("wnd[1]/tbar[0]")
+            buttons := toolbar.Children
+            
+            if (IsObject(buttons)) {
+                AppendDebugLog("Found " buttons.Count " buttons")
+                
+                Loop buttons.Count {
+                    i := A_Index - 1
+                    button := buttons.ElementAt(i)
+                    buttonType := button.Type
+                    buttonId := button.Id
+                    buttonText := ""
+                    
+                    try {
+                        buttonText := button.Text
+                    } catch {
+                        buttonText := "<No text>"
+                    }
+                    
+                    AppendDebugLog("Button " i ": Type=" buttonType ", ID=" buttonId ", Text=" buttonText)
+                }
+            }
+        } catch {
+            AppendDebugLog("Error listing buttons: ")
+        }
+        
+        ; Try a special screenshot approach by recording popup element positions
+        AppendDebugLog("")
+        AppendDebugLog("=== VISUAL LAYOUT ===")
+        
+        try {
+            winPos := Map()
+            winPos["left"] := popup.ScreenLeft
+            winPos["top"] := popup.ScreenTop
+            winPos["width"] := popup.Width
+            winPos["height"] := popup.Height
+            
+            AppendDebugLog("Popup position: Left=" winPos["left"] ", Top=" winPos["top"] ", Width=" winPos["width"] ", Height=" winPos["height"])
+            
+            ; Create a visual representation of elements
+            layoutGrid := []
+            maxRows := 25
+            maxCols := 80
+            
+            ; Initialize grid with spaces
+            Loop maxRows {
+                row := ""
+                Loop maxCols {
+                    row .= " "
+                }
+                layoutGrid.Push(row)
+            }
+            
+            ; Try to place grid control
+            try {
+                gridLeft := gridControl.ScreenLeft - winPos["left"]
+                gridTop := gridControl.ScreenTop - winPos["top"]
+                gridWidth := gridControl.Width
+                gridHeight := gridControl.Height
+                
+                gridRowStart := Floor(gridTop / 10)
+                gridColStart := Floor(gridLeft / 5)
+                gridRowEnd := Floor((gridTop + gridHeight) / 10)
+                gridColEnd := Floor((gridLeft + gridWidth) / 5)
+                
+                ; Draw grid borders
+                for col in Range(gridColStart, gridColEnd) {
+                    rowStr := layoutGrid[gridRowStart]
+                    rowStr := SubStr(rowStr, 1, col) . "-" . SubStr(rowStr, col + 2)
+                    layoutGrid[gridRowStart] := rowStr
+                    
+                    rowStr := layoutGrid[gridRowEnd]
+                    rowStr := SubStr(rowStr, 1, col) . "-" . SubStr(rowStr, col + 2)
+                    layoutGrid[gridRowEnd] := rowStr
+                }
+                
+                for row in Range(gridRowStart, gridRowEnd) {
+                    rowStr := layoutGrid[row]
+                    rowStr := SubStr(rowStr, 1, gridColStart) . "|" . SubStr(rowStr, gridColStart + 2)
+                    layoutGrid[row] := rowStr
+                    
+                    rowStr := layoutGrid[row]
+                    rowStr := SubStr(rowStr, 1, gridColEnd) . "|" . SubStr(rowStr, gridColEnd + 2)
+                    layoutGrid[row] := rowStr
+                }
+                
+                ; Mark grid control label
+                labelRow := gridRowStart - 1
+                if (labelRow > 0) {
+                    rowStr := layoutGrid[labelRow]
+                    label := "GRID"
+                    labelPos := gridColStart + Floor((gridColEnd - gridColStart - StrLen(label)) / 2)
+                    rowStr := SubStr(rowStr, 1, labelPos) . label . SubStr(rowStr, labelPos + StrLen(label) + 1)
+                    layoutGrid[labelRow] := rowStr
+                }
+            } catch {
+                AppendDebugLog("Error drawing grid: ")
+            }
+            
+            ; Output visual layout
+            AppendDebugLog("Visual Layout:")
+            for row in layoutGrid {
+                AppendDebugLog(row)
+            }
+        } catch {
+            AppendDebugLog("Error creating visual layout: ")
+        }
+        
+        ; Final summary and recommendations
+        AppendDebugLog("")
+        AppendDebugLog("=== SUMMARY AND RECOMMENDATIONS ===")
+        
+        ; Based on our findings, suggest the best approach
+        if (columnCount > 0 && rowCount > 0) {
+            AppendDebugLog("Grid control found with " columnCount " columns and " rowCount " rows.")
+            AppendDebugLog("Recommended approach:")
+            
+            bestMethod := ""
+            if (TryMethod(gridControl, "GetCellValue", [0, 0])["success"]) {
+                AppendDebugLog("Use GetCellValue(row, col) method")
+                bestMethod := "GetCellValue"
+            } else if (TryMethod(gridControl, "GetCell", [0, 0])["success"]) {
+                AppendDebugLog("Use GetCell(row, col).Text property")
+                bestMethod := "GetCell"
+            } else if (TryMethod(gridControl, "getCellData", [0, 0])["success"]) {
+                AppendDebugLog("Use getCellData(row, col) method")
+                bestMethod := "getCellData"
+            } else {
+                AppendDebugLog("Use setCurrentCell(row, col) and currentCellValue property")
+                bestMethod := "currentCellValue"
+            }
+            
+            ; Generate sample code for reading the grid
+            AppendDebugLog("")
+            AppendDebugLog("Sample code:")
+            AppendDebugLog("```autohotkey")
+            AppendDebugLog("gridControl := SapSession.FindById('" foundPath "')")
+            AppendDebugLog("columnCount := " columnCount)
+            AppendDebugLog("rowCount := " rowCount)
+            AppendDebugLog("")
+            AppendDebugLog("; Read grid data")
+            AppendDebugLog("Loop " rowCount " {")
+            AppendDebugLog("    rowIdx := A_Index - 1 ") ; SAP uses 0-based indexing")
+            AppendDebugLog("    ")
+            AppendDebugLog("    Loop " columnCount " {")
+            AppendDebugLog("        colIdx := A_Index - 1")
+            AppendDebugLog("        cellValue := ''")
+            AppendDebugLog("        ")
+            
+            if (bestMethod = "GetCellValue") {
+                AppendDebugLog("        try {")
+                AppendDebugLog("            cellValue := gridControl.GetCellValue(rowIdx, colIdx)")
+                AppendDebugLog("        } catch {")
+                AppendDebugLog("            cellValue := ''")
+                AppendDebugLog("        }")
+            } else if (bestMethod = "GetCell") {
+                AppendDebugLog("        try {")
+                AppendDebugLog("            cellValue := gridControl.GetCell(rowIdx, colIdx).Text")
+                AppendDebugLog("        } catch {")
+                AppendDebugLog("            cellValue := ''")
+                AppendDebugLog("        }")
+            } else if (bestMethod = "getCellData") {
+                AppendDebugLog("        try {")
+                AppendDebugLog("            cellValue := gridControl.getCellData(rowIdx, colIdx)")
+                AppendDebugLog("        } catch {")
+                AppendDebugLog("            cellValue := ''")
+                AppendDebugLog("        }")
+            } else {
+                AppendDebugLog("        try {")
+                AppendDebugLog("            gridControl.setCurrentCell(rowIdx, colIdx)")
+                AppendDebugLog("            cellValue := gridControl.currentCellValue")
+                AppendDebugLog("        } catch {")
+                AppendDebugLog("            cellValue := ''")
+                AppendDebugLog("        }")
+            }
+            
+            AppendDebugLog("        ")
+            AppendDebugLog("        ``; Do something with cellValue")
+            AppendDebugLog("        MsgBox(cellValue)")
+            AppendDebugLog("    }")
+            AppendDebugLog("}")
+            AppendDebugLog("````")
+            
+        } else {
+            AppendDebugLog("No grid data structure detected. This may be a different type of popup.")
+            AppendDebugLog("Recommended approach: Try accessing direct text elements instead.")
+        }
+        
+        ; Close debug log
+        AppendDebugLog("")
+        AppendDebugLog("=== END OF DEBUG LOG ===")
+        
+        ; Provide a message about where to find the debug log
+        MsgBox("SAP Grid Debug information has been written to:`n" debugLogFile, "Debug Complete", 0x40)
+        
+        return true
+        
+    } catch {
+        LogMessage(LOG_ERROR, "Error in grid debug function: ")
+        return false
+    }
+}
+
+
+
+; Helper function for recursive scanning of SAP controls
+ScanSapControl(control, id, outputFile, depth := 0) {
+    if (!IsObject(control)) {
+        return
+    }
+
+    try {
+        ; Create indent based on depth
+        indent := ""
+        Loop depth {
+            indent .= "    "  ; 4 spaces per level
+        }
+
+        ; Get control properties
+        controlType := "[Unknown]"
+        try {
+            controlType := control.Type
+        } catch {
+            ; Type property not available
+        }
+
+        ; Write basic control info
+        FileAppend(indent "ID: " id "`n", outputFile)
+        FileAppend(indent "Type: " controlType "`n", outputFile)
+
+        ; Try to get common properties based on control type
+        if (controlType = "GuiTextField" || controlType = "GuiCTextField" || controlType = "GuiPasswordField") {
+            try {
+                FileAppend(indent "Text: " control.Text "`n", outputFile)
+            } catch {
+                ; Property not available
+            }
+
+            try {
+                FileAppend(indent "Name: " control.Name "`n", outputFile)
+            } catch {
+                ; Property not available
+            }
+        }
+        else if (controlType = "GuiComboBox") {
+            try {
+                FileAppend(indent "Key: " control.Key "`n", outputFile)
+                FileAppend(indent "Text: " control.Text "`n", outputFile)
+            } catch {
+                ; Properties not available
+            }
+
+            ; Try to get all entries in the combo box
+            try {
+                entries := []
+                entriesCollection := control.Entries
+                entryCount := entriesCollection.Count
+
+                Loop entryCount {
+                    try {
+                        entry := entriesCollection.Item(A_Index - 1)  ; COM collections are often 0-based
+                        entries.Push(entry.Key " - " entry.Text)
+                    } catch {
+                        ; Skip this entry
+                    }
+                }
+
+                if (entries.Length > 0) {
+                    FileAppend(indent "Entries:`n", outputFile)
+                    for entryText in entries {
+                        FileAppend(indent "    - " entryText "`n", outputFile)
+                    }
+                }
+            } catch {
+                ; Can't get entries
+            }
+        }
+        else if (controlType = "GuiCheckBox" || controlType = "GuiRadioButton") {
+            try {
+                FileAppend(indent "Selected: " (control.Selected ? "Yes" : "No") "`n", outputFile)
+            } catch {
+                ; Property not available
+            }
+        }
+        else if (controlType = "GuiButton") {
+            try {
+                FileAppend(indent "Text: " control.Text "`n", outputFile)
+            } catch {
+                ; Property not available
+            }
+
+            try {
+                FileAppend(indent "Tooltip: " control.Tooltip "`n", outputFile)
+            } catch {
+                ; Property not available
+            }
+        }
+        else if (controlType = "GuiLabel") {
+            try {
+                FileAppend(indent "Text: " control.Text "`n", outputFile)
+            } catch {
+                ; Property not available
+            }
+        }
+        else if (controlType = "GuiTab") {
+            try {
+                FileAppend(indent "Text: " control.Text "`n", outputFile)
+                FileAppend(indent "Selected: " (control.Selected ? "Yes" : "No") "`n", outputFile)
+            } catch {
+                ; Properties not available
+            }
+        }
+        else if (controlType = "GuiTableControl") {
+            try {
+                rowCount := control.RowCount
+                colCount := control.ColumnCount
+                FileAppend(indent "Rows: " rowCount "`n", outputFile)
+                FileAppend(indent "Columns: " colCount "`n", outputFile)
+
+                ; Optionally dump table headers
+                try {
+                    FileAppend(indent "Column Headers:`n", outputFile)
+                    Loop colCount {
+                        colName := control.GetColumnHeader(A_Index - 1)
+                        FileAppend(indent "    - Column " (A_Index - 1) ": " colName "`n", outputFile)
+                    }
+                } catch {
+                    ; Can't get column headers
+                }
+            } catch {
+                ; Properties not available
+            }
+        }
+        else if (controlType = "GuiTree" || (controlType = "GuiShell" && InStr(id, "shell"))) {
+            try {
+                nodeCount := control.NodeCount
+                FileAppend(indent "Node Count: " nodeCount "`n", outputFile)
+
+                if (nodeCount > 0 && nodeCount < 100) {  ; Limit to prevent huge dumps
+                    FileAppend(indent "Nodes:`n", outputFile)
+                    Loop nodeCount {
+                        try {
+                            nodeName := control.GetNodeKeyByIndex(A_Index - 1)  ; SAP uses 0-based indexing
+                            FileAppend(indent "    - " nodeName "`n", outputFile)
+                        } catch {
+                            ; Skip this node
+                        }
+                    }
+                }
+            } catch {
+                ; Can't get node information
+            }
+        }
+
+        ; Add more properties that might be useful
+        try {
+            ; Try to get additional properties
+            if HasProp(control, "Visible") {
+                FileAppend(indent "Visible: " (control.Visible ? "Yes" : "No") "`n", outputFile)
+            }
+            if HasProp(control, "Enabled") {
+                FileAppend(indent "Enabled: " (control.Enabled ? "Yes" : "No") "`n", outputFile)
+            }
+            if HasProp(control, "Changeable") {
+                FileAppend(indent "Changeable: " (control.Changeable ? "Yes" : "No") "`n", outputFile)
+            }
+        } catch {
+            ; Properties not available
+        }
+
+        ; Add a separator line
+        FileAppend(indent "---------------`n", outputFile)
+
+        ; Try to get children - not all controls have a Children property
+        try {
+            children := control.Children
+
+            if (IsObject(children)) {
+                childCount := children.Count
+                FileAppend(indent "Children (" childCount "):`n", outputFile)
+
+                ; Process each child
+                Loop childCount {
+                    try {
+                        child := children.ElementAt(A_Index - 1)
+                        childId := id "/" child.Id
+                        FileAppend("`n", outputFile)
+                        ScanSapControl(child, childId, outputFile, depth + 1)
+                    } catch {
+                        FileAppend(indent "    [Error getting child " (A_Index - 1) ": " "]`n", outputFile)
+                    }
+                }
+            }
+        } catch {
+            ; No children or can't access them
+        }
+
+    } catch {
+        FileAppend(indent "[Error scanning control: " "]`n", outputFile)
+    }
+}
+; Robust, advanced SAP Screen Dumper: continues even on errors, logs all attempts
+
+DumpSapScreen(outputFileName := "", local_session := SapSession) {
+    if (!IsSet(local_session)) {
+        LogMessage(LOG_ERROR, "SAP session not available for screen dump")
+        return false
+    }
+
+    ; Generate default filename if not provided
+    if (outputFileName = "") {
+        outputFileName := A_ScriptDir "\logs\SAPScreenDump_" FormatTime(, "yyyy-MM-dd_HH-mm-ss") ".txt"
+    }
+
+    ; Try to delete previous file (ignore errors)
+    try FileDelete(outputFileName)
+
+    FileAppend("=== ADVANCED SAP SCREEN DUMP ===`n", outputFileName)
+    FileAppend("Date: " FormatTime(, "yyyy-MM-dd HH:mm:ss") "`n", outputFileName)
+    FileAppend("User: " A_UserName "`n", outputFileName)
+
+    ; Get session info (continue even on error)
+    try {
+        info := local_session.Info
+        try titleText := local_session.FindById("wnd[0]/titl").Text
+        FileAppend("Screen Title: " (IsSet(titleText) ? titleText : "[n/a]") "`n", outputFileName)
+        FileAppend("Program: " (IsSet(info) ? info.Program : "[n/a]") "`n", outputFileName)
+        FileAppend("Transaction: " (IsSet(info) ? info.Transaction : "[n/a]") "`n", outputFileName)
+        FileAppend("System: " (IsSet(info) ? info.SystemName : "[n/a]") "`n", outputFileName)
+        FileAppend("Client: " (IsSet(info) ? info.Client : "[n/a]") "`n", outputFileName)
+        FileAppend("User: " (IsSet(info) ? info.User : "[n/a]") "`n", outputFileName)
+        FileAppend("Language: " (IsSet(info) ? info.Language : "[n/a]") "`n", outputFileName)
+        FileAppend("Screen Number: " (IsSet(info) ? info.ScreenNumber : "[n/a]") "`n", outputFileName)
+    } catch {
+        FileAppend("Session Info Error: " "`n", outputFileName)
+    }
+
+    FileAppend("`n=== SCREEN ELEMENT HIERARCHY ===`n`n", outputFileName)
+
+    try {
+        mainWindow := local_session.FindById("wnd[0]")
+        RobustScanSapControl(mainWindow, "wnd[0]", outputFileName, 0)
+    } catch {
+        FileAppend("Could not access main window: " "`n", outputFileName)
+    }
+
+    ; Dump input fields summary (even if errors)
+    FileAppend("`n=== INPUT FIELDS SUMMARY ===`n`n", outputFileName)
+    inputFields := []
+    try CollectInputFields(mainWindow, "wnd[0]", &inputFields)
+    for field in inputFields {
+        try {
+            FileAppend("• Path: " field.id "`n", outputFileName)
+            FileAppend("  Type: " field.type "`n", outputFileName)
+            if (field.Text != "")
+                FileAppend("  Text: " field.Text "`n", outputFileName)
+            FileAppend("  Sample: SetSapFieldDirect('" field.id "', 'value')`n", outputFileName)
+            FileAppend("`n", outputFileName)
+        } catch {
+            FileAppend("[Field error: " "]`n", outputFileName)
+        }
+    }
+
+    ; Dump button summary (even if errors)
+    FileAppend("`n=== BUTTONS SUMMARY ===`n`n", outputFileName)
+    buttons := []
+    try CollectButtons(mainWindow, "wnd[0]", &buttons)
+    for button in buttons {
+        try {
+            FileAppend("• Path: " button.id "`n", outputFileName)
+            if (button.Text != "")
+                FileAppend("  Text: " button.Text "`n", outputFileName)
+            FileAppend("  Sample: local_session.FindById('" button.id "').Press()`n", outputFileName)
+            FileAppend("`n", outputFileName)
+        } catch {
+            FileAppend("[Button error: " "]`n", outputFileName)
+        }
+    }
+
+    ; Dump grid/table summary (even if errors)
+    FileAppend("`n=== TABLES AND GRIDS SUMMARY ===`n`n", outputFileName)
+    grids := []
+    try CollectGrids(mainWindow, "wnd[0]", &grids)
+    for grid in grids {
+        try {
+            FileAppend("• Path: " grid.id "`n", outputFileName)
+            FileAppend("  Type: " grid.type "`n", outputFileName)
+            FileAppend("  Sample: grid := local_session.FindById('" grid.id "')`n", outputFileName)
+            FileAppend("          value := grid.GetCellValue(rowIdx, colIdx)`n", outputFileName)
+            FileAppend("`n", outputFileName)
+        } catch {
+            FileAppend("[Grid error: " "]`n", outputFileName)
+        }
+    }
+
+    FileAppend("`n=== SAMPLE SCRIPTS ===`n`n", outputFileName)
+    FileAppend("// Sample: Set a text field`nlocal_session.FindById('wnd[0]/usr/txtFIELD').Text := 'value'`n", outputFileName)
+    FileAppend("// Sample: Press a button`nlocal_session.FindById('wnd[0]/tbar[0]/btn[0]').Press()`n", outputFileName)
+
+    LogMessage(LOG_INFO, "SAP screen dump created: " outputFileName)
+    TrayTip("Screen dump created: " outputFileName, "Debug Info", 0x1)
+    return true
+}
+
+RobustScanSapControl(control, id, outputFile, depth := 0) {
+    if (!IsObject(control))
+        return
+
+    try {
+        indent := ""
+        Loop depth
+            indent .= "  "
+        controlType := "[Unknown]"
+        try controlType := control.Type
+
+        FileAppend(indent "ID: " id "`n", outputFile)
+        FileAppend(indent "Type: " controlType "`n", outputFile)
+        try name := control.Name, FileAppend(indent "Name: " name "`n", outputFile)
+        FileAppend(indent "Full Path: " id "`n", outputFile)
+        try FileAppend(indent "Position: Left=" control.ScreenLeft ", Top=" control.ScreenTop "`n", outputFile)
+        try FileAppend(indent "Size: Width=" control.Width ", Height=" control.Height "`n", outputFile)
+        try FileAppend(indent "Visible: " (control.Visible ? "Yes" : "No") "`n", outputFile)
+        try FileAppend(indent "Changeable: " (control.Changeable ? "Yes" : "No") "`n", outputFile)
+        try FileAppend(indent "Enabled: " (control.Enabled ? "Yes" : "No") "`n", outputFile)
+
+        if (controlType = "GuiTextField" || controlType = "GuiCTextField" || controlType = "GuiPasswordField" || controlType = "GuiLabel") {
+            try FileAppend(indent "Text: " control.Text "`n", outputFile)
+            try FileAppend(indent "MaxLength: " control.MaxLength "`n", outputFile)
+            try FileAppend(indent "Tooltip: " control.Tooltip "`n", outputFile)
+            try FileAppend(indent "Default: " control.DefaultValue "`n", outputFile)
+            FileAppend(indent "Sample Set: SetSapFieldDirect('" id "', 'value')`n", outputFile)
+        }
+        else if (controlType = "GuiComboBox") {
+            try FileAppend(indent "Selected Key: " control.Key "`n", outputFile)
+            try FileAppend(indent "Selected Text: " control.Text "`n", outputFile)
+            try {
+                entries := control.Entries
+                entryCount := entries.Count
+                if (entryCount > 0) {
+                    FileAppend(indent "Entries:`n", outputFile)
+                    maxEntries := entryCount > 10 ? 10 : entryCount
+                    Loop maxEntries {
+                        entry := entries.Item(A_Index - 1)
+                        FileAppend(indent "  - [" entry.Key "]: " entry.Text "`n", outputFile)
+                    }
+                    if (entryCount > maxEntries)
+                        FileAppend(indent "  ... and " (entryCount - maxEntries) " more`n", outputFile)
+                }
+            }
+            FileAppend(indent "Sample Set: SetSapFieldDirect('" id "', 'key_value')`n", outputFile)
+        }
+        else if (controlType = "GuiCheckBox" || controlType = "GuiRadioButton") {
+            try FileAppend(indent "Selected: " (control.Selected ? "Yes (Selected)" : "No (Not Selected)") "`n", outputFile)
+            FileAppend(indent "Sample Set: SetSapFieldDirect('" id "', 'X')`n", outputFile)
+        }
+        else if (controlType = "GuiButton") {
+            try FileAppend(indent "Button Text: " control.Text "`n", outputFile)
+            try FileAppend(indent "Tooltip: " control.Tooltip "`n", outputFile)
+            FileAppend(indent "Sample: local_session.FindById('" id "').Press()`n", outputFile)
+        }
+        else if (controlType = "GuiTableControl" || InStr(controlType, "Grid") || InStr(controlType, "Shell")) {
+            try FileAppend(indent "Rows: " control.RowCount "`n", outputFile)
+            try FileAppend(indent "Columns: " control.ColumnCount "`n", outputFile)
+            try {
+                colCount := control.ColumnCount
+                maxCols := colCount > 5 ? 5 : colCount
+                FileAppend(indent "Column Headers:`n", outputFile)
+                Loop maxCols {
+                    header := control.GetColumnHeader(A_Index - 1)
+                    FileAppend(indent "  - " header "`n", outputFile)
+                }
+                if (colCount > maxCols)
+                    FileAppend(indent "  ... and " (colCount - maxCols) " more columns`n", outputFile)
+            }
+            FileAppend(indent "Sample: grid := local_session.FindById('" id "')`n", outputFile)
+            FileAppend(indent "        value := grid.GetCellValue(rowIdx, colIdx)`n", outputFile)
+        }
+        FileAppend(indent "---------------`n", outputFile)
+
+        ; Always try children (continue on error)
+        try {
+            children := control.Children
+            if (IsObject(children)) {
+                childCount := children.Count
+                FileAppend(indent "Children (" childCount "):`n", outputFile)
+                Loop childCount {
+                    try {
+                        child := children.ElementAt(A_Index - 1)
+                        childId := id "/" child.Id
+                        RobustScanSapControl(child, childId, outputFile, depth + 1)
+                    } catch {
+                        FileAppend(indent "  [Error getting child " (A_Index - 1) ": " "]`n", outputFile)
+                    }
+                }
+            }
+        } catch {
+            FileAppend(indent "[Children error: " "]`n", outputFile)
+        }
+    } catch {
+        FileAppend("[Scan error @ " id ": " "]`n", outputFile)
+    }
+}
+EnhancedScanSapControl(control, id, outputFile, depth := 0) {
+    if (!IsObject(control))
+        return
+
+    try {
+        indent := ""
+        Loop depth
+            indent .= "  "
+        controlType := "[Unknown]"
+        try controlType := control.Type
+
+        FileAppend(indent "ID: " id "`n", outputFile)
+        FileAppend(indent "Type: " controlType "`n", outputFile)
+        try name := control.Name, FileAppend(indent "Name: " name "`n", outputFile)
+        FileAppend(indent "Full Path: " id "`n", outputFile)
+        try FileAppend(indent "Position: Left=" control.ScreenLeft ", Top=" control.ScreenTop "`n", outputFile)
+        try FileAppend(indent "Size: Width=" control.Width ", Height=" control.Height "`n", outputFile)
+
+        try FileAppend(indent "Visible: " (control.Visible ? "Yes" : "No") "`n", outputFile)
+        try FileAppend(indent "Changeable: " (control.Changeable ? "Yes" : "No") "`n", outputFile)
+        try FileAppend(indent "Enabled: " (control.Enabled ? "Yes" : "No") "`n", outputFile)
+
+        if (controlType = "GuiTextField" || controlType = "GuiCTextField" || controlType = "GuiPasswordField" || controlType = "GuiLabel") {
+            try FileAppend(indent "Text: " control.Text "`n", outputFile)
+            try FileAppend(indent "MaxLength: " control.MaxLength "`n", outputFile)
+            try FileAppend(indent "Tooltip: " control.Tooltip "`n", outputFile)
+            try FileAppend(indent "Default: " control.DefaultValue "`n", outputFile)
+            FileAppend(indent "Sample Set: SetSapFieldDirect('" id "', 'value')`n", outputFile)
+        }
+        else if (controlType = "GuiComboBox") {
+            try FileAppend(indent "Selected Key: " control.Key "`n", outputFile)
+            try FileAppend(indent "Selected Text: " control.Text "`n", outputFile)
+            try {
+                entries := control.Entries
+                entryCount := entries.Count
+                if (entryCount > 0) {
+                    FileAppend(indent "Entries:`n", outputFile)
+                    maxEntries := entryCount > 10 ? 10 : entryCount
+                    Loop maxEntries {
+                        entry := entries.Item(A_Index - 1)
+                        FileAppend(indent "  - [" entry.Key "]: " entry.Text "`n", outputFile)
+                    }
+                    if (entryCount > maxEntries)
+                        FileAppend(indent "  ... and " (entryCount - maxEntries) " more`n", outputFile)
+                }
+            }
+            FileAppend(indent "Sample Set: SetSapFieldDirect('" id "', 'key_value')`n", outputFile)
+        }
+        else if (controlType = "GuiCheckBox" || controlType = "GuiRadioButton") {
+            try FileAppend(indent "Selected: " (control.Selected ? "Yes (Selected)" : "No (Not Selected)") "`n", outputFile)
+            FileAppend(indent "Sample Set: SetSapFieldDirect('" id "', 'X')`n", outputFile)
+        }
+        else if (controlType = "GuiButton") {
+            try FileAppend(indent "Button Text: " control.Text "`n", outputFile)
+            try FileAppend(indent "Tooltip: " control.Tooltip "`n", outputFile)
+            FileAppend(indent "Sample: local_session.FindById('" id "').Press()`n", outputFile)
+        }
+        else if (controlType = "GuiTableControl" || InStr(controlType, "Grid") || InStr(controlType, "Shell")) {
+            try FileAppend(indent "Rows: " control.RowCount "`n", outputFile)
+            try FileAppend(indent "Columns: " control.ColumnCount "`n", outputFile)
+            try {
+                colCount := control.ColumnCount
+                maxCols := colCount > 5 ? 5 : colCount
+                FileAppend(indent "Column Headers:`n", outputFile)
+                Loop maxCols {
+                    header := control.GetColumnHeader(A_Index - 1)
+                    FileAppend(indent "  - " header "`n", outputFile)
+                }
+                if (colCount > maxCols)
+                    FileAppend(indent "  ... and " (colCount - maxCols) " more columns`n", outputFile)
+            }
+            FileAppend(indent "Sample: grid := local_session.FindById('" id "')`n", outputFile)
+            FileAppend(indent "        value := grid.GetCellValue(rowIdx, colIdx)`n", outputFile)
+        }
+        FileAppend(indent "---------------`n", outputFile)
+
+        try {
+            children := control.Children
+            if (IsObject(children)) {
+                childCount := children.Count
+                FileAppend(indent "Children (" childCount "):`n", outputFile)
+                Loop childCount {
+                    child := children.ElementAt(A_Index - 1)
+                    childId := id "/" child.Id
+                    EnhancedScanSapControl(child, childId, outputFile, depth + 1)
+                }
+            }
+        }
+    } catch {
+        FileAppend(indent "[Error scanning control: " "]`n", outputFile)
+    }
+}
+
+CollectInputFields(control, id, &fields) {
+    if (!IsObject(control))
+         return
+    try {
+        controlType := ""
+        try controlType := control.Type
+        if (controlType = "GuiTextField" || controlType = "GuiCTextField" || controlType = "GuiComboBox" || controlType = "GuiCheckBox") {
+            fieldInfo := {id: id, type: controlType, text: ""}
+            try fieldInfo.Text := control.Text
+            fields.Push(fieldInfo)
+        }
+        try {
+            children := control.Children
+            if (IsObject(children)) {
+                Loop children.Count {
+                    child := children.ElementAt(A_Index - 1)
+                    childId := id "/" child.Id
+                    CollectInputFields(child, childId, &fields)
+                }
+            }
+        }
+    }
+}
+
+CollectButtons(control, id, &buttons) {
+    if (!IsObject(control)) 
+        return
+    try {
+        controlType := ""
+        try controlType := control.Type
+        if (controlType = "GuiButton") {
+            buttonInfo := {id: id, text: ""}
+            try buttonInfo.Text := control.Text
+            buttons.Push(buttonInfo)
+        }
+        try {
+            children := control.Children
+            if (IsObject(children)) {
+                Loop children.Count {
+                    child := children.ElementAt(A_Index - 1)
+                    childId := id "/" child.Id
+                    CollectButtons(child, childId, &buttons)
+                }
+            }
+        }
+    }
+}
+
+CollectGrids(control, id, &grids) {
+    if (!IsObject(control)) 
+        return
+    try {
+        controlType := ""
+        try controlType := control.Type
+        if (controlType = "GuiTableControl" || InStr(controlType, "Grid") || InStr(controlType, "Shell")) {
+            gridInfo := {id: id, type: controlType}
+            grids.Push(gridInfo)
+        }
+        try {
+            children := control.Children
+            if (IsObject(children)) {
+                Loop children.Count {
+                    child := children.ElementAt(A_Index - 1)
+                    childId := id "/" child.Id
+                    CollectGrids(child, childId, &grids)
+                }
+            }
+        }
+    }
+}

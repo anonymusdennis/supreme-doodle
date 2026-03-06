@@ -1,0 +1,653 @@
+;; @bundle-id: 7961f0fb4544
+;; @source-rel: transaction_specific.ahk2
+;; @source-sha1: 39796b6c611d96a7db99220cc47c1a764999c343
+;; @note: Edit content below. Keep header lines starting with ';;' intact.
+;; -------------------------
+#Requires AutoHotkey v2.0
+
+; ==================== TRANSACTION SPECIFIC FUNCTIONS ====================
+; Log error to Sheet 5
+LogErrorToExcel(rowIndex, errorType, errorMessage, step, vendorName := "") {
+    try {
+        ;activate sheet 5
+        global ExcelWorksheet, ErrorLogSheet, ExcelApp, ExcelWorkbook, ExcelIsOpen
+        
+        ; Check if Excel is properly initialized
+        if (!ExcelIsOpen || !IsSet(ExcelApp) || !IsSet(ExcelWorkbook)) {
+            LogMessage(LOG_WARNING, "Cannot log to Excel - Excel not properly initialized")
+            return false
+        }
+        
+        ; Store current sheet reference
+        currentSheet := ""
+        try {
+            currentSheet := ExcelWorksheet
+        } catch {
+            ; Current sheet might not be set
+        }
+        
+        if (!ExcelSelectSheet(ErrorLogSheet)) {
+            LogMessage(LOG_ERROR, "Could not select error sheet")
+            return false
+        }
+        
+        ; Find next empty row
+        lastErrorRow := ExcelGetLastRow("A") + 1
+        message_message := CheckAndLogSapMessages("Error to Excel")
+        ; Write error data
+        ExcelWriteCell(lastErrorRow, 1, rowIndex)
+        ExcelWriteCell(lastErrorRow, 2, FormatTime(, "yyyy-MM-dd HH:mm:ss"))
+        ExcelWriteCell(lastErrorRow, 3, errorType)
+        ExcelWriteCell(lastErrorRow, 4, errorMessage)
+        ExcelWriteCell(lastErrorRow, 5, step)
+        ExcelWriteCell(lastErrorRow, 6, vendorName)
+        ExcelWriteCell(lastErrorRow, 7, "SAP sagt: " . message_message)
+        
+        LogMessage(LOG_INFO, "Logged error to Excel for row " rowIndex ": " errorMessage)
+        
+        ; Return to original sheet
+        if (currentSheet != "" && IsObject(currentSheet)) {
+            try {
+                ExcelWorksheet := currentSheet
+                ExcelWorksheet.Activate()
+            } catch {
+                ; If we can't return to original sheet, try sheet 1
+                ExcelSelectSheet(1)
+            }
+        } else {
+            ; Default to sheet 1
+            ExcelSelectSheet(1)
+        }
+        
+        return true
+    } catch {
+        LogMessage(LOG_ERROR, "Could not log error to Excel: ")
+        ; Try to return to sheet 1 as fallback
+        try {
+            ExcelSelectSheet(1)
+        } catch {
+            ; Ignore
+        }
+        return false
+    }
+}
+; Process vendor central data
+ProcessCentralData(rowIndex, Row_structured) {
+    try {
+        LogMessage(LOG_INFO, "Processing central data for row " rowIndex)
+        
+        ; Select and open CENTR0001 node
+        if (!SelectTreeNode("CENTR0001")) {
+            Error("Could not select CENTR0001 node")
+        }
+        
+        Sleep SleepTimeShort
+        
+        if (!DoubleClickTreeNode("CENTR0001")) {
+            Error("Could not double-click CENTR0001 node")
+        }
+        
+        Sleep SleepTimeMedium
+        
+        ; Fill all central data fields
+        if (Row_structured.ANREDE != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/cmbBUT000-TITLE", Row_structured.ANREDE)
+
+        if (Row_structured.NAME != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR1_DATA-NAME1", Row_structured.NAME)
+
+        if (Row_structured.NAME2 != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR1_DATA-NAME2", Row_structured.NAME2)
+
+        if (Row_structured.SUCHBEGRIFF1 != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR1_DATA-SORT1", Row_structured.SUCHBEGRIFF1)
+
+        if (Row_structured.SUCHBEGRIFF2 != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR1_DATA-SORT2", Row_structured.SUCHBEGRIFF2)
+
+        if (Row_structured.GEBAEUDE != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR2_DATA-BUILDING", Row_structured.GEBAEUDE)
+
+        if (Row_structured.RAUM != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR2_DATA-ROOMNUMBER", Row_structured.RAUM)
+
+        if (Row_structured.STOCKWERK != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR2_DATA-FLOOR", Row_structured.STOCKWERK)
+
+        if (Row_structured.STRASSE != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/ctxtADDR2_DATA-STREET", Row_structured.STRASSE)
+
+        if (Row_structured.HAUSNUMMER != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR2_DATA-HOUSE_NUM1", Row_structured.HAUSNUMMER)
+
+        if (Row_structured.STRASSE2 != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR2_DATA-STR_SUPPL1", Row_structured.STRASSE2)
+
+        if (Row_structured.STRASSE3 != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR2_DATA-STR_SUPPL2", Row_structured.STRASSE3)
+
+        if (Row_structured.STRASSE4 != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR2_DATA-STR_SUPPL3", Row_structured.STRASSE4)
+
+        if (Row_structured.PLZ != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR2_DATA-POST_CODE1", Row_structured.PLZ)
+
+        if (Row_structured.ORT != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/ctxtADDR2_DATA-CITY1", Row_structured.ORT)
+
+        if (Row_structured.ORTSTEIL != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/ctxtADDR2_DATA-CITY2", Row_structured.ORTSTEIL)
+
+        if (Row_structured.LAND != "") {
+            landCode := StrUpper(Row_structured.LAND)
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/ctxtADDR2_DATA-COUNTRY", landCode)
+        }
+
+        if (Row_structured.BUNDESLAND != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/ctxtADDR2_DATA-REGION", Row_structured.BUNDESLAND)
+
+        if (Row_structured.ZEITZONE != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/ctxtADDR1_DATA-TIME_ZONE", Row_structured.ZEITZONE)
+
+        if (Row_structured.POSTFACH != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR2_DATA-PO_BOX", Row_structured.POSTFACH)
+
+        if (Row_structured.FIRMEN_PLZ != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR2_DATA-POST_CODE3", Row_structured.FIRMEN_PLZ)
+
+        if (Row_structured.POSTFACH_PLZ != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtADDR2_DATA-POST_CODE2", Row_structured.POSTFACH_PLZ)
+
+        if (Row_structured.SPRACHE != "") {
+            spracheCode := StrUpper(Row_structured.SPRACHE)
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/cmbADDR1_DATA-LANGU", spracheCode)
+        }
+
+        if (Row_structured.TELEFON != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtSZA7_D0400-TEL_NUMBER", Row_structured.TELEFON)
+
+        if (Row_structured.DURCHWAHL != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtSZA7_D0400-TEL_EXTENS", Row_structured.DURCHWAHL)
+
+        if (Row_structured.MOBILTELEFON != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1000/txtSZA7_D0400-MOB_NUMBER", Row_structured.MOBILTELEFON)
+
+        LogMessage(LOG_INFO, "Central data filled successfully for row " rowIndex)
+        return true
+        
+    } catch {
+        LogMessage(LOG_ERROR, "Error processing central data: ")
+        LogErrorToExcel(rowIndex, "CENTRAL_DATA_ERROR",, "ProcessCentralData", Row_structured.NAME)
+        return false
+    }
+}
+
+; Process vendor KREDDATA0002
+ProcessKredData(rowIndex, vendorName) {
+    try {
+        LogMessage(LOG_INFO, "Processing KREDDATA0002 for row " rowIndex)
+        
+        if (!SelectTreeNode("KREDDATA0002")) {
+            Error("Could not select KREDDATA0002 node")
+        }
+        
+        Sleep SleepTimeShort
+        
+        if (!DoubleClickTreeNode("KREDDATA0002")) {
+            Error("Could not double-click KREDDATA0002 node")
+        }
+        
+        Sleep SleepTimeMedium
+        
+        ; Handle expected error messages
+        ExecuteSapCommand(SapSession,"AD1")
+        Sleep SleepTimeShort
+        ExecuteSapCommand(SapSession,"YES")
+        Sleep SleepTimeShort
+        ExecuteSapCommand(SapSession,"WEIT")
+        Sleep SleepTimeMedium
+        
+        ; Read Sheet 2 data
+        if (!ExcelSelectSheet(2)) {
+            LogMessage(LOG_WARNING, "Sheet 2 not found, using empty KREDDATA values")
+            KredData_structured := KredData_structured_empty
+        } else {
+            KredData_structured := KredData_structured_empty
+            KredData_structured.STEUERNUMMER := ExcelReadCell(rowIndex, 1)
+            KredData_structured.STEUERNUMMER1 := ExcelReadCell(rowIndex, 2)
+            KredData_structured.STEUERNUMMER3 := ExcelReadCell(rowIndex, 3)
+            KredData_structured.STEUERNUMMER4 := ExcelReadCell(rowIndex, 4)
+            KredData_structured.STEUERNUMMER5 := ExcelReadCell(rowIndex, 5)
+            KredData_structured.UST_ID_NR := ExcelReadCell(rowIndex, 6)
+            KredData_structured.LOKATIONSNR1 := ExcelReadCell(rowIndex, 7)
+            KredData_structured.LOKATIONSNR2 := ExcelReadCell(rowIndex, 8)
+            KredData_structured.PRUEFZIFFER := ExcelReadCell(rowIndex, 9)
+            KredData_structured.DUNS_NUMMER := ExcelReadCell(rowIndex, 10)
+            KredData_structured.PARTNERGESELLSCHAFT := ExcelReadCell(rowIndex, 11)
+            KredData_structured.BRANCHE := ExcelReadCell(rowIndex, 12)
+            KredData_structured.SPERRFUNKTION := ExcelReadCell(rowIndex, 13)
+            KredData_structured.SPERRGRUND := ExcelReadCell(rowIndex, 14)
+            KredData_structured.ZUSTAENDIGES_FINANZAMT := ExcelReadCell(rowIndex, 15)
+            
+            ExcelSelectSheet(1)  ; Return to Sheet 1
+        }
+
+        ; Fill KREDDATA0002 fields
+        if (KredData_structured.STEUERNUMMER != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/txtLFA1-STENR", KredData_structured.STEUERNUMMER)
+
+        if (KredData_structured.STEUERNUMMER1 != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/txtLFA1-STCD1", KredData_structured.STEUERNUMMER1)
+
+        if (KredData_structured.STEUERNUMMER3 != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/txtLFA1-STCD3", KredData_structured.STEUERNUMMER3)
+
+        if (KredData_structured.STEUERNUMMER4 != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/txtLFA1-STCD4", KredData_structured.STEUERNUMMER4)
+
+        if (KredData_structured.STEUERNUMMER5 != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/txtLFA1-STCD5", KredData_structured.STEUERNUMMER5)
+
+        if (KredData_structured.UST_ID_NR != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/txtLFA1-STCEG", KredData_structured.UST_ID_NR)
+
+        if (KredData_structured.LOKATIONSNR1 != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/txtLFA1-BBBNR", KredData_structured.LOKATIONSNR1)
+
+        if (KredData_structured.LOKATIONSNR2 != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/txtLFA1-BBSNR", KredData_structured.LOKATIONSNR2)
+
+        if (KredData_structured.PRUEFZIFFER != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/txtLFA1-BUBKZ", KredData_structured.PRUEFZIFFER)
+
+        if (KredData_structured.DUNS_NUMMER != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/txtGS_IDS-BUP001", KredData_structured.DUNS_NUMMER)
+
+        if (KredData_structured.PARTNERGESELLSCHAFT != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/ctxtLFA1-VBUND", KredData_structured.PARTNERGESELLSCHAFT)
+
+        if (KredData_structured.BRANCHE != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/ctxtBAPIINDUSTRYDETAILS-IND_SECTOR", KredData_structured.BRANCHE)
+
+        if (KredData_structured.SPERRFUNKTION != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/ctxtLFA1-SPERQ", KredData_structured.SPERRFUNKTION)
+
+        if (KredData_structured.SPERRGRUND != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/ctxtGS_ZUSATZFELDER-SPRGRD", KredData_structured.SPERRGRUND)
+
+        if (KredData_structured.ZUSTAENDIGES_FINANZAMT != "")
+            SetSapFieldDirect("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:1005/ctxtLFA1-FISKU", KredData_structured.ZUSTAENDIGES_FINANZAMT)
+
+        LogMessage(LOG_INFO, "KREDDATA0002 filled successfully for row " rowIndex)
+        return true
+        
+    } catch {
+        LogMessage(LOG_ERROR, "Error processing KREDDATA0002: ")
+        LogErrorToExcel(rowIndex, "KREDDATA_ERROR",, "ProcessKredData", vendorName)
+        return false
+    }
+}
+
+; Handle document attachment
+HandleDocumentAttachment(rowIndex, vendorName) {
+    if (!IsSet(SapSession)) {
+        LogMessage(LOG_ERROR, "SAP session not available for document attachment")
+        return false
+    }
+    
+    try {
+        ; Check Sheet 4 for document data
+        if (!ExcelSelectSheet(4)) {
+            LogMessage(LOG_INFO, "Sheet 4 not found, skipping document attachment for row " rowIndex)
+            ExcelSelectSheet(1)
+            return true  ; Not an error, just no document
+        }
+        
+        ; Read document data
+        DocData_structured := DocData_structured_empty
+        DocData_structured.DOKUMENTART := ExcelReadCell(rowIndex, 1)
+        DocData_structured.PFAD := ExcelReadCell(rowIndex, 2)
+        DocData_structured.KOMMENTAR := ExcelReadCell(rowIndex, 3)
+        
+        ExcelSelectSheet(1)  ; Return to Sheet 1
+        
+        ; Check if we have document data
+        if (DocData_structured.DOKUMENTART = "" || DocData_structured.PFAD = "") {
+            LogMessage(LOG_INFO, "No document data for row " rowIndex)
+            return true  ; Not an error
+        }
+        
+        ; Handle relative paths
+        originalPath := DocData_structured.PFAD
+        if (SubStr(originalPath, 1, 1) = ".") {
+            relativePath := SubStr(originalPath, 2)
+            originalPath := A_ScriptDir . relativePath
+            LogMessage(LOG_INFO, "Converted relative path to: " originalPath)
+        }
+        
+        ; Check if source file exists
+        if (!FileExist(originalPath)) {
+            Error("Document file does not exist: " originalPath)
+        }
+        
+        ; Create SAP temp directory
+        sapTempDir := "C:\Users\" A_UserName "\AppData\Local\SAP\SAP GUI\tmp\"
+        if (!DirExist(sapTempDir)) {
+            try {
+                DirCreate(sapTempDir)
+                LogMessage(LOG_INFO, "Created SAP temp directory: " sapTempDir)
+            } catch {
+                Error("Could not create SAP temp directory: ")
+            }
+        }
+        
+        ; Copy file to temp directory
+        targetPath := sapTempDir "upload.xlsx"
+        try {
+            FileCopy(originalPath, targetPath, true)
+            LogMessage(LOG_INFO, "Copied document to temp: " targetPath)
+        } catch {
+            Error("Failed to copy file: ")
+        }
+        
+        ; Wait for popup
+        Sleep SleepTimeMedium
+        
+        ; Fill popup fields
+        if (DocData_structured.DOKUMENTART != "")
+            SetSapFieldDirect("wnd[1]/usr/ctxt/BUP/AQ0VBDOKUME-DOKART", DocData_structured.DOKUMENTART)
+        
+        SetSapFieldDirect("wnd[1]/usr/ctxt/BUP/AQ0VBDOKUME-DNAME", targetPath)
+        
+        if (DocData_structured.KOMMENTAR != "")
+            SetSapFieldDirect("wnd[1]/usr/txt/BUP/AQ0VBDOKUME-DTEXT", DocData_structured.KOMMENTAR)
+        
+        ; Confirm popup
+        try {
+            SapSession.FindById("wnd[1]/usr/btnBTN_OK").Press()
+            LogMessage(LOG_INFO, "Document attached successfully for row " rowIndex)
+            
+            ; Clean up temp file
+            Sleep SleepTimeMedium
+            try {
+                FileDelete(targetPath)
+            } catch {
+                ; Ignore deletion errors
+            }
+            
+        } catch {
+            ; Clean up on error
+            try {
+                FileDelete(targetPath)
+            } catch {
+                ; Ignore
+            }
+            Error("Could not confirm document attachment: ")
+        }
+        
+        return true
+        
+    } catch {
+        LogMessage(LOG_ERROR, "Error in document attachment: ")
+        LogErrorToExcel(rowIndex, "DOCUMENT_ERROR",, "HandleDocumentAttachment", vendorName)
+        return false
+    }
+}
+
+; Process single vendor row
+ProcessVendorRow(rowIndex) {
+    try {
+        LogMessage(LOG_INFO, "========== Processing row " rowIndex " ==========")
+        
+        ; Read Sheet 1 data
+        Row_structured := Row_structured_empty
+        Row_structured.ANREDE := ExcelReadCell(rowIndex, 1)
+        Row_structured.ANREDETEXT := ExcelReadCell(rowIndex, 2)
+        Row_structured.NAME := ExcelReadCell(rowIndex, 3)
+        Row_structured.NAME2 := ExcelReadCell(rowIndex, 4)
+        Row_structured.SUCHBEGRIFF1 := ExcelReadCell(rowIndex, 5)
+        Row_structured.SUCHBEGRIFF2 := ExcelReadCell(rowIndex, 6)
+        Row_structured.STRASSE := ExcelReadCell(rowIndex, 7)
+        Row_structured.HAUSNUMMER := ExcelReadCell(rowIndex, 8)
+        Row_structured.STRASSE2 := ExcelReadCell(rowIndex, 9)
+        Row_structured.STRASSE3 := ExcelReadCell(rowIndex, 10)
+        Row_structured.STRASSE4 := ExcelReadCell(rowIndex, 11)
+        Row_structured.PLZ := ExcelReadCell(rowIndex, 12)
+        Row_structured.ORT := ExcelReadCell(rowIndex, 13)
+        Row_structured.ORTSTEIL := ExcelReadCell(rowIndex, 14)
+        Row_structured.LAND := ExcelReadCell(rowIndex, 15)
+        Row_structured.BUNDESLAND := ExcelReadCell(rowIndex, 17)
+        Row_structured.ZEITZONE := ExcelReadCell(rowIndex, 19)
+        Row_structured.POSTFACH := ExcelReadCell(rowIndex, 20)
+        Row_structured.FIRMEN_PLZ := ExcelReadCell(rowIndex, 21)
+        Row_structured.POSTFACH_PLZ := ExcelReadCell(rowIndex, 22)
+        Row_structured.SPRACHE := ExcelReadCell(rowIndex, 23)
+        Row_structured.TELEFON := ExcelReadCell(rowIndex, 24)
+        Row_structured.DURCHWAHL := ExcelReadCell(rowIndex, 25)
+        Row_structured.MOBILTELEFON := ExcelReadCell(rowIndex, 26)
+        Row_structured.FAX := ExcelReadCell(rowIndex, 27)
+        Row_structured.GEBAEUDE := ExcelReadCell(rowIndex, 28)
+        Row_structured.RAUM := ExcelReadCell(rowIndex, 29)
+        Row_structured.STOCKWERK := ExcelReadCell(rowIndex, 30)
+        
+        vendorName := Row_structured.NAME
+        LogMessage(LOG_INFO, "Processing vendor: " vendorName)
+        
+        ; Reset SAP session
+        if (!ExecuteSapCommand(SapSession,"/n", " ")) {
+            Error("Failed to reset SAP session")
+        }
+        Sleep SleepTimeMedium
+        
+        ; Open transaction
+        if (!ExecuteSapCommand(SapSession,"/n/BUP/AQZ_ZLS_SESTART", " ")) {
+            Error("Failed to open transaction")
+        }
+        Sleep SleepTimeLong
+        
+        ; Verify screen
+        if (!CHECK_SCREENNAME("Einstieg Schnellerfassung")) {
+            LogMessage(LOG_WARNING, "Cannot verify screen for row " rowIndex ", continuing anyway")
+        }
+        
+        ; Create vendor
+        if (!ExecuteSapCommand(SapSession,"GRAN")) {
+            Error("Failed to execute GRAN command")
+        }
+        Sleep SleepTimeMedium
+        
+        ; Handle document attachment first if needed
+        ExecuteSapCommand(SapSession,"ANLAGE")
+        Sleep SleepTimeMedium
+        HandleDocumentAttachment(rowIndex, vendorName)
+        CheckAndLogSapMessages("Document attachment")
+        Sleep SleepTimeMedium
+        
+        ; Process central data
+        if (!ProcessCentralData(rowIndex, Row_structured)) {
+            LogMessage(LOG_WARNING, "Central data processing failed for row " rowIndex ", continuing")
+        }
+        
+        ; Process KREDDATA0002
+        if (!ProcessKredData(rowIndex, vendorName)) {
+            LogMessage(LOG_WARNING, "KREDDATA processing failed for row " rowIndex ", continuing")
+        }
+        if (!ProcessExtraData(rowIndex, vendorName)) {
+            LogMessage(LOG_WARNING, "Extra data processing failed for row " rowIndex ", continuing")
+        }
+        
+        ; Check if any error occurred before saving
+        if (Error_while_running) {
+            LogMessage(LOG_WARNING, "Errors detected for row " rowIndex ", skipping save")
+            LogErrorToExcel(rowIndex, "SAVE_SKIPPED", "Save skipped due to errors during processing", "Before Save", vendorName)
+            return false
+        }
+        
+        ; Save vendor only if no errors
+        Sleep SleepTimeShort
+        if (!ExecuteSapCommand(SapSession,"SAV")) { ;command is a bit evil
+            Error("Failed to execute SAVE command")
+        }
+        Sleep SleepTimeMedium
+        
+        ; Check for messages after save
+        messages := CheckAndLogSapMessages("After save")
+        ;extract vendor number from messages "ntrag wurde mit Nummer 1000001626 gespeichert. "
+        ;extract number with regex [0-9]*
+        vendorNumber := []  ; Initialize vendorNumber as an array
+        if (RegExMatch(messages, "(\d+)", &vendorNumber)) {  ; Use VarRef for vendorNumber
+            LogMessage(LOG_INFO, "Vendor number for row " rowIndex ": " vendorNumber[1])
+            ;ExcelWriteCell(rowIndex, 31, vendorNumber[1])  ; Save vendor number to Sheet 1
+        } else {
+            LogMessage(LOG_WARNING, "No vendor number found in messages for row " rowIndex)
+            ;ExcelWriteCell(rowIndex, 31, "")  ; Clear vendor number cell
+        }
+        ;save savemessage to sheet 6
+        if (!ExcelSelectSheet(6)) {
+            LogMessage(LOG_WARNING, "Sheet 6 not found, skipping message logging for row " rowIndex)
+        } else {
+            ExcelWriteCell(rowIndex, 1, messages)
+            ExcelWriteCell(rowIndex, 2, FormatTime(, "yyyy-MM-dd HH:mm:ss"))
+            ExcelWriteCell(rowIndex, 3, vendorName)
+            ExcelWriteCell(rowIndex, 4, "while saving")
+            ExcelWriteCell(rowIndex, 5, vendorNumber[1])  ; Save vendor number to Sheet 6
+            ExcelSelectSheet(1)  ; Return to Sheet 1
+        }
+        ;when we have a vendor number => execute DYN_05 command => Antrag stellen.
+        if (vendorNumber[1] != "") {
+            if (!ExecuteSapCommand(SapSession,"DYN_05")) {
+                LogMessage(LOG_WARNING, "Failed to execute DYN_05 command for row " rowIndex)
+                ; Handle table control popup if it appears
+                return true
+            } else {
+                Sleep SleepTimeMedium
+                LogMessage(LOG_INFO, "Executed DYN_05 command for vendor number: " vendorNumber[1])               
+                HandleTableControlPopup(rowIndex, vendorName, "")  ; You can pass the Lieferanten Nr if you have it
+                return true
+            }
+        }
+        else {
+            LogMessage(LOG_WARNING, "No vendor number found, skipping DYN_05 command for row " rowIndex)
+        }
+     
+
+        
+    } catch {
+        LogMessage(LOG_ERROR, "Error processing row " rowIndex ": ")
+        LogErrorToExcel(rowIndex, "PROCESSING_ERROR",, "ProcessVendorRow", vendorName)
+        return false
+    }
+}
+processExtraData(rowIndex, vendorName)
+{
+    ; fill from sheet 3
+    ;Lokale Kontengruppe	Lokale Lieferantennummer	Einkauforganisation	Debitor
+    try {
+        LogMessage(LOG_INFO, "Processing extra data for row " rowIndex)
+        
+        if (!SelectTreeNode("LOCREC0003")) {
+            Error("Could not select EXTRADATA node")
+        }
+        
+        Sleep SleepTimeShort
+        
+        if (!DoubleClickTreeNode("LOCREC0003")) {
+            Error("Could not double-click EXTRADATA node")
+        }
+        
+        Sleep SleepTimeMedium
+        ExtraData_structured_empty := {
+            LOKALE_KONTENGRUPPE: "",
+            LOKALE_LIEFERANTENNUMMER: "",
+            EINKAUFORGANISATION: "",
+            DEBITOR: ""
+        }  ; Initialize the empty structure
+        ; Read Sheet 3 data
+        if (!ExcelSelectSheet(3)) {
+            LogMessage(LOG_WARNING, "Sheet 3 not found, using empty extra data values")
+            
+            ExtraData_structured := ExtraData_structured_empty
+        } else {
+            ExtraData_structured := ExtraData_structured_empty
+            ExtraData_structured.LOKALE_KONTENGRUPPE := ExcelReadCell(rowIndex, 1)
+            ExtraData_structured.LOKALE_LIEFERANTENNUMMER := ExcelReadCell(rowIndex, 2)
+            ExtraData_structured.EINKAUFORGANISATION := ExcelReadCell(rowIndex, 3)
+            ExtraData_structured.DEBITOR := ExcelReadCell(rowIndex, 4)
+            
+            ExcelSelectSheet(1)  ; Return to Sheet 1
+        }
+        
+        ; Now fill the SAP fields with the data from Sheet 3
+        LogMessage(LOG_INFO, "Filling extra data fields in SAP")
+        
+        ; Fill Lokale Kontengruppe
+        if (ExtraData_structured.LOKALE_KONTENGRUPPE != "") {
+            try {
+                SapSession.FindById("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:2035/ctxtGS_FIELDS1035-LOKKTGRP").Text := ExtraData_structured.LOKALE_KONTENGRUPPE
+                LogMessage(LOG_DEBUG, "Set Lokale Kontengruppe: " ExtraData_structured.LOKALE_KONTENGRUPPE)
+            } catch {
+                LogMessage(LOG_WARNING, "Failed to set Lokale Kontengruppe: ")
+            }
+        }
+        
+        ; Fill Lokale Lieferantennummer
+        if (ExtraData_structured.LOKALE_LIEFERANTENNUMMER != "") {
+            try {
+                SapSession.FindById("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:2035/txtGS_FIELDS1035-LOKLIEFNR").Text := ExtraData_structured.LOKALE_LIEFERANTENNUMMER
+                LogMessage(LOG_DEBUG, "Set Lokale Lieferantennummer: " ExtraData_structured.LOKALE_LIEFERANTENNUMMER)
+            } catch {
+                LogMessage(LOG_WARNING, "Failed to set Lokale Lieferantennummer: ")
+            }
+        }
+        
+        ; Fill Einkauforganisation
+        if (ExtraData_structured.EINKAUFORGANISATION != "") {
+            try {
+                SapSession.FindById("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:2035/ctxtGS_FIELDS1035-LOKEKORG").Text := ExtraData_structured.EINKAUFORGANISATION
+                LogMessage(LOG_DEBUG, "Set Einkauforganisation: " ExtraData_structured.EINKAUFORGANISATION)
+            } catch {
+                LogMessage(LOG_WARNING, "Failed to set Einkauforganisation: ")
+            }
+        }
+        
+        ; Fill Debitor
+        if (ExtraData_structured.DEBITOR != "") {
+            try {
+                SapSession.FindById("wnd[0]/usr/subPOSSCREEN:/BUP/SAPLAQZ_ZLS_SE_SCR:2035/ctxtLFA1-KUNNR").Text := ExtraData_structured.DEBITOR
+                LogMessage(LOG_DEBUG, "Set Debitor: " ExtraData_structured.DEBITOR)
+            } catch {
+                LogMessage(LOG_WARNING, "Failed to set Debitor: ")
+            }
+        }
+        
+        ; Press Enter to confirm entries and trigger any field validations
+        try {
+            SapSession.FindById("wnd[0]").SendVKey(0)  ; Enter key
+            LogMessage(LOG_INFO, "Confirmed extra data entries")
+            Sleep SleepTimeShort
+        } catch {
+            LogMessage(LOG_WARNING, "Failed to confirm entries: ")
+        }
+        
+        ; Wait for any popup that might appear and handle it
+        try {
+            Sleep SleepTimeShort
+            popup := SapSession.FindById("wnd[1]")
+            if (IsSet(popup) && IsObject(popup)) {
+                LogMessage(LOG_INFO, "Popup detected after entering extra data, accepting it")
+                popup.SendVKey(0)  ; Press Enter to accept popup
+                Sleep SleepTimeShort
+            }
+        } catch {
+            ; No popup appeared, which is fine
+        }
+        
+        LogMessage(LOG_INFO, "Extra data processing completed for row " rowIndex)
+        return true
+    }
+    catch {
+        LogMessage(LOG_ERROR, "Error processing extra data: ")
+        LogErrorToExcel(rowIndex, "EXTRADATA_ERROR",, "ProcessExtraData", vendorName)
+        return false
+    }
+}

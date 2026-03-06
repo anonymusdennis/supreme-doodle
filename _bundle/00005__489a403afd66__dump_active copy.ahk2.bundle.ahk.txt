@@ -1,0 +1,54 @@
+;; @bundle-id: 489a403afd66
+;; @source-rel: dump_active copy.ahk2
+;; @source-sha1: 1a88c9dca3686199e67285b4d33ff8ea065d0edd
+;; @note: Edit content below. Keep header lines starting with ';;' intact.
+;; -------------------------
+#Requires AutoHotkey v2.0
+#SingleInstance Force
+
+; ==================== INCLUDES ====================
+#Include "declarations.ahk2"
+#Include "utility.ahk2"
+#Include "excel_functions.ahk2"
+#Include "sap_functions.ahk2"
+#Include "classes.ahk2"
+#Include "se16_selectionscreen.ahk2"
+#Include DumpComObject.ahk2
+; ==================== CONSTANTS ====================
+global THREAD_COUNT := 2
+global MAX_ENTRIES := 5
+global SleepTimeShort := 20
+global SleepTimeMedium := 50
+global SleepTimeLong := 200
+
+; ==================== GLOBAL VARIABLES ====================
+global SapSessions := Map()
+global Databases := []
+global RfcDestinations := []
+global ScriptTemplate := ""
+global LogFile := A_ScriptDir "\logs\trace.log"
+global SuccessLog := A_ScriptDir "\logs\success.txt"
+global ErrorLog := A_ScriptDir "\logs\error.txt"
+global ProcessingQueue := []
+global QueueLock := 0
+
+; ==================== INITIAL SETUP ====================
+SetWorkingDir(A_ScriptDir)
+ProcessSetPriority("High")
+
+; Create logs directory
+if (!DirExist(A_ScriptDir "\logs")) {
+    DirCreate(A_ScriptDir "\logs")
+}
+;get sesstion 
+ConnectSAP()
+    global processor
+    processor := ParallelProcessor(1, [], [])
+        
+        ; Test table name
+        testTable := "MARA"  ; Material Master table
+        
+        LogMessage("INFO", "Testing ReadDD03LFields for table: " testTable)
+        
+        ; Call the method
+        fields := processor.ReadDD03LFields(SapSession, testTable)

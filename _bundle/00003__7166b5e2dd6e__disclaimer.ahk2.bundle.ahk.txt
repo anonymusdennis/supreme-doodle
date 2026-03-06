@@ -1,0 +1,254 @@
+;; @bundle-id: 7166b5e2dd6e
+;; @source-rel: disclaimer.ahk2
+;; @source-sha1: 52610a1a71d9ecef23239fd9f65297a3de45cebc
+;; @note: Edit content below. Keep header lines starting with ';;' intact.
+;; -------------------------
+#Requires AutoHotkey v2.0
+
+; ==================== DISCLAIMER DIALOG ====================
+class DisclaimerDialog {
+    ; Version constant - change this for each release to show disclaimer again
+    static VERSION := "0.69_initial"
+    static NODISCLAIMER_FILE := A_ScriptDir . "\.nodisclaimer_v" . DisclaimerDialog.VERSION
+    
+    ; Language definitions
+    static Languages := Map(
+        "DE", {
+            flag: "🇩🇪",
+            title: "Wichtiger Hinweis",
+            disclaimer: "Info:",
+            message: "Dieses Tool wurde mit viel Aufwand erstellt.`n`n" .
+            "Es werden jedoch noch einige Fehler und unerwünschte „Funktionen`" sowie undokumentierte Verhaltensweisen auftreten.`n`n" .
+            "Falls du auf einen solchen Fehler oder eine unerwünschte „Funktion`" stoßen oder Verbesserungsvorschläge solltest, " .
+            "melde diese bitte unter folgender URL:",
+            updates: "Neue Versionen und Updates werden ebenfalls dort veröffentlicht, bitte prüfe regelmäßig auf Aktualisierungen.",
+            contact: "Bei Fragen oder für direkte Unterstützung kannst du mich gerne kontaktieren:",
+            checkbox: "Diese Meldung für Version " . DisclaimerDialog.VERSION . " nicht mehr anzeigen",
+            understand: "OK",
+            cancel: "Schließen"
+        },
+        "EN", {
+            flag: "🇬🇧",
+            title: "Important Notice", 
+            disclaimer: "Info:",
+            message: "This tool was created with a lot of effort.`n`n" .
+                    "However, there may still be some bugs and unwanted 'features' as well as undocumented behaviors.`n`n" .
+                    "If you notice such a 'feature'/bug or have a suggestion, please kindly report it at the following URL:",
+            updates: "New versions and updates will also be posted there, so please check regularly for updates.",
+            contact: "For questions or direct support, you may contact me directly if needed:",
+            checkbox: "Don't show this message again for version " . DisclaimerDialog.VERSION,
+            understand: "OK",
+            cancel: "Close"
+        }
+    )
+    
+    static CurrentLanguage := "DE"  ; Default language
+    
+    ; Check if disclaimer should be shown
+    static ShouldShow() {
+        return !FileExist(DisclaimerDialog.NODISCLAIMER_FILE)
+    }
+    
+    ; Show the disclaimer dialog
+    static Show() {
+        if (!DisclaimerDialog.ShouldShow()) {
+            return true  ; Already acknowledged
+        }
+        
+        ; Create GUI with better sizing
+        dlg := Gui("+Resize -MaximizeBox -MinimizeBox", "")
+        dlg.MarginX := 20
+        dlg.MarginY := 20
+        dlg.BackColor := "White"
+        
+        ; Store language data reference
+        lang := DisclaimerDialog.Languages[DisclaimerDialog.CurrentLanguage]
+        
+        ; Language selector (flags at top)
+        langSection := dlg.Add("Text", "Section Center w500", "")
+        btnDE := dlg.Add("Button", "xs w70 h35", "🇩🇪 DE")
+        btnEN := dlg.Add("Button", "x+10 w70 h35", "🇬🇧 EN")
+        
+        ; Title with disclaimer - add more height
+        titleText := dlg.Add("Text", "xs Section w500 Center h30", "")
+        titleText.SetFont("s14 Bold", "Segoe UI")
+        
+        disclaimerText := dlg.Add("Text", "xs w500 h25 cRed", "")
+        disclaimerText.SetFont("s11 Bold", "Segoe UI")
+        
+        ; Main message - increase height
+        messageText := dlg.Add("Text", "xs w500 h120", "")
+        messageText.SetFont("s10", "Segoe UI")
+        
+        ; URL section with styled link
+        urlLabel := dlg.Add("Text", "xs w500 h25 Center", "")
+        urlLabel.SetFont("s10 Underline cBlue", "Segoe UI")
+        
+        ; Updates info - increase height
+        updatesText := dlg.Add("Text", "xs w500 y+15 h50", "")
+        updatesText.SetFont("s10", "Segoe UI")
+        
+        ; Contact section
+        contactText := dlg.Add("Text", "xs w500 y+15 h25", "")
+        contactText.SetFont("s10 Bold", "Segoe UI")
+        
+        ; Contact details in monospace font - increase height
+        contactDetails := dlg.Add("Text", "xs w500 h50 Center", "WN00224895`nDennis Knausenberger")
+        contactDetails.SetFont("s11", "Consolas")
+        contactDetails.BackColor := "F0F0F0"
+        
+        ; Checkbox
+        dontShowCheck := dlg.Add("CheckBox", "xs y+20 w500 h25", "")
+        dontShowCheck.SetFont("s10", "Segoe UI")
+        
+        ; Single button - no more forcing agreement
+        btnOK := dlg.Add("Button", "xs Section w120 h35 Default", "")
+        btnOK.SetFont("s10 Bold", "Segoe UI")
+        
+        ; Function to update all texts based on current language
+        UpdateTexts() {
+            lang := DisclaimerDialog.Languages[DisclaimerDialog.CurrentLanguage]
+            dlg.Title := lang.flag . " " . lang.title
+            titleText.Text := lang.title
+            disclaimerText.Text := lang.disclaimer
+            messageText.Text := lang.message
+            
+            ; Gitea URL
+            urlLabel.Text := "https://gitea.wgn.wuerth.com/WN00224895/lieferanten_anlage_ahk/issues"
+            
+            updatesText.Text := lang.updates
+            contactText.Text := lang.contact
+            dontShowCheck.Text := lang.checkbox
+            btnOK.Text := lang.understand
+            
+            ; Update language button states
+            if (DisclaimerDialog.CurrentLanguage = "DE") {
+                btnDE.Opt("+Disabled")
+                btnEN.Opt("-Disabled")
+            } else {
+                btnEN.Opt("+Disabled")
+                btnDE.Opt("-Disabled")
+            }
+        }
+        
+        ; Initial text update
+        UpdateTexts()
+        
+        ; Result variable
+        result := true
+        dontShow := false
+        
+        ; Event handlers
+        OnLanguageDE(*) {
+            DisclaimerDialog.CurrentLanguage := "DE"
+            UpdateTexts()
+        }
+        
+        OnLanguageEN(*) {
+            DisclaimerDialog.CurrentLanguage := "EN"
+            UpdateTexts()
+        }
+        
+        OnUrlClick(*) {
+            try {
+                Run("https://gitea.wgn.wuerth.com/WN00224895/lieferanten_anlage_ahk/issues")
+            } catch {
+                ; If URL can't be opened, show in message box
+                MsgBox(urlLabel.Text, "URL", 0x40)
+            }
+        }
+        
+        OnOK(*) {
+            result := true
+            dontShow := dontShowCheck.Value
+            
+            if (dontShow) {
+                ; Create the .nodisclaimer file
+                try {
+                    file := FileOpen(DisclaimerDialog.NODISCLAIMER_FILE, "w")
+                    file.Write("Disclaimer acknowledged on " . FormatTime(, "yyyy-MM-dd HH:mm:ss") . " by " . A_UserName)
+                    file.Close()
+                    
+                    ; Hide the file on Windows
+                    try {
+                        Run('attrib +h "' . DisclaimerDialog.NODISCLAIMER_FILE . '"',, "Hide")
+                    } catch {
+                        ; Ignore if attrib fails
+                    }
+                } catch {
+                    ; Silently fail - don't bother user
+                }
+            }
+            
+            dlg.Destroy()
+        }
+        
+        OnEscape(*) {
+            OnOK()  ; Just close, don't block the tool
+        }
+        
+        ; Bind events
+        btnDE.OnEvent("Click", OnLanguageDE)
+        btnEN.OnEvent("Click", OnLanguageEN)
+        urlLabel.OnEvent("Click", OnUrlClick)
+        btnOK.OnEvent("Click", OnOK)
+        dlg.OnEvent("Escape", OnEscape)
+        dlg.OnEvent("Close", OnOK)  ; Allow closing with X button
+        
+        ; Show with proper height to prevent text cutoff
+        dlg.Show("w540 h650")
+        
+        ; Center on screen
+        MonitorGetWorkArea(MonitorGetPrimary(), &Left, &Top, &Right, &Bottom)
+        dlg.GetPos(&dlgX, &dlgY, &dlgW, &dlgH)
+        newX := (Right - Left - dlgW) // 2 + Left
+        newY := (Bottom - Top - dlgH) // 2 + Top
+        dlg.Move(newX, newY)
+        
+        ; Wait for dialog to close
+        WinWait(dlg)
+        WinWaitClose(dlg)
+        
+        return result
+    }
+    
+    ; Reset disclaimer for this version (for testing)
+    static Reset() {
+        if (FileExist(DisclaimerDialog.NODISCLAIMER_FILE)) {
+            try {
+                ; First unhide the file
+                Run('attrib -h "' . DisclaimerDialog.NODISCLAIMER_FILE . '"',, "Hide")
+                Sleep(100)
+                FileDelete(DisclaimerDialog.NODISCLAIMER_FILE)
+            } catch {
+                ; Try without unhiding
+                try {
+                    FileDelete(DisclaimerDialog.NODISCLAIMER_FILE)
+                } catch {
+                    MsgBox("Could not reset disclaimer: ", "Error", 0x10)
+                }
+            }
+        }
+    }
+}
+
+; ==================== INTEGRATION INTO MAIN SCRIPT ====================
+; Add this function to your main.ahk2 - NON-BLOCKING version
+ShowDisclaimerIfNeeded() {
+    if (DisclaimerDialog.ShouldShow()) {
+        DisclaimerDialog.Show()  ; Just show it, don't block on result
+    }
+    ; Tool continues regardless
+}
+
+; ==================== TEST/DEMO CODE ====================
+; Uncomment below for testing the disclaimer dialog independently
+
+/*
+; Reset for testing
+DisclaimerDialog.Reset()
+
+; Show disclaimer (non-blocking)
+DisclaimerDialog.Show()
+MsgBox("Tool is running! Disclaimer was just informational.", "Tool Running", 0x40)
+*/
