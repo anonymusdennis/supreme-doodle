@@ -2,7 +2,7 @@
 
 class GuiModalWindow extends GuiFrameWindow {
     __New(comObj, policy := "", strict := false, path := "") {
-        super.__New(comObj, policy, strict, path = "" ? "GuiModalWindow" : path)
+        super.__New(comObj, policy, strict, path == "" ? "GuiModalWindow" : path)
     }
 
     PopupDialogText {

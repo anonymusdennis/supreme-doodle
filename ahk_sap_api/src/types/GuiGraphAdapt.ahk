@@ -2,6 +2,6 @@
 
 class GuiGraphAdapt extends SapComProxy {
     __New(comObj, policy := "", strict := false, path := "") {
-        super.__New(comObj, "GuiGraphAdapt", path = "" ? "GuiGraphAdapt" : path, policy, strict)
+        super.__New(comObj, "GuiGraphAdapt", path == "" ? "GuiGraphAdapt" : path, policy, strict)
     }
 }

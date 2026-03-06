@@ -2,6 +2,6 @@
 
 class GuiCheckBox extends GuiVComponent {
     __New(comObj, policy := "", strict := false, path := "") {
-        super.__New(comObj, policy, strict, path = "" ? "GuiCheckBox" : path)
+        super.__New(comObj, policy, strict, path == "" ? "GuiCheckBox" : path)
     }
 }

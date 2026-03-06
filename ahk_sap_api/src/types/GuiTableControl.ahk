@@ -2,7 +2,7 @@
 
 class GuiTableControl extends SapComProxy {
     __New(comObj, policy := "", strict := false, path := "") {
-        super.__New(comObj, "GuiTableControl", path = "" ? "GuiTableControl" : path, policy, strict)
+        super.__New(comObj, "GuiTableControl", path == "" ? "GuiTableControl" : path, policy, strict)
     }
 
     Columns {

@@ -194,17 +194,21 @@ def lint_wrapper_coverage(repo_root: Path, interfaces: dict[str, InterfaceDef]) 
     wrapper_classes: set[str] = set()
     wrapper_extends: dict[str, str] = {}
     class_files: dict[str, Path] = {}
+    duplicate_classes: dict[str, list[Path]] = {}
     for file_path in sorted(types_dir.glob("*.ahk")):
         for line in file_path.read_text(encoding="utf-8").splitlines():
             m_class = CLASS_EXTENDS_RE.match(line)
             if m_class:
                 class_name = m_class.group(1)
+                duplicate_classes.setdefault(class_name, []).append(file_path)
                 wrapper_classes.add(class_name)
                 wrapper_extends[class_name] = m_class.group(2)
                 class_files[class_name] = file_path
 
-    if len(wrapper_classes) != len(class_files):
-        errors.append("duplicate wrapper class definitions detected in src/types")
+    for class_name, files in sorted(duplicate_classes.items()):
+        if len(files) > 1:
+            refs = ", ".join(str(p) for p in files)
+            errors.append(f"duplicate wrapper class definition for {class_name}: {refs}")
 
     documented_gui_types = {name for name in interfaces if name.startswith("Gui")}
     missing_types = sorted(documented_gui_types - wrapper_classes)
@@ -225,6 +229,8 @@ def lint_wrapper_coverage(repo_root: Path, interfaces: dict[str, InterfaceDef]) 
 
         include_index = {name: idx for idx, name in enumerate(include_lines)}
         for class_name, base_name in wrapper_extends.items():
+            # Core bases are loaded before all type includes, so they do not
+            # participate in inter-type include ordering checks.
             if base_name in CORE_BASE_CLASSES:
                 continue
             class_include = f"types/{class_files[class_name].name}"

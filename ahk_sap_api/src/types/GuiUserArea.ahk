@@ -2,6 +2,6 @@
 
 class GuiUserArea extends GuiVContainer {
     __New(comObj, policy := "", strict := false, path := "") {
-        super.__New(comObj, policy, strict, path = "" ? "GuiUserArea" : path)
+        super.__New(comObj, policy, strict, path == "" ? "GuiUserArea" : path)
     }
 }

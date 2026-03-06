@@ -2,7 +2,7 @@
 
 class GuiFrameWindow extends GuiVContainer {
     __New(comObj, policy := "", strict := false, path := "") {
-        super.__New(comObj, policy, strict, path = "" ? this.__Class : path)
+        super.__New(comObj, policy, strict, path == "" ? this.__Class : path)
     }
 
     Close() {

@@ -2,7 +2,7 @@
 
 class GuiMainWindow extends GuiFrameWindow {
     __New(comObj, policy := "", strict := false, path := "") {
-        super.__New(comObj, policy, strict, path = "" ? "GuiMainWindow" : path)
+        super.__New(comObj, policy, strict, path == "" ? "GuiMainWindow" : path)
     }
 
     ButtonbarVisible {

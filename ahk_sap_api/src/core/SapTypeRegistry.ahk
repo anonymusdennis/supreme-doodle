@@ -116,7 +116,7 @@ class SapTypeRegistry {
     }
 
     static NormalizeTypeName(typeName) {
-        if (typeName = "") {
+        if (typeName == "") {
             return typeName
         }
         if (this._typeAliases.Has(typeName)) {

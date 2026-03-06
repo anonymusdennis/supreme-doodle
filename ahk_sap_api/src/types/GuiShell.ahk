@@ -2,7 +2,7 @@
 
 class GuiShell extends GuiVContainer {
     __New(comObj, policy := "", strict := false, path := "") {
-        super.__New(comObj, policy, strict, path = "" ? "GuiShell" : path)
+        super.__New(comObj, policy, strict, path == "" ? "GuiShell" : path)
     }
 
     AccDescription {

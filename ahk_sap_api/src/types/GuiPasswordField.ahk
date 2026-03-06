@@ -2,6 +2,6 @@
 
 class GuiPasswordField extends SapComProxy {
     __New(comObj, policy := "", strict := false, path := "") {
-        super.__New(comObj, "GuiPasswordField", path = "" ? "GuiPasswordField" : path, policy, strict)
+        super.__New(comObj, "GuiPasswordField", path == "" ? "GuiPasswordField" : path, policy, strict)
     }
 }

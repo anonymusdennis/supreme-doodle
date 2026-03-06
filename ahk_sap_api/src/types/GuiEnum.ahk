@@ -2,6 +2,6 @@
 
 class GuiEnum extends GuiVContainer {
     __New(comObj, policy := "", strict := false, path := "") {
-        super.__New(comObj, policy, strict, path = "" ? "GuiEnum" : path)
+        super.__New(comObj, policy, strict, path == "" ? "GuiEnum" : path)
     }
 }

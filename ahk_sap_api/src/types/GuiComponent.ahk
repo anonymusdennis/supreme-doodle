@@ -2,7 +2,7 @@
 
 class GuiComponent extends SapComProxy {
     __New(comObj, policy := "", strict := false, path := "") {
-        defaultPath := path = "" ? this.__Class : path
+        defaultPath := path == "" ? this.__Class : path
         super.__New(comObj, this.__Class, defaultPath, policy, strict)
     }
 

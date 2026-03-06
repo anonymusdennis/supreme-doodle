@@ -2,6 +2,6 @@
 
 class GuiChart extends SapComProxy {
     __New(comObj, policy := "", strict := false, path := "") {
-        super.__New(comObj, "GuiChart", path = "" ? "GuiChart" : path, policy, strict)
+        super.__New(comObj, "GuiChart", path == "" ? "GuiChart" : path, policy, strict)
     }
 }

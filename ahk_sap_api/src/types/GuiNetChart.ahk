@@ -2,6 +2,6 @@
 
 class GuiNetChart extends SapComProxy {
     __New(comObj, policy := "", strict := false, path := "") {
-        super.__New(comObj, "GuiNetChart", path = "" ? "GuiNetChart" : path, policy, strict)
+        super.__New(comObj, "GuiNetChart", path == "" ? "GuiNetChart" : path, policy, strict)
     }
 }

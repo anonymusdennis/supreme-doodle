@@ -2,7 +2,7 @@
 
 class GuiSessionInfo extends SapComProxy {
     __New(comObj, policy := "", strict := false, path := "") {
-        super.__New(comObj, "GuiSessionInfo", path = "" ? "GuiSessionInfo" : path, policy, strict)
+        super.__New(comObj, "GuiSessionInfo", path == "" ? "GuiSessionInfo" : path, policy, strict)
     }
 
     ApplicationServer {

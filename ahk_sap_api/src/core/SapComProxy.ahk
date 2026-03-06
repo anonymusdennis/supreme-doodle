@@ -4,7 +4,7 @@ class SapComProxy {
     __New(comObj, typeName := "GuiUnknown", path := "", policy := "", strict := false) {
         this.DefineProp("_com", {Value: comObj})
         this.DefineProp("_typeName", {Value: typeName})
-        this.DefineProp("_path", {Value: path = "" ? typeName : path})
+        this.DefineProp("_path", {Value: path == "" ? typeName : path})
         this.DefineProp("_policy", {Value: IsObject(policy) ? policy : SapHookPolicy()})
         this.DefineProp("_strict", {Value: strict})
         this.DefineProp("_allow", {Value: SapTypeRegistry.GetAllowlist(typeName)})

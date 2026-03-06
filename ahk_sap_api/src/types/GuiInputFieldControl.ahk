@@ -2,6 +2,6 @@
 
 class GuiInputFieldControl extends SapComProxy {
     __New(comObj, policy := "", strict := false, path := "") {
-        super.__New(comObj, "GuiInputFieldControl", path = "" ? "GuiInputFieldControl" : path, policy, strict)
+        super.__New(comObj, "GuiInputFieldControl", path == "" ? "GuiInputFieldControl" : path, policy, strict)
     }
 }

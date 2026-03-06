@@ -2,6 +2,6 @@
 
 class GuiComboBoxControl extends SapComProxy {
     __New(comObj, policy := "", strict := false, path := "") {
-        super.__New(comObj, "GuiComboBoxControl", path = "" ? "GuiComboBoxControl" : path, policy, strict)
+        super.__New(comObj, "GuiComboBoxControl", path == "" ? "GuiComboBoxControl" : path, policy, strict)
     }
 }

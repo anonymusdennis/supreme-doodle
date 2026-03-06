@@ -2,6 +2,6 @@
 
 class GuiSplit extends GuiShell {
     __New(comObj, policy := "", strict := false, path := "") {
-        super.__New(comObj, policy, strict, path = "" ? "GuiSplit" : path)
+        super.__New(comObj, policy, strict, path == "" ? "GuiSplit" : path)
     }
 }

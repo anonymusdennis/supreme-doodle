@@ -2,6 +2,6 @@
 
 class GuiStage extends SapComProxy {
     __New(comObj, policy := "", strict := false, path := "") {
-        super.__New(comObj, "GuiStage", path = "" ? "GuiStage" : path, policy, strict)
+        super.__New(comObj, "GuiStage", path == "" ? "GuiStage" : path, policy, strict)
     }
 }

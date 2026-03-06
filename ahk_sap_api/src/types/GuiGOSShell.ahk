@@ -2,6 +2,6 @@
 
 class GuiGOSShell extends GuiVContainer {
     __New(comObj, policy := "", strict := false, path := "") {
-        super.__New(comObj, policy, strict, path = "" ? "GuiGOSShell" : path)
+        super.__New(comObj, policy, strict, path == "" ? "GuiGOSShell" : path)
     }
 }

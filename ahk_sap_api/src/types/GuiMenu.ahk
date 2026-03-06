@@ -2,6 +2,6 @@
 
 class GuiMenu extends GuiVContainer {
     __New(comObj, policy := "", strict := false, path := "") {
-        super.__New(comObj, policy, strict, path = "" ? "GuiMenu" : path)
+        super.__New(comObj, policy, strict, path == "" ? "GuiMenu" : path)
     }
 }

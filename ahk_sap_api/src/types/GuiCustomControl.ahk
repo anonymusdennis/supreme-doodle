@@ -2,6 +2,6 @@
 
 class GuiCustomControl extends GuiVContainer {
     __New(comObj, policy := "", strict := false, path := "") {
-        super.__New(comObj, policy, strict, path = "" ? "GuiCustomControl" : path)
+        super.__New(comObj, policy, strict, path == "" ? "GuiCustomControl" : path)
     }
 }

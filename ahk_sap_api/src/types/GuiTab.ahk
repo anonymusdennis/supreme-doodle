@@ -2,6 +2,6 @@
 
 class GuiTab extends GuiVContainer {
     __New(comObj, policy := "", strict := false, path := "") {
-        super.__New(comObj, policy, strict, path = "" ? "GuiTab" : path)
+        super.__New(comObj, policy, strict, path == "" ? "GuiTab" : path)
     }
 }

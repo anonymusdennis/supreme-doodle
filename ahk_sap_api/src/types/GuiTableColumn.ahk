@@ -2,6 +2,6 @@
 
 class GuiTableColumn extends GuiComponentCollection {
     __New(comObj, policy := "", strict := false, path := "") {
-        super.__New(comObj, policy, strict, path = "" ? "GuiTableColumn" : path)
+        super.__New(comObj, policy, strict, path == "" ? "GuiTableColumn" : path)
     }
 }
