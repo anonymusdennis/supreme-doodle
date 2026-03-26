@@ -3,6 +3,7 @@
 class SapHookPolicy {
     static RECONNECT_COOLDOWN_MS := 3000
     static SAP_WINDOW_ID_PREFIX := "/wnd["
+    static MAX_PARENT_TRAVERSAL_STEPS := 15
 
     __New(reconnectCooldownMs := unset) {
         this._recentReconnectAttempts := Map()
@@ -134,7 +135,7 @@ class SapHookPolicy {
         try {
             current := raw
             step := 0
-            while (step < 15 && IsObject(current)) {
+            while (step < SapHookPolicy.MAX_PARENT_TRAVERSAL_STEPS && IsObject(current)) {
                 try {
                     if (current.Type = "GuiSession") {
                         return current
