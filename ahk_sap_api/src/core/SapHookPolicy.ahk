@@ -304,7 +304,7 @@ class SapHookPolicy {
                     context.selectedIndex := 1
                 }
                 radio := reconnectGui.Add("Radio", opt, label)
-                radio.OnEvent("Click", ((selIdx, *) => (context.selectedIndex := selIdx)).Bind(idx))
+                radio.OnEvent("Click", ObjBindMethod(this, "_OnReconnectSessionRadioClick", context, idx))
                 context.sessionControls.Push(radio)
                 yPos += 24
                 idx += 1
@@ -342,6 +342,10 @@ class SapHookPolicy {
         reconnectGui.Show("w710 h420")
         WinWaitClose(reconnectGui)
         return context.resultSession
+    }
+
+    _OnReconnectSessionRadioClick(context, selectedIndex, *) {
+        context.selectedIndex := selectedIndex
     }
 
     _IsProxyComAvailable(proxy) {

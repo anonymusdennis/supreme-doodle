@@ -990,7 +990,7 @@ class TaskDistributor {
                         worker["completedTasks"],
                         worker["current_status"]
                     )
-                    if (selectedWorkerId >= 0 && worker["id"] = selectedWorkerId) {
+                    if (selectedWorkerId >= 0 && worker["id"] == selectedWorkerId) {
                         selectedRow := rowIndex
                     }
                 }
