@@ -63,6 +63,10 @@ class SapHookPolicy {
     }
 
     _TryReconnectProxy(proxy, typeName, path) {
+        if (!this._ShouldAttemptReconnect(proxy, typeName, path)) {
+            return false
+        }
+
         attemptKey := this._BuildReconnectKey(proxy, path)
         if (this._IsReconnectCoolingDown(attemptKey)) {
             return false
@@ -83,6 +87,81 @@ class SapHookPolicy {
             proxy._com := replacementCom
             this._recentReconnectAttempts[attemptKey] := A_TickCount
             return true
+        } catch {
+            return false
+        }
+    }
+
+    _ShouldAttemptReconnect(proxy, typeName, path) {
+        if (!this._LooksLikeSessionPath(path)) {
+            return false
+        }
+
+        session := this._GetOwningSession(proxy, typeName)
+        if (!IsObject(session)) {
+            return true
+        }
+
+        return !this._IsSessionResponsive(session)
+    }
+
+    _LooksLikeSessionPath(path) {
+        if (path = "") {
+            return false
+        }
+        return InStr(path, SapHookPolicy.SAP_WINDOW_ID_PREFIX) > 0
+    }
+
+    _GetOwningSession(proxy, typeName) {
+        if (!IsObject(proxy)) {
+            return ""
+        }
+
+        try {
+            raw := proxy.Raw()
+        } catch {
+            return ""
+        }
+
+        if (!IsObject(raw)) {
+            return ""
+        }
+
+        if (typeName = "GuiSession") {
+            return raw
+        }
+
+        try {
+            current := raw
+            step := 0
+            while (step < 15 && IsObject(current)) {
+                try {
+                    if (current.Type = "GuiSession") {
+                        return current
+                    }
+                } catch {
+                }
+                try {
+                    current := current.Parent
+                } catch {
+                    break
+                }
+                step += 1
+            }
+        } catch {
+        }
+
+        return ""
+    }
+
+    _IsSessionResponsive(session) {
+        if (!IsObject(session)) {
+            return false
+        }
+
+        try {
+            wnd := session.FindById("wnd[0]", false)
+            return IsObject(wnd)
         } catch {
             return false
         }
