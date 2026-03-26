@@ -26,6 +26,7 @@ global CHECK_INTERVAL := 1000  ; ms
 global RECOVERY_COOLDOWN_MS := 2000
 global LOCK_RETRY_INTERVAL := 50 ; ms
 global MAX_LOCK_WAIT := 10000 ; ms
+global STALE_LOCK_SECONDS := 30
 global SUCCESS_LOG := A_ScriptDir . "\logs\success_tables.log"
 global FAILURE_LOG := A_ScriptDir . "\logs\failed_tables.log"
 global REMOVED_FIELDS_LOG := A_ScriptDir . "\removed_fields.log"
@@ -430,6 +431,16 @@ class SAPWorker {
                     lockContent := FileRead(LOCK_FILE)
                     ; If locked by another worker, wait
                     if (Trim(lockContent) != "" && Trim(lockContent) != String(this.workerId)) {
+                        try {
+                            lockModified := FileGetTime(LOCK_FILE, "M")
+                            if (DateDiff(A_Now, lockModified, "Seconds") >= STALE_LOCK_SECONDS) {
+                                FileDelete(LOCK_FILE)
+                                Sleep(LOCK_RETRY_INTERVAL)
+                                continue
+                            }
+                        } catch {
+                            ; Continue waiting if stale check fails
+                        }
                         Sleep(LOCK_RETRY_INTERVAL)
                         continue
                     }
