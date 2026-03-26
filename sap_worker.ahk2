@@ -45,6 +45,7 @@ global SleepTimeShort := 20
 global SleepTimeMedium := 50
 global SleepTimeLong := 200
 global SCRIPT_CACHE_DIR := A_ScriptDir . "\script_cache"
+global DD03L_CACHE_DIR := A_ScriptDir . "\dd03l_cache"
 SetWorkingDir(A_ScriptDir)
 ProcessSetPriority("High")
 
@@ -118,6 +119,9 @@ class SAPWorker {
         if (!DirExist(SCRIPT_CACHE_DIR)) {
             DirCreate(SCRIPT_CACHE_DIR)
         }
+        if (!DirExist(DD03L_CACHE_DIR)) {
+            DirCreate(DD03L_CACHE_DIR)
+        }
         LogMessage("INFO", "Worker " . workerId . " starting...")
         ; Load worker configuration
         this.LoadWorkerConfig()
@@ -127,6 +131,68 @@ class SAPWorker {
         ; Windows-safe filename for SAP table names like /BIC/...
         safeTableName := RegExReplace(safeTableName, "[\/:*?`"`"<>|]", "_")
         return SCRIPT_CACHE_DIR . "\" . safeTableName . ".sapscript"
+    }
+    GetDD03LCachePath(tableName) {
+        safeTableName := StrUpper(Trim(tableName))
+        safeTableName := RegExReplace(safeTableName, "[\/:*?`"`"<>|]", "_")
+        return DD03L_CACHE_DIR . "\" . safeTableName . ".fields"
+    }
+
+    LoadCachedDD03LFields(tableName) {
+        if (Trim(tableName) = "") {
+            return ""
+        }
+        cachePath := this.GetDD03LCachePath(tableName)
+        if (!FileExist(cachePath)) {
+            return ""
+        }
+        fields := Map()
+        try {
+            raw := FileRead(cachePath, "UTF-8")
+            for line in StrSplit(StrReplace(raw, "`r", ""), "`n") {
+                trimmed := Trim(line)
+                if (trimmed = "") {
+                    continue
+                }
+                parts := StrSplit(trimmed, "|")
+                fieldName := parts.Length >= 1 ? Trim(parts[1]) : ""
+                isKey := parts.Length >= 2 ? Trim(parts[2]) : ""
+                if (fieldName != "" && RegExMatch(fieldName, "^[\/A-Za-z0-9_]+$")) {
+                    fields[fieldName] := {
+                        fieldName: fieldName,
+                        key: isKey
+                    }
+                }
+            }
+            return fields.Count > 0 ? fields : ""
+        } catch {
+            return ""
+        }
+    }
+
+    SaveDD03LFieldsToCache(tableName, fields) {
+        if (Trim(tableName) = "" || !IsObject(fields) || fields.Count = 0) {
+            return false
+        }
+        try {
+            if (!DirExist(DD03L_CACHE_DIR)) {
+                DirCreate(DD03L_CACHE_DIR)
+                if (!DirExist(DD03L_CACHE_DIR)) {
+                    throw Error("DD03L cache directory could not be created: " . DD03L_CACHE_DIR)
+                }
+            }
+            cachePath := this.GetDD03LCachePath(tableName)
+            output := ""
+            for fieldName, fieldData in fields {
+                output .= fieldData.fieldName . "|" . fieldData.key . "`r`n"
+            }
+            file := FileOpen(cachePath, "w", "UTF-8")
+            file.Write(output)
+            file.Close()
+            return true
+        } catch {
+            return false
+        }
     }
 
     HasCachedScript(tableName) {
@@ -1282,6 +1348,11 @@ class SAPWorker {
     }
 
     ReadDD03LFields(tableName) {
+        cachedFields := this.LoadCachedDD03LFields(tableName)
+        if (cachedFields != "") {
+            set_status(this, "Using cached DD03L fields for " . tableName)
+            return cachedFields
+        }
         this.session.FindById("wnd[0]/tbar[0]/okcd").Text := "/nSE16N"
         this.session.FindById("wnd[0]").SendVKey(0)
         ; Sleep(200)
@@ -1355,6 +1426,7 @@ class SAPWorker {
                 results.Delete(index)
             }
         }
+        this.SaveDD03LFieldsToCache(tableName, results)
         ExecuteSapCommand(this.session, "/n")
         return results
     }
