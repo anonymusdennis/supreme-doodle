@@ -843,11 +843,8 @@ class TaskDistributor {
         this.workerListView.ModifyCol(4, 80)
         this.workerListView.ModifyCol(5, 210)
 
-        this.progressGui.Add("Text", "xs y+10", "Worker Commands:")
-        btnPauseWorker := this.progressGui.Add("Button", "w120", "Pause Worker")
-        btnResumeWorker := this.progressGui.Add("Button", "x+10 w120", "Resume Worker")
-        btnStopWorker := this.progressGui.Add("Button", "x+10 w120", "Stop Worker")
-        btnPauseAll := this.progressGui.Add("Button", "xs y+8 w120", "Pause All")
+        this.progressGui.Add("Text", "xs y+10", "Global Commands:")
+        btnPauseAll := this.progressGui.Add("Button", "w120", "Pause All")
         btnResumeAll := this.progressGui.Add("Button", "x+10 w120", "Resume All")
         btnAddWorker := this.progressGui.Add("Button", "x+10 w120", "Add Worker")
         btnStepBack := this.progressGui.Add("Button", "x+10 w120", "Step Back")
@@ -888,6 +885,20 @@ class TaskDistributor {
             }
             this.EnqueueCommand("stop", workerId)
         }
+        _ShowWorkerContextMenu(ctrl, row, *) {
+            if (row > 0) {
+                this.workerListView.Modify(row, "Select Focus Vis")
+            }
+            workerId := this.GetSelectedWorkerId()
+            if (workerId < 0) {
+                return
+            }
+            workerMenu := Menu()
+            workerMenu.Add("Pause Worker", _PauseSelected)
+            workerMenu.Add("Resume Worker", _ResumeSelected)
+            workerMenu.Add("Stop Worker", _StopSelected)
+            workerMenu.Show()
+        }
         _PauseAll(*) {
             this.uiPaused := true
             this.SetGlobalPauseState(true)
@@ -914,15 +925,15 @@ class TaskDistributor {
             if (this.batchInProgress) {
                 if (MsgBox("Processing is still active. Stop all workers and close?", "Confirm", 0x34) = "Yes") {
                     this.StopAllWorkers()
-                    this.progressGui.Destroy()
+                    SetTimer(UpdateProgress, 0)
+                    ExitApp()
                 }
             } else {
-                this.progressGui.Destroy()
+                SetTimer(UpdateProgress, 0)
+                ExitApp()
             }
         }
-        btnPauseWorker.OnEvent("Click", _PauseSelected)
-        btnResumeWorker.OnEvent("Click", _ResumeSelected)
-        btnStopWorker.OnEvent("Click", _StopSelected)
+        this.workerListView.OnEvent("ContextMenu", _ShowWorkerContextMenu)
         btnPauseAll.OnEvent("Click", _PauseAll)
         btnResumeAll.OnEvent("Click", _ResumeAll)
         btnAddWorker.OnEvent("Click", _AddWorker)
@@ -930,6 +941,7 @@ class TaskDistributor {
         btnReset.OnEvent("Click", _Reset)
         btnStop.OnEvent("Click", _BtnStopClickHandler)
         btnClose.OnEvent("Click", _BtnCloseClickHandler)
+        this.progressGui.OnEvent("Close", _BtnCloseClickHandler)
         this.progressGui.Show()
 
         ; Update timer
