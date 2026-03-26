@@ -200,7 +200,7 @@ class SAPWorker {
         }
     }
 
-    ShouldFallbackToDd03L(cachedFlowErrorMessage) {
+    ShouldFallbackToDD03L(cachedFlowErrorMessage) {
         msg := StrUpper(Trim(cachedFlowErrorMessage))
         if (msg = "") {
             return false
@@ -211,14 +211,20 @@ class SAPWorker {
     }
 
     HandleCachedScriptFallback(tableName) {
-        if (!this.ShouldFallbackToDd03L(this.lastErrorMessage)) {
+        if (!this.ShouldFallbackToDD03L(this.lastErrorMessage)) {
             return false
         }
 
-        LogMessage("WARNING", "Cached script unusable for " . tableName . " - deleting cache and falling back to DD03L flow")
+        LogMessage("WARNING", "Cached script invalid or failed to apply for " . tableName . " - deleting cache and falling back to DD03L flow")
         this.DeleteCachedScript(tableName)
         set_status(this, "Cached script invalid for " . tableName . " - falling back to DD03L flow")
         return true
+    }
+
+    SetDefaultCachedFlowError() {
+        if (this.lastErrorMessage = "") {
+            this.lastErrorMessage := "Cached script flow failed"
+        }
     }
 
     ApplyScriptInEditor(scriptText) {
@@ -862,15 +868,11 @@ class SAPWorker {
                 try {
                     processResult := this.ProcessTableFromCachedScript(tableName, destination, cachedScript)
                 } catch {
-                    if (this.lastErrorMessage = "") {
-                        this.lastErrorMessage := "Cached script flow failed"
-                    }
+                    this.SetDefaultCachedFlowError()
                 }
 
                 if (!processResult) {
-                    if (this.lastErrorMessage = "") {
-                        this.lastErrorMessage := "Cached script flow failed"
-                    }
+                    this.SetDefaultCachedFlowError()
 
                     if (this.HandleCachedScriptFallback(tableName)) {
                         runDd03LFlow := true
