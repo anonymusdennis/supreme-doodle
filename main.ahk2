@@ -924,14 +924,17 @@ class TaskDistributor {
             this.StopAllWorkers()
         }
         _BtnCloseClickHandler(*) {
+            shouldClose := true
             if (this.batchInProgress) {
                 if (MsgBox("Processing is still active. Stop all workers and close?", "Confirm", 0x34) = "Yes") {
                     this.StopAllWorkers()
-                    SetTimer(UpdateProgress, 0)
-                    ExitApp()
+                } else {
+                    shouldClose := false
                 }
-            } else {
+            }
+            if (shouldClose) {
                 SetTimer(UpdateProgress, 0)
+                this.progressGui.Destroy()
                 ExitApp()
             }
         }

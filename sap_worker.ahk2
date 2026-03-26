@@ -668,9 +668,6 @@ class SAPWorker {
             }
             this.AddCommandResult("pause", "ok", "Worker paused.", cmdId)
             this.MarkQueueCommand(command, "done", "ok", "Worker paused.")
-            if (cmdId > 0) {
-                this.processedCommandIds[cmdId] := true
-            }
             return "pause"
         } else if (cmdType = "resume") {
             this.isPaused := false
@@ -681,9 +678,6 @@ class SAPWorker {
             }
             this.AddCommandResult("resume", "ok", "Worker resumed.", cmdId)
             this.MarkQueueCommand(command, "done", "ok", "Worker resumed.")
-            if (cmdId > 0) {
-                this.processedCommandIds[cmdId] := true
-            }
             return "resume"
         } else if (cmdType = "stop") {
             if (workerEntry != "") {
@@ -694,17 +688,11 @@ class SAPWorker {
             }
             this.AddCommandResult("stop", "ok", "Worker stopping now.", cmdId)
             this.MarkQueueCommand(command, "done", "ok", "Worker stopping now.")
-            if (cmdId > 0) {
-                this.processedCommandIds[cmdId] := true
-            }
             this.isRunning := false
             return "stop"
         } else if (cmdType != "") {
             this.AddCommandResult(cmdType, "ignored", "Unsupported worker command.", cmdId)
             this.MarkQueueCommand(command, "done", "ignored", "Unsupported worker command.")
-            if (cmdId > 0) {
-                this.processedCommandIds[cmdId] := true
-            }
             return "ignored"
         }
         return "none"
@@ -724,30 +712,30 @@ class SAPWorker {
             for cmd in this.config["commandQueue"] {
                 cmdStatus := cmd.Has("status") ? cmd["status"] : "queued"
                 isTarget := (cmd.Has("targetWorker") && (cmd["targetWorker"] = -1 || cmd["targetWorker"] = this.workerId))
-                if (cmdStatus = "in_progress" && !isTarget) {
-                    break
-                }
-                if ((cmdStatus = "queued" || cmdStatus = "") && !isTarget) {
+                if (cmdStatus = "done") {
                     continue
                 }
-                if ((cmdStatus = "queued" || cmdStatus = "") && isTarget) {
-                    this.MarkQueueCommand(cmd, "in_progress")
-                    queueChanged := true
-                }
-                cmdId := cmd.Has("id") ? cmd["id"] : 0
-                if (cmdId > 0 && this.processedCommandIds.Has(cmdId)) {
-                    if (cmdStatus = "in_progress") {
-                        this.MarkQueueCommand(cmd, "done")
+                if (cmdStatus = "in_progress") {
+                    if (isTarget) {
+                        action := this.ApplyWorkerCommand(cmd)
+                        if (action = "stop") {
+                            shouldExit := true
+                        }
                         queueChanged := true
                     }
                     break
                 }
-                if (cmd.Has("status") && cmd["status"] = "in_progress" && isTarget) {
+                if (cmdStatus = "queued" || cmdStatus = "") {
+                    if (!isTarget) {
+                        break
+                    }
+                    this.MarkQueueCommand(cmd, "in_progress")
                     action := this.ApplyWorkerCommand(cmd)
                     if (action = "stop") {
                         shouldExit := true
                     }
                     queueChanged := true
+                    break
                 }
                 break
             }
