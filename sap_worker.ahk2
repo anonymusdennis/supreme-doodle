@@ -25,6 +25,7 @@ global WORKER_ID := A_Args.Length > 0 ? A_Args[1] : 0
 global CHECK_INTERVAL := 1000  ; ms
 global LOCK_RETRY_INTERVAL := 50 ; ms
 global MAX_LOCK_WAIT := 10000 ; ms
+global MAX_SESSION_PROMPT_ATTEMPTS := 30
 global SUCCESS_LOG := A_ScriptDir . "\logs\success_tables.log"
 global FAILURE_LOG := A_ScriptDir . "\logs\failed_tables.log"
 global REMOVED_FIELDS_LOG := A_ScriptDir . "\removed_fields.log"
@@ -716,11 +717,13 @@ class SAPWorker {
     }
 
     PromptForSapSessionSelection() {
-        loop {
+        availabilityPromptAttempts := 0
+        while (availabilityPromptAttempts < MAX_SESSION_PROMPT_ATTEMPTS) {
             availableSessions := this.DiscoverSelectableSapSessions()
             if (availableSessions.Length > 0) {
                 break
             }
+            availabilityPromptAttempts += 1
 
             choice := MsgBox(
                 "No SAP sessions are currently available.`n"
@@ -733,11 +736,17 @@ class SAPWorker {
                 return false
             }
         }
+        if (availableSessions.Length < 1) {
+            this.lastErrorMessage := "No SAP sessions became available for reselection"
+            return false
+        }
 
         prompt := "Configured SAP session is unavailable.`n"
             . "Select a replacement SAP session for this worker:`n`n"
             . this.BuildSapSessionSelectionPrompt(availableSessions)
-        while true {
+        selectionAttempts := 0
+        while (selectionAttempts < MAX_SESSION_PROMPT_ATTEMPTS) {
+            selectionAttempts += 1
             ib := InputBox(prompt, "Select SAP Session", "w750 h420", "1")
             if (ib.Result != "OK") {
                 this.lastErrorMessage := "SAP session reselection cancelled by user"
@@ -767,6 +776,8 @@ class SAPWorker {
 
             MsgBox("Invalid selection. Enter a number between 1 and " . availableSessions.Length . ".")
         }
+        this.lastErrorMessage := "SAP session reselection exceeded maximum attempts"
+        return false
     }
 
     DiscoverSelectableSapSessions() {
@@ -839,16 +850,25 @@ class SAPWorker {
         try {
             currentConfig := JSON.Parse(FileRead(CONFIG_FILE))
             for worker in currentConfig["workers"] {
-                if (worker["id"] = this.workerId) {
+                if (worker["id"] == this.workerId) {
                     worker["sessionIndex"] := selectedSession["index"]
                     worker["connectionIndex"] := selectedSession["connectionIndex"]
                     break
                 }
             }
 
-            file := FileOpen(CONFIG_FILE, "w")
-            file.Write(JSON.Stringify(currentConfig))
-            file.Close()
+            file := ""
+            try {
+                file := FileOpen(CONFIG_FILE, "w")
+                file.Write(JSON.Stringify(currentConfig))
+            } finally {
+                if (IsObject(file)) {
+                    try {
+                        file.Close()
+                    } catch {
+                    }
+                }
+            }
             this.config := currentConfig
             return true
         } catch {
