@@ -3,7 +3,7 @@
 class SapHookPolicy {
     static RECONNECT_COOLDOWN_MS := 3000
     static SAP_WINDOW_ID_PREFIX := "/wnd["
-    static SESSION_MAIN_WINDOW_ID := "wnd[0]"
+    static SESSION_MAIN_WINDOW_PATH := "wnd[0]"
     static MAX_PARENT_TRAVERSAL_STEPS := 15
 
     __New(reconnectCooldownMs := unset) {
@@ -136,7 +136,8 @@ class SapHookPolicy {
         try {
             current := raw
             step := 0
-            while (step < SapHookPolicy.MAX_PARENT_TRAVERSAL_STEPS && IsObject(current)) {
+            maxTraversalSteps := SapHookPolicy.MAX_PARENT_TRAVERSAL_STEPS
+            while (step < maxTraversalSteps && IsObject(current)) {
                 try {
                     if (current.Type = "GuiSession") {
                         return current
@@ -162,7 +163,7 @@ class SapHookPolicy {
         }
 
         try {
-            wnd := session.FindById(SapHookPolicy.SESSION_MAIN_WINDOW_ID, false)
+            wnd := session.FindById(SapHookPolicy.SESSION_MAIN_WINDOW_PATH, false)
             return IsObject(wnd)
         } catch {
             return false
