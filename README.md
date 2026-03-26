@@ -44,13 +44,13 @@ The comparison only works if a valid RFC destination from System A to System B e
 
 ### 1) Define tables
 
-Edit `/home/runner/work/supreme-doodle/supreme-doodle/databases.cfg`:
+Edit `databases.cfg`:
 - one table name per line
 - empty lines are ignored
 
 ### 2) Define RFC destinations
 
-Edit `/home/runner/work/supreme-doodle/supreme-doodle/rfc_destinations.cfg`:
+Edit `rfc_destinations.cfg`:
 - one RFC destination per line
 - empty lines are ignored
 
@@ -58,7 +58,7 @@ Important: destination values must exist in SAP, otherwise tasks are marked as f
 
 ### 3) Optional worker behavior
 
-Edit `/home/runner/work/supreme-doodle/supreme-doodle/worker_config.ini` to control:
+Edit `worker_config.ini` to control:
 - script auto-save
 - naming patterns for scripts/jobs
 - max validation attempts
@@ -85,7 +85,7 @@ Main runtime outputs:
 - `logs/SAPAutomation_YYYY-MM-DD.log`: general log
 - `logs/success_tables.log`: successful table-destination pairs
 - `logs/failed_tables.log`: failed table-destination pairs and error details
-- `removed_fields.log`: fields dropped during script validation
+- `./removed_fields.log`: fields dropped during script validation (root directory)
 - `specials.txt`: special cases (for example no entries)
 - `script_cache/`: cached validated scripts per table
 - `sessions.json`: live task and worker state
@@ -104,46 +104,45 @@ This section covers non-code files used directly by the active tool flow, plus n
 
 | File | Purpose |
 |---|---|
-| `/home/runner/work/supreme-doodle/supreme-doodle/databases.cfg` | Input list of table names to validate/compare. |
-| `/home/runner/work/supreme-doodle/supreme-doodle/rfc_destinations.cfg` | Input list of RFC destinations (target systems). |
-| `/home/runner/work/supreme-doodle/supreme-doodle/script_template.txt` | Base script template used to build SE16XXL comparison script. |
-| `/home/runner/work/supreme-doodle/supreme-doodle/worker_config.ini` | Worker runtime settings (save behavior, batch job settings, row counts, window size, naming patterns). |
-| `/home/runner/work/supreme-doodle/supreme-doodle/illegals.cfg` | Field names excluded from generated comparisons (for example client fields). |
-| `/home/runner/work/supreme-doodle/supreme-doodle/sessions.json` | Runtime state file: workers, task queue, statuses, timestamps. |
-| `/home/runner/work/supreme-doodle/supreme-doodle/specials.txt` | Runtime special-case log written by workers. |
-| `/home/runner/work/supreme-doodle/supreme-doodle/.nodisclaimer_v0.69_initial` | Marker that suppresses disclaimer popup for version `0.69_initial`. |
-| `/home/runner/work/supreme-doodle/supreme-doodle/.currenttag` | Build/release counter used by release scripts. |
-| `/home/runner/work/supreme-doodle/supreme-doodle/.gitignore` | Git ignore rules (logs, generated builds, tokens, dumps, etc.). |
+| `databases.cfg` | Input list of table names to validate/compare. |
+| `rfc_destinations.cfg` | Input list of RFC destinations (target systems). |
+| `script_template.txt` | Base script template used to build SE16XXL comparison script. |
+| `worker_config.ini` | Worker runtime settings (save behavior, batch job settings, row counts, window size, naming patterns). |
+| `illegals.cfg` | Field names excluded from generated comparisons (for example client fields). |
+| `sessions.json` | Runtime state file: workers, task queue, statuses, timestamps. |
+| `specials.txt` | Runtime special-case log written by workers. |
+| `.nodisclaimer_v0.69_initial` | Marker that suppresses disclaimer popup for version `0.69_initial`. |
+| `.currenttag` | Build/release counter used by release scripts. |
+| `.gitignore` | Git ignore rules (logs, generated builds, tokens, dumps, etc.). |
 
 ### Root non-code files for build/release/distribution
 
 | File | Purpose |
 |---|---|
-| `/home/runner/work/supreme-doodle/supreme-doodle/compile.bat` | Windows build/packaging script for compiled distribution, zip creation, and related git operations. |
-| `/home/runner/work/supreme-doodle/supreme-doodle/create_release.bat` | Windows release helper to tag, push, and optionally create/upload a release in Gitea. |
-| `/home/runner/work/supreme-doodle/supreme-doodle/AutoHotkey64.exe` | Bundled AutoHotkey runtime used to launch `.ahk2` scripts or compiled packaging flow. |
-| `/home/runner/work/supreme-doodle/supreme-doodle/main.ico` | Icon asset for main executable/build output. |
-| `/home/runner/work/supreme-doodle/supreme-doodle/worker.ico` | Icon asset for worker executable/build output. |
-| `/home/runner/work/supreme-doodle/supreme-doodle/package.json` | Minimal Node metadata and dependencies for repository utility scripts. |
-| `/home/runner/work/supreme-doodle/supreme-doodle/package-lock.json` | Locked Node dependency versions. |
+| `compile.bat` | Windows build/packaging script for compiled distribution, zip creation, and related git operations. |
+| `create_release.bat` | Windows release helper to tag, push, and optionally create/upload a release in Gitea. |
+| `AutoHotkey64.exe` | Bundled AutoHotkey runtime used to launch `.ahk2` scripts or compiled packaging flow. |
+| `main.ico` | Icon asset for main executable/build output. |
+| `worker.ico` | Icon asset for worker executable/build output. |
+| `package.json` | Minimal Node metadata and dependencies for repository utility scripts. |
+| `package-lock.json` | Locked Node dependency versions. |
 
 ### Non-code files in subdirectories
 
 | Path | Purpose |
 |---|---|
-| `/home/runner/work/supreme-doodle/supreme-doodle/_bundle/manifest.json` | Manifest for bundled/exported script artifacts. |
-| `/home/runner/work/supreme-doodle/supreme-doodle/_bundle/*.txt` | Generated bundle text snapshots of scripts; not required for normal runtime execution. |
-| `/home/runner/work/supreme-doodle/supreme-doodle/ahk_sap_api/README.md` | Documentation for the SAP wrapper submodule used by the main scripts. |
-| `/home/runner/work/supreme-doodle/supreme-doodle/ahk_sap_api/sap_gui_scripting_api_760_condensed_index.md` | SAP scripting API reference index used for wrapper maintenance. |
-| `/home/runner/work/supreme-doodle/supreme-doodle/ahk_sap_api/sap_gui_scripting_api_761(2).txt` | SAP scripting API text reference copy. |
-| `/home/runner/work/supreme-doodle/supreme-doodle/ahk_sap_api/sap_gui_scripting_api_761-1.pdf` | SAP scripting API PDF reference. |
-| `/home/runner/work/supreme-doodle/supreme-doodle/ahk_sap_api/task.md` | Internal notes/task file for wrapper work. |
-| `/home/runner/work/supreme-doodle/supreme-doodle/old/*` | Historical binaries, configs, dumps, and backups from previous versions; archive only. |
-| `/home/runner/work/supreme-doodle/supreme-doodle/node_modules/*` | Third-party dependency files from npm install; external vendor content. |
+| `_bundle/manifest.json` | Manifest for bundled/exported script artifacts. |
+| `_bundle/*.txt` | Generated bundle text snapshots of scripts; not required for normal runtime execution. |
+| `ahk_sap_api/README.md` | Documentation for the SAP wrapper submodule used by the main scripts. |
+| `ahk_sap_api/sap_gui_scripting_api_760_condensed_index.md` | SAP scripting API reference index used for wrapper maintenance. |
+| `ahk_sap_api/sap_gui_scripting_api_761(2).txt` | SAP scripting API text reference copy. |
+| `ahk_sap_api/sap_gui_scripting_api_761-1.pdf` | SAP scripting API PDF reference. |
+| `ahk_sap_api/task.md` | Internal notes/task file for wrapper work. |
+| `old/*` | Historical binaries, configs, dumps, and backups from previous versions; archive only. |
+| `node_modules/*` | Third-party dependency files from npm install; external vendor content. |
 
 ## Notes for users
 
 - Start with a small table subset and one destination to validate setup.
 - Ensure SAP authorizations allow SE16N, SE16XXL, RFC access, and script save/job actions when enabled.
 - If you only need comparison and not job execution, disable batch job creation in `worker_config.ini`.
-
