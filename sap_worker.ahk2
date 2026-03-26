@@ -96,6 +96,7 @@ class SAPWorker {
         this.successCount := 0
         this.failureCount := 0
         this.isPaused := false
+        this.commandPaused := false
         this.lastCommandPoll := 0
         this.processedCommandIds := Map()
         this.lastRecoveryTick := 0
@@ -639,6 +640,7 @@ class SAPWorker {
         cmdId := command.Has("id") ? command["id"] : 0
         workerEntry := this.GetWorkerById(this.workerId)
         if (cmdType = "pause") {
+            this.commandPaused := true
             this.isPaused := true
             if (workerEntry != "") {
                 workerEntry["status"] := "paused"
@@ -650,6 +652,7 @@ class SAPWorker {
             this.MarkQueueCommand(command, "done", "ok", "Worker paused.")
             return "pause"
         } else if (cmdType = "resume") {
+            this.commandPaused := false
             this.isPaused := false
             if (workerEntry != "") {
                 workerEntry["status"] := "ready"
@@ -702,12 +705,13 @@ class SAPWorker {
                             shouldExit := true
                         }
                         queueChanged := true
+                        break
                     }
-                    break
+                    continue
                 }
                 if (cmdStatus = "queued" || cmdStatus = "") {
                     if (!isTarget) {
-                        break
+                        continue
                     }
                     this.MarkQueueCommand(cmd, "in_progress")
                     action := this.ApplyWorkerCommand(cmd)
@@ -717,14 +721,10 @@ class SAPWorker {
                     queueChanged := true
                     break
                 }
-                break
+                continue
             }
 
-            if (this.config["uiState"]["paused"]) {
-                this.isPaused := true
-            } else {
-                this.isPaused := false
-            }
+            this.isPaused := this.commandPaused || this.config["uiState"]["paused"]
 
             if (queueChanged) {
                 file := FileOpen(CONFIG_FILE, "w")
