@@ -22,6 +22,7 @@ global WORKER_START_DELAY := 6000
 global BATCH_SIZE_PER_WORKER := 5  ; Each worker gets 5 tables per batch
 global LOCK_RETRY_INTERVAL := 50
 global MAX_LOCK_WAIT := 10000
+global STALE_LOCK_SECONDS := 30
 global MAX_COMMAND_RESULTS_DISPLAY := 10
 
 ; ==================== GLOBAL VARIABLES ====================
@@ -113,6 +114,7 @@ class TaskDistributor {
         this.commandListView := ""
         this.commandSeq := 0
         this.uiPaused := false
+        this.batchSizePerWorker := BATCH_SIZE_PER_WORKER
     }
 
     fixconfig() {
@@ -136,7 +138,7 @@ class TaskDistributor {
 
         ; Calculate batch count
         workerCount := this.config["workers"].Length
-        batchSize := workerCount * BATCH_SIZE_PER_WORKER
+        batchSize := workerCount * this.batchSizePerWorker
         this.totalBatches := Ceil(this.allTasks.Length / batchSize)
         this.EnsureCommandChannels()
 
@@ -229,10 +231,24 @@ class TaskDistributor {
         btnOK := myGui.Add("Button", "xs Section w100", "OK")
         btnCancel := myGui.Add("Button", "x+10 w100", "Cancel")
         btnSelectAll := myGui.Add("Button", "x+10 w100", "Select All")
+        myGui.Add("Text", "xs y+12", "Batch size per worker:")
+        batchSizeInput := myGui.Add("Edit", "w120 Number")
+        batchSizeInput.Value := String(this.batchSizePerWorker)
 
         result := false
 
         OnOKClick(*) {
+            batchSizeValue := 0
+            try {
+                batchSizeValue := Integer(Trim(batchSizeInput.Value))
+            } catch {
+                batchSizeValue := 0
+            }
+            if (batchSizeValue < 1) {
+                MsgBox("Batch size per worker must be at least 1.", "Error", 0x30)
+                return
+            }
+            this.batchSizePerWorker := batchSizeValue
             selectedCount := 0
             Loop checkboxes.Length {
                 if (checkboxes[A_Index].Value) {
@@ -322,7 +338,7 @@ class TaskDistributor {
 
         ; Calculate batch size
         workerCount := this.config["workers"].Length
-        batchSize := workerCount * BATCH_SIZE_PER_WORKER
+        batchSize := workerCount * this.batchSizePerWorker
 
         ; Calculate batch range
         startIdx := this.currentBatchIndex * batchSize + 1
@@ -390,13 +406,12 @@ class TaskDistributor {
 
         ; Kill all workers
         KillAllWorkers()
-        Sleep(2000)  ; Wait for cleanup
+        Sleep(200)  ; Small buffer for process/file-handle cleanup without long batch delay
 
         this.batchInProgress := false
 
         ; Load next batch
         if (this.LoadNextBatch()) {
-            Sleep(3000)  ; Pause between batches
             this.StartWorkers()
             return false  ; More batches to process
         }
@@ -418,6 +433,15 @@ class TaskDistributor {
                 if (FileExist(LOCK_FILE)) {
                     lockContent := FileRead(LOCK_FILE)
                     if (Trim(lockContent) != "" && Trim(lockContent) != String(lockOwner)) {
+                        try {
+                            lockModified := FileGetTime(LOCK_FILE, "M")
+                            if (DateDiff(A_Now, lockModified, "Seconds") >= STALE_LOCK_SECONDS) {
+                                FileDelete(LOCK_FILE)
+                                Sleep(LOCK_RETRY_INTERVAL)
+                                continue
+                            }
+                        } catch {
+                        }
                         Sleep(LOCK_RETRY_INTERVAL)
                         continue
                     }
@@ -488,10 +512,14 @@ class TaskDistributor {
         if (!this.config.Has("commandResults")) {
             this.config["commandResults"] := []
         }
-        if (!this.config.Has("uiState")) {
-            this.config["uiState"] := {
-                paused: false
+        if (!this.config.Has("uiState") || Type(this.config["uiState"]) != "Map") {
+            pausedState := false
+            if (this.config.Has("uiState")
+                && Type(this.config["uiState"]) = "Object"
+                && ObjHasOwnProp(this.config["uiState"], "paused")) {
+                pausedState := this.config["uiState"].paused
             }
+            this.config["uiState"] := Map("paused", pausedState)
         } else if (!this.config["uiState"].Has("paused")) {
             this.config["uiState"]["paused"] := false
         }
@@ -531,6 +559,8 @@ class TaskDistributor {
                 payload: payload,
                 createdAt: A_Now,
                 status: "queued",
+                resultStatus: "",
+                resultMessage: "",
                 issuer: "main"
             }
             this.config["commandQueue"].Push(command)
@@ -619,15 +649,20 @@ class TaskDistributor {
 
         btnAdd := selector.Add("Button", "w100", "Add")
         btnCancel := selector.Add("Button", "x+10 w100", "Cancel")
-        selectedSession := ""
+        dialogContext := {
+            selectedSession: "",
+            ddl: ddl,
+            selector: selector
+        }
 
-        btnAdd.OnEvent("Click", (*) => (selectedSession := ddl.Text, selector.Destroy()))
-        btnCancel.OnEvent("Click", (*) => selector.Destroy())
+        btnAdd.OnEvent("Click", ObjBindMethod(this, "OnAddWorkerDialogAdd", dialogContext))
+        btnCancel.OnEvent("Click", ObjBindMethod(this, "OnAddWorkerDialogCancel", dialogContext))
 
         selector.Show()
         WinWait(selector)
         WinWaitClose(selector)
 
+        selectedSession := dialogContext.selectedSession
         if (selectedSession = "") {
             return
         }
@@ -658,6 +693,13 @@ class TaskDistributor {
         this.WriteConfigLocked("main")
         this.StartNextWorker()
     }
+    OnAddWorkerDialogAdd(dialogContext, *) {
+        dialogContext.selectedSession := dialogContext.ddl.Text
+        dialogContext.selector.Destroy()
+    }
+    OnAddWorkerDialogCancel(dialogContext, *) {
+        dialogContext.selector.Destroy()
+    }
     StepBackTasks() {
         countInput := InputBox("How many completed/failed tasks to move back to pending?", "Step Back Tasks", "w420 h140")
         if (countInput.Result != "OK") {
@@ -668,7 +710,7 @@ class TaskDistributor {
             MsgBox("Please enter a valid positive number.", "Invalid Input", 0x30)
             return
         }
-        steps := stepsText + 0
+        steps := Integer(stepsText)
         if (steps <= 0) {
             MsgBox("Please enter a number greater than zero.", "Invalid Input", 0x30)
             return
@@ -699,6 +741,50 @@ class TaskDistributor {
             at: A_Now,
             status: "ok",
             message: Format("Moved {} tasks back to pending.", reverted)
+        })
+        this.WriteConfigLocked("main")
+    }
+    StepForwardTasks() {
+        countInput := InputBox("How many pending tasks to mark as completed?", "Step Forward Tasks", "w420 h140")
+        if (countInput.Result != "OK") {
+            return
+        }
+        stepsText := Trim(countInput.Value)
+        if (!RegExMatch(stepsText, "^\d+$")) {
+            MsgBox("Please enter a valid positive number.", "Invalid Input", 0x30)
+            return
+        }
+        steps := Integer(stepsText)
+        if (steps <= 0) {
+            MsgBox("Please enter a number greater than zero.", "Invalid Input", 0x30)
+            return
+        }
+
+        if (!this.ReadConfigLocked("main")) {
+            MsgBox("Could not lock config for step-forward.", "Error", 0x10)
+            return
+        }
+        advanced := 0
+        for task in this.config["tasks"] {
+            if (advanced >= steps) {
+                break
+            }
+            if (task["status"] = "pending") {
+                task["status"] := "completed"
+                task["working"] := false
+                task["startTime"] := ""
+                task["endTime"] := A_Now
+                task["error"] := ""
+                advanced++
+            }
+        }
+        this.AppendCommandResult({
+            id: this.NextCommandId(),
+            type: "step_forward",
+            workerId: -1,
+            at: A_Now,
+            status: "ok",
+            message: Format("Moved {} pending tasks to completed.", advanced)
         })
         this.WriteConfigLocked("main")
     }
@@ -827,25 +913,23 @@ class TaskDistributor {
         this.workerListView.ModifyCol(4, 80)
         this.workerListView.ModifyCol(5, 210)
 
-        this.progressGui.Add("Text", "xs y+10", "Worker Commands:")
-        btnPauseWorker := this.progressGui.Add("Button", "w120", "Pause Worker")
-        btnResumeWorker := this.progressGui.Add("Button", "x+10 w120", "Resume Worker")
-        btnStopWorker := this.progressGui.Add("Button", "x+10 w120", "Stop Worker")
-        btnPauseAll := this.progressGui.Add("Button", "xs y+8 w120", "Pause All")
+        this.progressGui.Add("Text", "xs y+10", "Global Commands:")
+        btnPauseAll := this.progressGui.Add("Button", "w120", "Pause All")
         btnResumeAll := this.progressGui.Add("Button", "x+10 w120", "Resume All")
         btnAddWorker := this.progressGui.Add("Button", "x+10 w120", "Add Worker")
         btnStepBack := this.progressGui.Add("Button", "x+10 w120", "Step Back")
         btnReset := this.progressGui.Add("Button", "xs y+8 w120", "Reset")
+        btnStepForward := this.progressGui.Add("Button", "x+10 w120", "Step Forward")
         btnStop := this.progressGui.Add("Button", "x+10 w120", "&Stop All")
         btnClose := this.progressGui.Add("Button", "x+10 w120", "&Close")
 
-        this.progressGui.Add("Text", "xs y+12", "Command Results:")
+        this.progressGui.Add("Text", "xs y+12", "Command Queue:")
         this.commandListView := this.progressGui.Add("ListView", "w600 h120",
-            ["Time", "Command", "Worker", "Status", "Message"])
+            ["Queued At", "Command", "Worker", "Status", "Result"])
         this.commandListView.ModifyCol(1, 130)
-        this.commandListView.ModifyCol(2, 100)
+        this.commandListView.ModifyCol(2, 90)
         this.commandListView.ModifyCol(3, 80)
-        this.commandListView.ModifyCol(4, 80)
+        this.commandListView.ModifyCol(4, 90)
         this.commandListView.ModifyCol(5, 210)
 
         _PauseSelected(*) {
@@ -872,6 +956,20 @@ class TaskDistributor {
             }
             this.EnqueueCommand("stop", workerId)
         }
+        _ShowWorkerContextMenu(ctrl, row, *) {
+            if (row > 0) {
+                this.workerListView.Modify(row, "Select Focus Vis")
+            }
+            workerId := this.GetSelectedWorkerId()
+            if (workerId < 0) {
+                return
+            }
+            workerMenu := Menu()
+            workerMenu.Add("Pause Worker", _PauseSelected)
+            workerMenu.Add("Resume Worker", _ResumeSelected)
+            workerMenu.Add("Stop Worker", _StopSelected)
+            workerMenu.Show()
+        }
         _PauseAll(*) {
             this.uiPaused := true
             this.SetGlobalPauseState(true)
@@ -887,6 +985,9 @@ class TaskDistributor {
         _StepBack(*) {
             this.StepBackTasks()
         }
+        _StepForward(*) {
+            this.StepForwardTasks()
+        }
         _Reset(*) {
             this.ResetAllWorkers()
         }
@@ -895,25 +996,30 @@ class TaskDistributor {
             this.StopAllWorkers()
         }
         _BtnCloseClickHandler(*) {
+            shouldClose := true
             if (this.batchInProgress) {
                 if (MsgBox("Processing is still active. Stop all workers and close?", "Confirm", 0x34) = "Yes") {
                     this.StopAllWorkers()
-                    this.progressGui.Destroy()
+                } else {
+                    shouldClose := false
                 }
-            } else {
+            }
+            if (shouldClose) {
+                SetTimer(UpdateProgress, 0)
                 this.progressGui.Destroy()
+                ExitApp()
             }
         }
-        btnPauseWorker.OnEvent("Click", _PauseSelected)
-        btnResumeWorker.OnEvent("Click", _ResumeSelected)
-        btnStopWorker.OnEvent("Click", _StopSelected)
+        this.workerListView.OnEvent("ContextMenu", _ShowWorkerContextMenu)
         btnPauseAll.OnEvent("Click", _PauseAll)
         btnResumeAll.OnEvent("Click", _ResumeAll)
         btnAddWorker.OnEvent("Click", _AddWorker)
         btnStepBack.OnEvent("Click", _StepBack)
         btnReset.OnEvent("Click", _Reset)
+        btnStepForward.OnEvent("Click", _StepForward)
         btnStop.OnEvent("Click", _BtnStopClickHandler)
         btnClose.OnEvent("Click", _BtnCloseClickHandler)
+        this.progressGui.OnEvent("Close", _BtnCloseClickHandler)
         this.progressGui.Show()
 
         ; Update timer
@@ -952,16 +1058,22 @@ class TaskDistributor {
                 )
 
                 ; Update batch info
-                batchText.Text := Format("Current Batch: {}/{} | Batch Progress: {}/{}",
+                batchText.Text := Format("Current Batch: {}/{} | Batch Progress: {}/{} | Batch Size/Worker: {}",
                     this.currentBatchIndex,
                     this.totalBatches,
                     batchCompleted + batchFailed,
-                    this.config["tasks"].Length
+                    this.config["tasks"].Length,
+                    this.batchSizePerWorker
                 )
+
+                selectedWorkerId := this.GetSelectedWorkerId()
 
                 ; Update worker status
                 this.workerListView.Delete()
+                selectedRow := 0
+                rowIndex := 0
                 for worker in this.config["workers"] {
+                    rowIndex += 1
                     this.workerListView.Add(,
                         "Worker " . worker["id"],
                         worker["status"],
@@ -969,6 +1081,9 @@ class TaskDistributor {
                         worker["completedTasks"],
                         worker["current_status"]
                     )
+                    if (selectedWorkerId >= 0 && worker["id"] = selectedWorkerId) {
+                        selectedRow := rowIndex
+                    }
                 }
 
                 this.workerListView.ModifyCol(1, 80)
@@ -976,22 +1091,25 @@ class TaskDistributor {
                 this.workerListView.ModifyCol(3, 150)
                 this.workerListView.ModifyCol(4, 80)
                 this.workerListView.ModifyCol(5, 210)
+                if (selectedRow > 0) {
+                    this.workerListView.Modify(selectedRow, "Select Focus Vis")
+                }
 
-                ; Command results in UI
+                ; Command queue in UI
                 this.commandListView.Delete()
-                startIdx := this.config["commandResults"].Length - (MAX_COMMAND_RESULTS_DISPLAY - 1)
+                startIdx := this.config["commandQueue"].Length - (MAX_COMMAND_RESULTS_DISPLAY - 1)
                 if (startIdx < 1) {
                     startIdx := 1
                 }
-                for idx in range(startIdx, this.config["commandResults"].Length) {
-                    res := this.config["commandResults"][idx]
-                    workerTxt := (res.Has("workerId") && res["workerId"] >= 0) ? ("Worker " . res["workerId"]) : "All/Main"
+                for idx in range(startIdx, this.config["commandQueue"].Length) {
+                    cmd := this.config["commandQueue"][idx]
+                    workerTxt := (cmd.Has("targetWorker") && cmd["targetWorker"] >= 0) ? ("Worker " . cmd["targetWorker"]) : "All/Main"
                     this.commandListView.Add(,
-                        res.Has("at") ? res["at"] : "",
-                        res.Has("type") ? res["type"] : "",
+                        cmd.Has("createdAt") ? cmd["createdAt"] : "",
+                        cmd.Has("type") ? cmd["type"] : "",
                         workerTxt,
-                        res.Has("status") ? res["status"] : "",
-                        res.Has("message") ? res["message"] : ""
+                        cmd.Has("status") ? cmd["status"] : "",
+                        cmd.Has("resultMessage") ? cmd["resultMessage"] : ""
                     )
                 }
                 try {
@@ -1033,12 +1151,14 @@ class TaskDistributor {
             . "Completed: {}`n"
             . "Failed: {}`n"
             . "Total Batches: {}`n"
+            . "Batch Size/Worker: {}`n"
             . "Duration: {} minutes`n`n"
             . "Check the logs folder for details.",
             this.allTasks.Length,
             this.globalCompletedTasks,
             this.globalFailedTasks,
             this.totalBatches,
+            this.batchSizePerWorker,
             duration
         )
 

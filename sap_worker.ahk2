@@ -23,8 +23,10 @@ global LOCK_FILE := A_ScriptDir . "\lockconfig"
 global WORKER_CONFIG_FILE := A_ScriptDir . "\worker_config.ini"
 global WORKER_ID := A_Args.Length > 0 ? A_Args[1] : 0
 global CHECK_INTERVAL := 1000  ; ms
+global RECOVERY_COOLDOWN_MS := 2000
 global LOCK_RETRY_INTERVAL := 50 ; ms
 global MAX_LOCK_WAIT := 10000 ; ms
+global STALE_LOCK_SECONDS := 30
 global MAX_SESSION_PROMPT_ATTEMPTS := 30
 global SUCCESS_LOG := A_ScriptDir . "\logs\success_tables.log"
 global FAILURE_LOG := A_ScriptDir . "\logs\failed_tables.log"
@@ -44,6 +46,7 @@ global SleepTimeShort := 20
 global SleepTimeMedium := 50
 global SleepTimeLong := 200
 global SCRIPT_CACHE_DIR := A_ScriptDir . "\script_cache"
+global DD03L_CACHE_DIR := A_ScriptDir . "\dd03l_cache"
 SetWorkingDir(A_ScriptDir)
 ProcessSetPriority("High")
 
@@ -96,8 +99,11 @@ class SAPWorker {
         this.successCount := 0
         this.failureCount := 0
         this.isPaused := false
+        this.commandPaused := false
         this.lastCommandPoll := 0
         this.processedCommandIds := Map()
+        this.lastRecoveryTick := 0
+        this.recoveryStepBackTasks := 2
 
         ; Ensure logs directory exists
         if (!DirExist(A_ScriptDir . "\logs")) {
@@ -114,6 +120,9 @@ class SAPWorker {
         if (!DirExist(SCRIPT_CACHE_DIR)) {
             DirCreate(SCRIPT_CACHE_DIR)
         }
+        if (!DirExist(DD03L_CACHE_DIR)) {
+            DirCreate(DD03L_CACHE_DIR)
+        }
         LogMessage("INFO", "Worker " . workerId . " starting...")
         ; Load worker configuration
         this.LoadWorkerConfig()
@@ -123,6 +132,68 @@ class SAPWorker {
         ; Windows-safe filename for SAP table names like /BIC/...
         safeTableName := RegExReplace(safeTableName, "[\/:*?`"`"<>|]", "_")
         return SCRIPT_CACHE_DIR . "\" . safeTableName . ".sapscript"
+    }
+    GetDD03LCachePath(tableName) {
+        safeTableName := StrUpper(Trim(tableName))
+        safeTableName := RegExReplace(safeTableName, "[\/:*?`"`"<>|]", "_")
+        return DD03L_CACHE_DIR . "\" . safeTableName . ".fields"
+    }
+
+    LoadCachedDD03LFields(tableName) {
+        if (Trim(tableName) = "") {
+            return ""
+        }
+        cachePath := this.GetDD03LCachePath(tableName)
+        if (!FileExist(cachePath)) {
+            return ""
+        }
+        fields := Map()
+        try {
+            raw := FileRead(cachePath, "UTF-8")
+            for line in StrSplit(StrReplace(raw, "`r", ""), "`n") {
+                trimmed := Trim(line)
+                if (trimmed = "") {
+                    continue
+                }
+                parts := StrSplit(trimmed, "|")
+                fieldName := parts.Length >= 1 ? Trim(parts[1]) : ""
+                isKey := parts.Length >= 2 ? Trim(parts[2]) : ""
+                if (fieldName != "" && RegExMatch(fieldName, "^[\/A-Za-z0-9_]+$")) {
+                    fields[fieldName] := {
+                        fieldName: fieldName,
+                        key: isKey
+                    }
+                }
+            }
+            return fields.Count > 0 ? fields : ""
+        } catch {
+            return ""
+        }
+    }
+
+    SaveDD03LFieldsToCache(tableName, fields) {
+        if (Trim(tableName) = "" || !IsObject(fields) || fields.Count = 0) {
+            return false
+        }
+        try {
+            if (!DirExist(DD03L_CACHE_DIR)) {
+                DirCreate(DD03L_CACHE_DIR)
+                if (!DirExist(DD03L_CACHE_DIR)) {
+                    throw Error("DD03L cache directory could not be created: " . DD03L_CACHE_DIR)
+                }
+            }
+            cachePath := this.GetDD03LCachePath(tableName)
+            output := ""
+            for fieldName, fieldData in fields {
+                output .= fieldData.fieldName . "|" . fieldData.key . "`r`n"
+            }
+            file := FileOpen(cachePath, "w", "UTF-8")
+            file.Write(output)
+            file.Close()
+            return true
+        } catch {
+            return false
+        }
     }
 
     HasCachedScript(tableName) {
@@ -169,13 +240,9 @@ class SAPWorker {
                     throw Error("Cache directory could not be created: " . SCRIPT_CACHE_DIR)
                 }
             }
-
-            ; overwrite existing cache
-            if (FileExist(cachePath)) {
-                FileDelete(cachePath)
-            }
-
-            FileAppend(scriptText, cachePath, "UTF-8")
+            file := FileOpen(cachePath, "w", "UTF-8")
+            file.Write(scriptText)
+            file.Close()
             LogMessage("INFO", "Cached script written: " . cachePath)
             return true
         } catch {
@@ -185,23 +252,8 @@ class SAPWorker {
     }
 
     DeleteCachedScript(tableName) {
-        if (Trim(tableName) = "") {
-            return false
-        }
-
-        cachePath := this.GetScriptCachePath(tableName)
-        if (!FileExist(cachePath)) {
-            return true
-        }
-
-        try {
-            FileDelete(cachePath)
-            LogMessage("INFO", "Cached script deleted: " . cachePath)
-            return true
-        } catch {
-            LogError("Failed to delete cached script for table " . tableName)
-            return false
-        }
+        LogMessage("INFO", "Cache deletion disabled; keeping cached script for table " . tableName)
+        return true
     }
 
     ShouldFallbackToDD03L(cachedFlowErrorMessage) {
@@ -219,8 +271,7 @@ class SAPWorker {
             return false
         }
 
-        LogMessage("WARNING", "Cached script invalid or failed to apply for " . tableName . " - deleting cache and falling back to DD03L flow")
-        this.DeleteCachedScript(tableName)
+        LogMessage("WARNING", "Cached script invalid or failed to apply for " . tableName . " - keeping cache and falling back to DD03L flow")
         set_status(this, "Cached script invalid for " . tableName . " - falling back to DD03L flow")
         return true
     }
@@ -447,6 +498,16 @@ class SAPWorker {
                     lockContent := FileRead(LOCK_FILE)
                     ; If locked by another worker, wait
                     if (Trim(lockContent) != "" && Trim(lockContent) != String(this.workerId)) {
+                        try {
+                            lockModified := FileGetTime(LOCK_FILE, "M")
+                            if (DateDiff(A_Now, lockModified, "Seconds") >= STALE_LOCK_SECONDS) {
+                                FileDelete(LOCK_FILE)
+                                Sleep(LOCK_RETRY_INTERVAL)
+                                continue
+                            }
+                        } catch {
+                            ; Continue waiting if stale check fails
+                        }
                         Sleep(LOCK_RETRY_INTERVAL)
                         continue
                     }
@@ -592,10 +653,14 @@ class SAPWorker {
         if (!this.config.Has("commandResults")) {
             this.config["commandResults"] := []
         }
-        if (!this.config.Has("uiState")) {
-            this.config["uiState"] := {
-                paused: false
+        if (!this.config.Has("uiState") || Type(this.config["uiState"]) != "Map") {
+            pausedState := false
+            if (this.config.Has("uiState")
+                && Type(this.config["uiState"]) = "Object"
+                && ObjHasOwnProp(this.config["uiState"], "paused")) {
+                pausedState := this.config["uiState"].paused
             }
+            this.config["uiState"] := Map("paused", pausedState)
         } else if (!this.config["uiState"].Has("paused")) {
             this.config["uiState"]["paused"] := false
         }
@@ -630,6 +695,69 @@ class SAPWorker {
             this.config["commandResults"].RemoveAt(1)
         }
     }
+    GetWorkerById(workerId) {
+        for worker in this.config["workers"] {
+            if (worker["id"] = workerId) {
+                return worker
+            }
+        }
+        return ""
+    }
+    MarkQueueCommand(command, status, resultStatus := "", resultMessage := "") {
+        command["status"] := status
+        command["updatedAt"] := A_Now
+        if (resultStatus != "") {
+            command["resultStatus"] := resultStatus
+        }
+        if (resultMessage != "") {
+            command["resultMessage"] := resultMessage
+        }
+    }
+    ApplyWorkerCommand(command) {
+        cmdType := command.Has("type") ? command["type"] : ""
+        cmdId := command.Has("id") ? command["id"] : 0
+        workerEntry := this.GetWorkerById(this.workerId)
+        if (cmdType = "pause") {
+            this.commandPaused := true
+            this.isPaused := true
+            if (workerEntry != "") {
+                workerEntry["status"] := "paused"
+                workerEntry["currentTask"] := ""
+                workerEntry["lastUpdate"] := A_Now
+                workerEntry["current_status"] := "Paused by command"
+            }
+            this.AddCommandResult("pause", "ok", "Worker paused.", cmdId)
+            this.MarkQueueCommand(command, "done", "ok", "Worker paused.")
+            return "pause"
+        } else if (cmdType = "resume") {
+            this.commandPaused := false
+            this.isPaused := false
+            if (workerEntry != "") {
+                workerEntry["status"] := "ready"
+                workerEntry["lastUpdate"] := A_Now
+                workerEntry["current_status"] := "Resumed by command"
+            }
+            this.AddCommandResult("resume", "ok", "Worker resumed.", cmdId)
+            this.MarkQueueCommand(command, "done", "ok", "Worker resumed.")
+            return "resume"
+        } else if (cmdType = "stop") {
+            if (workerEntry != "") {
+                workerEntry["status"] := "stopped"
+                workerEntry["currentTask"] := ""
+                workerEntry["lastUpdate"] := A_Now
+                workerEntry["current_status"] := "Stopped by command"
+            }
+            this.AddCommandResult("stop", "ok", "Worker stopping now.", cmdId)
+            this.MarkQueueCommand(command, "done", "ok", "Worker stopping now.")
+            this.isRunning := false
+            return "stop"
+        } else if (cmdType != "") {
+            this.AddCommandResult(cmdType, "ignored", "Unsupported worker command.", cmdId)
+            this.MarkQueueCommand(command, "done", "ignored", "Unsupported worker command.")
+            return "ignored"
+        }
+        return "none"
+    }
     ProcessCommands() {
         if (!this.LockConfig()) {
             return
@@ -641,83 +769,40 @@ class SAPWorker {
             this.EnsureCommandChannels()
 
             queueChanged := false
+            shouldExit := false
             for cmd in this.config["commandQueue"] {
-                if (!cmd.Has("status") || cmd["status"] = "queued") {
-                    isTarget := (cmd.Has("targetWorker") && (cmd["targetWorker"] = -1 || cmd["targetWorker"] = this.workerId))
+                cmdStatus := cmd.Has("status") ? cmd["status"] : "queued"
+                isTarget := (cmd.Has("targetWorker") && (cmd["targetWorker"] = -1 || cmd["targetWorker"] = this.workerId))
+                if (cmdStatus = "done") {
+                    continue
+                }
+                if (cmdStatus = "in_progress") {
+                    if (isTarget) {
+                        action := this.ApplyWorkerCommand(cmd)
+                        if (action = "stop") {
+                            shouldExit := true
+                        }
+                        queueChanged := true
+                        break
+                    }
+                    continue
+                }
+                if (cmdStatus = "queued" || cmdStatus = "") {
                     if (!isTarget) {
                         continue
                     }
-                    cmdId := cmd.Has("id") ? cmd["id"] : 0
-                    if (cmdId > 0 && this.processedCommandIds.Has(cmdId)) {
-                        continue
+                    this.MarkQueueCommand(cmd, "in_progress")
+                    action := this.ApplyWorkerCommand(cmd)
+                    if (action = "stop") {
+                        shouldExit := true
                     }
-                    cmdType := cmd.Has("type") ? cmd["type"] : ""
-                    if (cmdType = "pause") {
-                        this.isPaused := true
-                        for worker in this.config["workers"] {
-                            if (worker["id"] = this.workerId) {
-                                worker["status"] := "paused"
-                                worker["currentTask"] := ""
-                                worker["lastUpdate"] := A_Now
-                                worker["current_status"] := "Paused by command"
-                                break
-                            }
-                        }
-                        this.AddCommandResult("pause", "ok", "Worker paused.", cmdId)
-                        cmd["status"] := "done"
-                        queueChanged := true
-                    } else if (cmdType = "resume") {
-                        this.isPaused := false
-                        for worker in this.config["workers"] {
-                            if (worker["id"] = this.workerId) {
-                                worker["status"] := "ready"
-                                worker["lastUpdate"] := A_Now
-                                worker["current_status"] := "Resumed by command"
-                                break
-                            }
-                        }
-                        this.AddCommandResult("resume", "ok", "Worker resumed.", cmdId)
-                        cmd["status"] := "done"
-                        queueChanged := true
-                    } else if (cmdType = "stop") {
-                        for worker in this.config["workers"] {
-                            if (worker["id"] = this.workerId) {
-                                worker["status"] := "stopped"
-                                worker["currentTask"] := ""
-                                worker["lastUpdate"] := A_Now
-                                worker["current_status"] := "Stopped by command"
-                                break
-                            }
-                        }
-                        this.AddCommandResult("stop", "ok", "Worker stopping now.", cmdId)
-                        cmd["status"] := "done"
-                        queueChanged := true
-                        if (cmdId > 0) {
-                            this.processedCommandIds[cmdId] := true
-                        }
-                        file := FileOpen(CONFIG_FILE, "w")
-                        file.Write(JSON.Stringify(this.config))
-                        file.Close()
-                        this.last_config := JSON.Stringify(this.config)
-                        this.UnlockConfig()
-                        this.isRunning := false
-                        ExitApp(0)
-                    } else if (cmdType != "") {
-                        this.AddCommandResult(cmdType, "ignored", "Unsupported worker command.", cmdId)
-                        cmd["status"] := "done"
-                        queueChanged := true
-                    }
-                    if (cmdId > 0) {
-                        this.processedCommandIds[cmdId] := true
-                    }
+                    queueChanged := true
+                    break
                 }
+                continue
             }
 
-            if (this.config["uiState"]["paused"]) {
-                this.isPaused := true
-            } else {
-                this.isPaused := false
-            }
+            this.isPaused := this.commandPaused || this.config["uiState"]["paused"]
 
             if (queueChanged) {
                 file := FileOpen(CONFIG_FILE, "w")
@@ -726,6 +811,9 @@ class SAPWorker {
                 this.last_config := JSON.Stringify(this.config)
             }
             this.UnlockConfig()
+            if (shouldExit) {
+                ExitApp(0)
+            }
         } catch {
             this.UnlockConfig()
         }
@@ -760,6 +848,20 @@ class SAPWorker {
                 if (error) {
                     task["error"] := error
                 }
+                break
+            }
+        }
+        this.SaveConfig()
+    }
+    RequeueTask(taskId) {
+        this.LoadConfig()
+        for task in this.config["tasks"] {
+            if (task["id"] == taskId) {
+                task["status"] := "pending"
+                task["working"] := false
+                task["startTime"] := ""
+                task["endTime"] := ""
+                task["error"] := ""
                 break
             }
         }
@@ -911,147 +1013,44 @@ class SAPWorker {
         }
     }
 
-    PromptForSapSessionSelection() {
-        availabilityPromptAttempts := 0
-        while (availabilityPromptAttempts < MAX_SESSION_PROMPT_ATTEMPTS) {
-            availableSessions := this.DiscoverSelectableSapSessions()
-            if (availableSessions.Length > 0) {
-                break
-            }
-            availabilityPromptAttempts += 1
-
-            choice := MsgBox(
-                "No SAP sessions are currently available.`n"
-                . "Please open SAP GUI and log in, then click Yes to retry.",
-                "SAP session required",
-                "YN Icon!"
-            )
-            if (choice != "Yes") {
-                this.lastErrorMessage := "SAP session reselection cancelled by user"
-                return false
-            }
-        }
-        if (availableSessions.Length < 1) {
-            this.lastErrorMessage := "No SAP sessions became available for reselection"
+    RecoverSapSession() {
+        set_status(this, "SAP session unavailable - reconnect required")
+        this.UpdateWorkerStatus("error", "SAP disconnected")
+        if (!this.ConnectToSAP()) {
             return false
         }
-
-        prompt := "Configured SAP session is unavailable.`n"
-            . "Select a replacement SAP session for this worker:`n`n"
-            . this.BuildSapSessionSelectionPrompt(availableSessions)
-        selectionAttempts := 0
-        while (selectionAttempts < MAX_SESSION_PROMPT_ATTEMPTS) {
-            selectionAttempts += 1
-            ib := InputBox(prompt, "Select SAP Session", "w750 h420", "1")
-            if (ib.Result != "OK") {
-                this.lastErrorMessage := "SAP session reselection cancelled by user"
-                return false
-            }
-
-            try {
-                selectedIndex := Integer(ib.Value)
-            } catch {
-                MsgBox("Invalid selection '" . ib.Value . "'. Please enter a valid number.")
-                continue
-            }
-
-            if (selectedIndex >= 1 && selectedIndex <= availableSessions.Length) {
-                selectedSession := availableSessions[selectedIndex]
-                this.session := selectedSession["comSession"]
-                this.PersistSelectedWorkerSession(selectedSession)
-                LogMessage("INFO", Format("Worker {} reselected SAP session {} (global index {}, {} / Client {}, User {})",
-                    this.workerId,
-                    selectedIndex,
-                    selectedSession["index"],
-                    selectedSession["sysId"],
-                    selectedSession["client"],
-                    selectedSession["user"]))
-                return true
-            }
-
-            MsgBox("Invalid selection. Enter a number between 1 and " . availableSessions.Length . ".")
-        }
-        this.lastErrorMessage := "SAP session reselection exceeded maximum attempts"
-        return false
+        this.RewindRecentTasks(this.recoveryStepBackTasks)
+        this.UpdateWorkerStatus("ready", "Recovered SAP session")
+        set_status(this, "Recovered SAP session and rewound recent tasks")
+        return true
     }
 
-    DiscoverSelectableSapSessions() {
-        sessions := []
-        sessionIndex := 0
-        try {
-            appCom := SapGuiBootstrap.GetScriptingEngineFromROT()
-            policy := SapHookPolicy()
-            app := GuiApplication(appCom, policy)
-
-            conCount := app.Children.Count
-            conI := 0
-            while (conI < conCount) {
-                con := app.Children[conI]
-                sesCount := con.Children.Count
-                sesI := 0
-                while (sesI < sesCount) {
-                    ses := con.Children[sesI]
-                    try {
-                        info := ses.Info
-                        sessions.Push({
-                            index: sessionIndex,
-                            connectionIndex: conI,
-                            sessionIndex: sesI,
-                            sysId: info.SystemName,
-                            client: info.Client,
-                            user: info.User,
-                            transaction: info.Transaction,
-                            comSession: ses
-                        })
-                        sessionIndex += 1
-                    } catch {
-                        ; If scripting is disabled for this backend, Info access can throw.
-                    }
-                    sesI += 1
-                }
-                conI += 1
-            }
-        } catch {
-            return []
-        }
-        return sessions
-    }
-
-    BuildSapSessionSelectionPrompt(sessions) {
-        prompt := ""
-        for idx, sessionData in sessions {
-            line := Format("{} ) {} / Client {} (User: {})",
-                idx,
-                sessionData["sysId"],
-                sessionData["client"],
-                sessionData["user"])
-            if (sessionData["transaction"] != "") {
-                line .= " [" . sessionData["transaction"] . "]"
-            }
-            line .= " (Global Index " . sessionData["index"] . ")"
-            prompt .= line . "`n"
-        }
-        return prompt
-    }
-
-    PersistSelectedWorkerSession(selectedSession) {
-        if (!IsObject(selectedSession)) {
-            return false
+    RewindRecentTasks(steps := 2) {
+        if (steps <= 0) {
+            return 0
         }
         if (!this.LockConfig()) {
-            return false
+            return 0
         }
-
+        reverted := 0
         try {
-            currentConfig := JSON.Parse(FileRead(CONFIG_FILE))
-            for worker in currentConfig["workers"] {
-                if (worker["id"] == this.workerId) {
-                    worker["sessionIndex"] := selectedSession["index"]
-                    worker["connectionIndex"] := selectedSession["connectionIndex"]
-                    break
+            currentConfigText := FileRead(CONFIG_FILE)
+            currentConfig := JSON.Parse(currentConfigText)
+            idx := currentConfig["tasks"].Length
+            while (idx >= 1 && reverted < steps) {
+                task := currentConfig["tasks"][idx]
+                if ((task["status"] = "completed" || task["status"] = "failed")
+                    && task.Has("assignedWorker")
+                    && task["assignedWorker"] = this.workerId) {
+                    task["status"] := "pending"
+                    task["working"] := false
+                    task["startTime"] := ""
+                    task["endTime"] := ""
+                    task["error"] := ""
+                    reverted += 1
                 }
+                idx -= 1
             }
-
             file := ""
             try {
                 file := FileOpen(CONFIG_FILE, "w")
@@ -1065,11 +1064,12 @@ class SAPWorker {
                 }
             }
             this.config := currentConfig
-            return true
-        } catch {
-            return false
-        } finally {
+            this.last_config := JSON.Stringify(currentConfig)
             this.UnlockConfig()
+            return reverted
+        } catch {
+            this.UnlockConfig()
+            return reverted
         }
     }
 
@@ -1091,6 +1091,14 @@ class SAPWorker {
                 Sleep(CHECK_INTERVAL)
                 continue
             }
+
+            if (!this.IsSessionAlive()) {
+                if (!this.TryRecoverDisconnectedSession()) {
+                    Sleep(CHECK_INTERVAL)
+                    continue
+                }
+            }
+
             task := this.GetNextTask()
             if (task) {
                 set_status(this, Format("Processing: {} -> {}", task["tableName"], task["destination"]))
@@ -1116,6 +1124,9 @@ class SAPWorker {
                     this.lastSapMessage := this.GetCurrentSapMessage()
                     this.LogFailure(task["tableName"], task["destination"], this.lastErrorMessage, this.lastSapMessage)
                 }
+                if (!this.isRunning) {
+                    break
+                }
 
                 if (success) {
                     ; Update task status to completed
@@ -1124,6 +1135,11 @@ class SAPWorker {
                         this.workerId, task["tableName"], task["destination"]))
                     set_status(this, Format("Task completed: {} -> {}", task["tableName"], task["destination"]))
                 } else {
+                    if (this.isPaused && this.isRunning) {
+                        this.RequeueTask(task["id"])
+                        set_status(this, Format("Task re-queued after pause: {} -> {}", task["tableName"], task["destination"]))
+                        continue
+                    }
                     ; Update task status to failed
                     this.UpdateTaskStatus(task["id"], "failed", this.lastErrorMessage)
                     LogMessage("ERROR", Format("Worker {} failed task: {} -> {} ({})",
@@ -1163,6 +1179,10 @@ class SAPWorker {
         ))
         set_status(this, Format("Processing table {} for destination {}", task["tableName"], task["destination"]))
         this.UpdateWorkerStatus("working", task["tableName"] . " -> " . task["destination"])
+        this.ProcessCommands()
+        if (!this.isRunning || this.isPaused) {
+            return false
+        }
 
         ; Save and resize window if configured
         if (this.workerConfig["RESIZE_WINDOW"]) {
@@ -1184,6 +1204,10 @@ class SAPWorker {
             destination := task["destination"]
             cachedScript := this.LoadCachedScript(tableName)
             runDd03LFlow := true
+            this.ProcessCommands()
+            if (!this.isRunning || this.isPaused) {
+                return false
+            }
 
             if (cachedScript != "") {
                 set_status(this, "Cached script found for " . tableName . " - skipping DD03L")
@@ -1194,6 +1218,10 @@ class SAPWorker {
                     processResult := this.ProcessTableFromCachedScript(tableName, destination, cachedScript)
                 } catch {
                     this.SetDefaultCachedFlowError()
+                }
+                this.ProcessCommands()
+                if (!this.isRunning || this.isPaused) {
+                    return false
                 }
 
                 if (!processResult) {
@@ -1208,9 +1236,22 @@ class SAPWorker {
             }
 
             if (runDd03LFlow) {
-                set_status(this, "No cached script found for " . tableName . " - using DD03L flow")
-
-                fields := this.ReadDD03LFields(tableName)
+                cachedFields := this.LoadCachedDD03LFields(tableName)
+                if (cachedFields != "") {
+                    set_status(this, "No cached script for " . tableName . " - using cached DD03L field list")
+                    fields := cachedFields
+                } else {
+                    set_status(this, "No cached script found for " . tableName . " - using DD03L flow")
+                    fields := this.ReadDD03LFields(tableName)
+                }
+                this.ProcessCommands()
+                if (!this.isRunning || this.isPaused) {
+                    return false
+                }
+                this.ProcessCommands()
+                if (!this.isRunning || this.isPaused) {
+                    return false
+                }
 
                 ; Restore window size after reading fields
                 if (this.workerConfig["RESIZE_WINDOW"]) {
@@ -1292,6 +1333,27 @@ class SAPWorker {
         }
     }
 
+    IsSessionAlive() {
+        try {
+            if (!IsObject(this.session)) {
+                return false
+            }
+            wnd := this.session.FindById("wnd[0]", false)
+            return IsObject(wnd)
+        } catch {
+            return false
+        }
+    }
+
+    TryRecoverDisconnectedSession() {
+        nowTick := A_TickCount
+        if (nowTick - this.lastRecoveryTick < RECOVERY_COOLDOWN_MS) {
+            return false
+        }
+        this.lastRecoveryTick := nowTick
+        return this.RecoverSapSession()
+    }
+
     ReadDD03LFields(tableName) {
         this.session.FindById("wnd[0]/tbar[0]/okcd").Text := "/nSE16N"
         this.session.FindById("wnd[0]").SendVKey(0)
@@ -1366,6 +1428,7 @@ class SAPWorker {
                 results.Delete(index)
             }
         }
+        this.SaveDD03LFieldsToCache(tableName, results)
         ExecuteSapCommand(this.session, "/n")
         return results
     }
@@ -2529,6 +2592,11 @@ set_status(worker, status) {
     }
     try
     {
+        worker.ProcessCommands()
+        if (!worker.isRunning) {
+            currently_statusing := false
+            return
+        }
         LogMessage("STATUS", Format("[Worker {}] {}", worker.workerId, status))
         ; also change config with current status
         if (worker.LoadConfig()) {
