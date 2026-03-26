@@ -180,6 +180,53 @@ class SAPWorker {
         }
     }
 
+    DeleteCachedScript(tableName) {
+        if (Trim(tableName) = "") {
+            return false
+        }
+
+        cachePath := this.GetScriptCachePath(tableName)
+        if (!FileExist(cachePath)) {
+            return true
+        }
+
+        try {
+            FileDelete(cachePath)
+            LogMessage("INFO", "Cached script deleted: " . cachePath)
+            return true
+        } catch {
+            LogError("Failed to delete cached script for table " . tableName)
+            return false
+        }
+    }
+
+    ShouldFallbackToDD03L(cachedFlowErrorMessage) {
+        msg := StrUpper(Trim(cachedFlowErrorMessage))
+        if (msg = "") {
+            return false
+        }
+
+        return InStr(msg, "CACHED SCRIPT INVALID")
+            || InStr(msg, "FAILED TO APPLY CACHED SCRIPT")
+    }
+
+    HandleCachedScriptFallback(tableName) {
+        if (!this.ShouldFallbackToDD03L(this.lastErrorMessage)) {
+            return false
+        }
+
+        LogMessage("WARNING", "Cached script invalid or failed to apply for " . tableName . " - deleting cache and falling back to DD03L flow")
+        this.DeleteCachedScript(tableName)
+        set_status(this, "Cached script invalid for " . tableName . " - falling back to DD03L flow")
+        return true
+    }
+
+    SetDefaultCachedFlowError() {
+        if (this.lastErrorMessage = "") {
+            this.lastErrorMessage := "Cached script flow failed"
+        }
+    }
+
     ApplyScriptInEditor(scriptText) {
         editor := this.session.FindById("wnd[0]/usr/cntlCC/shellcont/shell/shellcont[0]/shell")
         editor.Text := scriptText
@@ -811,17 +858,31 @@ class SAPWorker {
             tableName := task["tableName"]
             destination := task["destination"]
             cachedScript := this.LoadCachedScript(tableName)
+            runDd03LFlow := true
 
             if (cachedScript != "") {
                 set_status(this, "Cached script found for " . tableName . " - skipping DD03L")
-                processResult := this.ProcessTableFromCachedScript(tableName, destination, cachedScript)
-                if (!processResult) {
-                    if (this.lastErrorMessage = "") {
-                        this.lastErrorMessage := "Cached script flow failed"
-                    }
-                    throw Error(this.lastErrorMessage)
+                runDd03LFlow := false
+                processResult := false
+
+                try {
+                    processResult := this.ProcessTableFromCachedScript(tableName, destination, cachedScript)
+                } catch {
+                    this.SetDefaultCachedFlowError()
                 }
-            } else {
+
+                if (!processResult) {
+                    this.SetDefaultCachedFlowError()
+
+                    if (this.HandleCachedScriptFallback(tableName)) {
+                        runDd03LFlow := true
+                    } else {
+                        throw Error(this.lastErrorMessage)
+                    }
+                }
+            }
+
+            if (runDd03LFlow) {
                 set_status(this, "No cached script found for " . tableName . " - using DD03L flow")
 
                 fields := this.ReadDD03LFields(tableName)
