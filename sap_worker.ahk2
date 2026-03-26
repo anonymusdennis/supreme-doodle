@@ -208,7 +208,6 @@ class SAPWorker {
 
         return InStr(msg, "CACHED SCRIPT INVALID")
             || InStr(msg, "FAILED TO APPLY CACHED SCRIPT")
-            || InStr(msg, "SYNTAX")
     }
 
     HandleCachedScriptFallback(tableName) {
@@ -858,21 +857,17 @@ class SAPWorker {
             if (cachedScript != "") {
                 set_status(this, "Cached script found for " . tableName . " - skipping DD03L")
                 runDd03LFlow := false
+                processResult := false
 
                 try {
                     processResult := this.ProcessTableFromCachedScript(tableName, destination, cachedScript)
-                    if (!processResult) {
-                        if (this.lastErrorMessage = "") {
-                            this.lastErrorMessage := "Cached script flow failed"
-                        }
-
-                        if (this.HandleCachedScriptFallback(tableName)) {
-                            runDd03LFlow := true
-                        } else {
-                            throw Error(this.lastErrorMessage)
-                        }
-                    }
                 } catch {
+                    if (this.lastErrorMessage = "") {
+                        this.lastErrorMessage := "Cached script flow failed"
+                    }
+                }
+
+                if (!processResult) {
                     if (this.lastErrorMessage = "") {
                         this.lastErrorMessage := "Cached script flow failed"
                     }
