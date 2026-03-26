@@ -23,6 +23,7 @@ global LOCK_FILE := A_ScriptDir . "\lockconfig"
 global WORKER_CONFIG_FILE := A_ScriptDir . "\worker_config.ini"
 global WORKER_ID := A_Args.Length > 0 ? A_Args[1] : 0
 global CHECK_INTERVAL := 1000  ; ms
+global RECOVERY_COOLDOWN_MS := 2000
 global LOCK_RETRY_INTERVAL := 50 ; ms
 global MAX_LOCK_WAIT := 10000 ; ms
 global SUCCESS_LOG := A_ScriptDir . "\logs\success_tables.log"
@@ -952,9 +953,19 @@ class SAPWorker {
                 }
                 idx -= 1
             }
-            file := FileOpen(CONFIG_FILE, "w")
-            file.Write(JSON.Stringify(currentConfig))
-            file.Close()
+            file := ""
+            try {
+                file := FileOpen(CONFIG_FILE, "w")
+                file.Write(JSON.Stringify(currentConfig))
+            } finally {
+                if (IsObject(file)) {
+                    try {
+                        file.Close()
+                    } catch {
+                        LogError("Worker " . this.workerId . ": Failed to close config file handle during task rewind")
+                    }
+                }
+            }
             this.config := currentConfig
             this.last_config := JSON.Stringify(currentConfig)
             this.UnlockConfig()
@@ -1206,7 +1217,7 @@ class SAPWorker {
 
     TryRecoverDisconnectedSession() {
         nowTick := A_TickCount
-        if (nowTick - this.lastRecoveryTick < 2000) {
+        if (nowTick - this.lastRecoveryTick < RECOVERY_COOLDOWN_MS) {
             return false
         }
         this.lastRecoveryTick := nowTick

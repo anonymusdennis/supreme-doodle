@@ -288,7 +288,7 @@ class SapHookPolicy {
             context.sessions := this._EnumerateSessions(context.app)
             yPos := 52
             if (context.sessions.Length = 0) {
-                msg := reconnectGui.Add("Text", "x24 y" yPos " w650 cRed", "No SAP sessions found. Open SAP GUI/login, then click Refresh.")
+                msg := reconnectGui.Add("Text", "x24 y" yPos " w650 cRed", "No SAP sessions found. Please open SAP GUI and log in, then click Refresh.")
                 context.sessionControls.Push(msg)
                 context.btnOk.Enabled := false
                 return
@@ -322,7 +322,7 @@ class SapHookPolicy {
 
         _DoOk(*) {
             if (context.selectedIndex < 1 || context.selectedIndex > context.sessions.Length) {
-                MsgBox("Please select a SAP session first.", "SAP GUI reconnect", "Icon!")
+                MsgBox("No valid SAP session selected. Click Refresh and select one session.", "SAP GUI reconnect", "Icon!")
                 return
             }
             context.resultSession := context.sessions[context.selectedIndex]
