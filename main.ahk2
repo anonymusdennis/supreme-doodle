@@ -492,8 +492,17 @@ class TaskDistributor {
             this.config["uiState"] := {
                 paused: false
             }
-        } else if (!this.config["uiState"].Has("paused")) {
-            this.config["uiState"]["paused"] := false
+        } else {
+            hasPaused := false
+            try {
+                _paused := this.config["uiState"]["paused"]
+                hasPaused := true
+            } catch {
+                hasPaused := false
+            }
+            if (!hasPaused) {
+                this.config["uiState"]["paused"] := false
+            }
         }
     }
     NextCommandId() {
