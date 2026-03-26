@@ -711,7 +711,7 @@ class TaskDistributor {
             MsgBox("Please enter a valid positive number.", "Invalid Input", 0x30)
             return
         }
-        steps := stepsText + 0
+        steps := Integer(stepsText)
         if (steps <= 0) {
             MsgBox("Please enter a number greater than zero.", "Invalid Input", 0x30)
             return
@@ -742,6 +742,50 @@ class TaskDistributor {
             at: A_Now,
             status: "ok",
             message: Format("Moved {} tasks back to pending.", reverted)
+        })
+        this.WriteConfigLocked("main")
+    }
+    StepForwardTasks() {
+        countInput := InputBox("How many pending tasks to mark as completed?", "Step Forward Tasks", "w420 h140")
+        if (countInput.Result != "OK") {
+            return
+        }
+        stepsText := Trim(countInput.Value)
+        if (!RegExMatch(stepsText, "^\d+$")) {
+            MsgBox("Please enter a valid positive number.", "Invalid Input", 0x30)
+            return
+        }
+        steps := Integer(stepsText)
+        if (steps <= 0) {
+            MsgBox("Please enter a number greater than zero.", "Invalid Input", 0x30)
+            return
+        }
+
+        if (!this.ReadConfigLocked("main")) {
+            MsgBox("Could not lock config for step-forward.", "Error", 0x10)
+            return
+        }
+        advanced := 0
+        for task in this.config["tasks"] {
+            if (advanced >= steps) {
+                break
+            }
+            if (task["status"] = "pending") {
+                task["status"] := "completed"
+                task["working"] := false
+                task["startTime"] := ""
+                task["endTime"] := A_Now
+                task["error"] := ""
+                advanced++
+            }
+        }
+        this.AppendCommandResult({
+            id: this.NextCommandId(),
+            type: "step_forward",
+            workerId: -1,
+            at: A_Now,
+            status: "ok",
+            message: Format("Moved {} pending tasks to completed.", advanced)
         })
         this.WriteConfigLocked("main")
     }
@@ -876,6 +920,7 @@ class TaskDistributor {
         btnAddWorker := this.progressGui.Add("Button", "x+10 w120", "Add Worker")
         btnStepBack := this.progressGui.Add("Button", "x+10 w120", "Step Back")
         btnReset := this.progressGui.Add("Button", "xs y+8 w120", "Reset")
+        btnStepForward := this.progressGui.Add("Button", "x+10 w120", "Step Forward")
         btnStop := this.progressGui.Add("Button", "x+10 w120", "&Stop All")
         btnClose := this.progressGui.Add("Button", "x+10 w120", "&Close")
 
@@ -941,6 +986,9 @@ class TaskDistributor {
         _StepBack(*) {
             this.StepBackTasks()
         }
+        _StepForward(*) {
+            this.StepForwardTasks()
+        }
         _Reset(*) {
             this.ResetAllWorkers()
         }
@@ -969,6 +1017,7 @@ class TaskDistributor {
         btnAddWorker.OnEvent("Click", _AddWorker)
         btnStepBack.OnEvent("Click", _StepBack)
         btnReset.OnEvent("Click", _Reset)
+        btnStepForward.OnEvent("Click", _StepForward)
         btnStop.OnEvent("Click", _BtnStopClickHandler)
         btnClose.OnEvent("Click", _BtnCloseClickHandler)
         this.progressGui.OnEvent("Close", _BtnCloseClickHandler)
