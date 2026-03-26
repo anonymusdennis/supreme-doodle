@@ -3,6 +3,7 @@
 class SapHookPolicy {
     static RECONNECT_COOLDOWN_MS := 3000
     static SAP_WINDOW_ID_PREFIX := "/wnd["
+    static SESSION_MAIN_WINDOW_ID := "wnd[0]"
     static MAX_PARENT_TRAVERSAL_STEPS := 15
 
     __New(reconnectCooldownMs := unset) {
@@ -161,7 +162,7 @@ class SapHookPolicy {
         }
 
         try {
-            wnd := session.FindById("wnd[0]", false)
+            wnd := session.FindById(SapHookPolicy.SESSION_MAIN_WINDOW_ID, false)
             return IsObject(wnd)
         } catch {
             return false
