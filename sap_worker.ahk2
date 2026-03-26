@@ -1234,13 +1234,18 @@ class SAPWorker {
             }
 
             if (runDd03LFlow) {
-                set_status(this, "No cached script found for " . tableName . " - using DD03L flow")
+                cachedFields := this.LoadCachedDD03LFields(tableName)
+                if (cachedFields != "") {
+                    set_status(this, "No cached script for " . tableName . " - using cached DD03L field list")
+                    fields := cachedFields
+                } else {
+                    set_status(this, "No cached script found for " . tableName . " - using DD03L flow")
+                    fields := this.ReadDD03LFields(tableName)
+                }
                 this.ProcessCommands()
                 if (!this.isRunning || this.isPaused) {
                     return false
                 }
-
-                fields := this.ReadDD03LFields(tableName)
                 this.ProcessCommands()
                 if (!this.isRunning || this.isPaused) {
                     return false
@@ -1348,11 +1353,6 @@ class SAPWorker {
     }
 
     ReadDD03LFields(tableName) {
-        cachedFields := this.LoadCachedDD03LFields(tableName)
-        if (cachedFields != "") {
-            set_status(this, "Using cached DD03L fields for " . tableName)
-            return cachedFields
-        }
         this.session.FindById("wnd[0]/tbar[0]/okcd").Text := "/nSE16N"
         this.session.FindById("wnd[0]").SendVKey(0)
         ; Sleep(200)
