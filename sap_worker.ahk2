@@ -512,16 +512,6 @@ class SAPWorker {
             }
         }
 
-        if (this.config.Has("commandQueue")) {
-            currentFileConfig["commandQueue"] := this.config["commandQueue"]
-        }
-        if (this.config.Has("commandResults")) {
-            currentFileConfig["commandResults"] := this.config["commandResults"]
-        }
-        if (this.config.Has("uiState")) {
-            currentFileConfig["uiState"] := this.config["uiState"]
-        }
-
         ; For tasks array - find tasks we modified
         for idx, task in this.config["tasks"] {
             ; Check if this task was modified by us
@@ -615,17 +605,41 @@ class SAPWorker {
                     cmdType := cmd.Has("type") ? cmd["type"] : ""
                     if (cmdType = "pause") {
                         this.isPaused := true
-                        this.UpdateWorkerStatus("paused", "")
+                        for worker in this.config["workers"] {
+                            if (worker["id"] = this.workerId) {
+                                worker["status"] := "paused"
+                                worker["currentTask"] := ""
+                                worker["lastUpdate"] := A_Now
+                                worker["current_status"] := "Paused by command"
+                                break
+                            }
+                        }
                         this.AddCommandResult("pause", "ok", "Worker paused.", cmdId)
                         cmd["status"] := "done"
                         queueChanged := true
                     } else if (cmdType = "resume") {
                         this.isPaused := false
-                        this.UpdateWorkerStatus("ready", "")
+                        for worker in this.config["workers"] {
+                            if (worker["id"] = this.workerId) {
+                                worker["status"] := "ready"
+                                worker["lastUpdate"] := A_Now
+                                worker["current_status"] := "Resumed by command"
+                                break
+                            }
+                        }
                         this.AddCommandResult("resume", "ok", "Worker resumed.", cmdId)
                         cmd["status"] := "done"
                         queueChanged := true
                     } else if (cmdType = "stop") {
+                        for worker in this.config["workers"] {
+                            if (worker["id"] = this.workerId) {
+                                worker["status"] := "stopped"
+                                worker["currentTask"] := ""
+                                worker["lastUpdate"] := A_Now
+                                worker["current_status"] := "Stopped by command"
+                                break
+                            }
+                        }
                         this.AddCommandResult("stop", "ok", "Worker stopping now.", cmdId)
                         cmd["status"] := "done"
                         queueChanged := true
@@ -637,7 +651,6 @@ class SAPWorker {
                         file.Close()
                         this.last_config := JSON.Stringify(this.config)
                         this.UnlockConfig()
-                        this.UpdateWorkerStatus("stopped", "")
                         this.isRunning := false
                         ExitApp(0)
                     } else if (cmdType != "") {

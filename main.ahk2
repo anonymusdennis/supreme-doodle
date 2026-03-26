@@ -512,27 +512,35 @@ class TaskDistributor {
         return maxId + 1
     }
     EnqueueCommand(commandType, targetWorker := -1, payload := "") {
-        if (!this.ReadConfigLocked("main")) {
+        if (!this.LockConfig("main")) {
             MsgBox("Could not acquire sessions.json lock to enqueue command.", "Error", 0x10)
             return false
         }
-        this.EnsureCommandChannels()
-        cmdId := this.NextCommandId()
-        command := {
-            id: cmdId,
-            type: commandType,
-            targetWorker: targetWorker,
-            payload: payload,
-            createdAt: A_Now,
-            status: "queued",
-            issuer: "main"
-        }
-        this.config["commandQueue"].Push(command)
-        if (!this.WriteConfigLocked("main")) {
+        try {
+            jsonText := FileRead(CONFIG_FILE)
+            this.config := JSON.Parse(jsonText)
+            this.EnsureCommandChannels()
+            cmdId := this.NextCommandId()
+            command := {
+                id: cmdId,
+                type: commandType,
+                targetWorker: targetWorker,
+                payload: payload,
+                createdAt: A_Now,
+                status: "queued",
+                issuer: "main"
+            }
+            this.config["commandQueue"].Push(command)
+            file := FileOpen(CONFIG_FILE, "w")
+            file.Write(JSON.Stringify(this.config))
+            file.Close()
+            this.UnlockConfig("main")
+            return true
+        } catch {
+            this.UnlockConfig("main")
             MsgBox("Failed to write command to sessions.json.", "Error", 0x10)
             return false
         }
-        return true
     }
     AppendCommandResult(resultEntry) {
         this.EnsureCommandChannels()
@@ -542,20 +550,31 @@ class TaskDistributor {
         }
     }
     SetGlobalPauseState(paused) {
-        if (!this.ReadConfigLocked("main")) {
+        if (!this.LockConfig("main")) {
             return false
         }
-        this.EnsureCommandChannels()
-        this.config["uiState"]["paused"] := paused
-        this.AppendCommandResult({
-            id: this.NextCommandId(),
-            type: paused ? "pause_all" : "resume_all",
-            workerId: -1,
-            at: A_Now,
-            status: "ok",
-            message: paused ? "Global pause enabled." : "Global pause disabled."
-        })
-        return this.WriteConfigLocked("main")
+        try {
+            jsonText := FileRead(CONFIG_FILE)
+            this.config := JSON.Parse(jsonText)
+            this.EnsureCommandChannels()
+            this.config["uiState"]["paused"] := paused
+            this.AppendCommandResult({
+                id: this.NextCommandId(),
+                type: paused ? "pause_all" : "resume_all",
+                workerId: -1,
+                at: A_Now,
+                status: "ok",
+                message: paused ? "Global pause enabled." : "Global pause disabled."
+            })
+            file := FileOpen(CONFIG_FILE, "w")
+            file.Write(JSON.Stringify(this.config))
+            file.Close()
+            this.UnlockConfig("main")
+            return true
+        } catch {
+            this.UnlockConfig("main")
+            return false
+        }
     }
     GetSelectedWorkerId() {
         row := this.workerListView.GetNext(0)
@@ -564,7 +583,7 @@ class TaskDistributor {
         }
         workerText := this.workerListView.GetText(row, 1)
         if (RegExMatch(workerText, "Worker\s+(\d+)", &m)) {
-            return Integer(m[1])
+            return m[1] + 0
         }
         return -1
     }
@@ -646,7 +665,7 @@ class TaskDistributor {
             MsgBox("Please enter a valid positive number.", "Invalid Input", 0x30)
             return
         }
-        steps := Integer(stepsText)
+        steps := stepsText + 0
         if (steps <= 0) {
             MsgBox("Please enter a number greater than zero.", "Invalid Input", 0x30)
             return
