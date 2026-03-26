@@ -535,6 +535,8 @@ class TaskDistributor {
                 payload: payload,
                 createdAt: A_Now,
                 status: "queued",
+                resultStatus: "",
+                resultMessage: "",
                 issuer: "main"
             }
             this.config["commandQueue"].Push(command)
@@ -852,13 +854,13 @@ class TaskDistributor {
         btnStop := this.progressGui.Add("Button", "x+10 w120", "&Stop All")
         btnClose := this.progressGui.Add("Button", "x+10 w120", "&Close")
 
-        this.progressGui.Add("Text", "xs y+12", "Command Results:")
+        this.progressGui.Add("Text", "xs y+12", "Command Queue:")
         this.commandListView := this.progressGui.Add("ListView", "w600 h120",
-            ["Time", "Command", "Worker", "Status", "Message"])
+            ["Queued At", "Command", "Worker", "Status", "Result"])
         this.commandListView.ModifyCol(1, 130)
-        this.commandListView.ModifyCol(2, 100)
+        this.commandListView.ModifyCol(2, 90)
         this.commandListView.ModifyCol(3, 80)
-        this.commandListView.ModifyCol(4, 80)
+        this.commandListView.ModifyCol(4, 90)
         this.commandListView.ModifyCol(5, 210)
 
         _PauseSelected(*) {
@@ -1016,21 +1018,21 @@ class TaskDistributor {
                     this.workerListView.Modify(selectedRow, "Select Focus Vis")
                 }
 
-                ; Command results in UI
+                ; Command queue in UI
                 this.commandListView.Delete()
-                startIdx := this.config["commandResults"].Length - (MAX_COMMAND_RESULTS_DISPLAY - 1)
+                startIdx := this.config["commandQueue"].Length - (MAX_COMMAND_RESULTS_DISPLAY - 1)
                 if (startIdx < 1) {
                     startIdx := 1
                 }
-                for idx in range(startIdx, this.config["commandResults"].Length) {
-                    res := this.config["commandResults"][idx]
-                    workerTxt := (res.Has("workerId") && res["workerId"] >= 0) ? ("Worker " . res["workerId"]) : "All/Main"
+                for idx in range(startIdx, this.config["commandQueue"].Length) {
+                    cmd := this.config["commandQueue"][idx]
+                    workerTxt := (cmd.Has("targetWorker") && cmd["targetWorker"] >= 0) ? ("Worker " . cmd["targetWorker"]) : "All/Main"
                     this.commandListView.Add(,
-                        res.Has("at") ? res["at"] : "",
-                        res.Has("type") ? res["type"] : "",
+                        cmd.Has("createdAt") ? cmd["createdAt"] : "",
+                        cmd.Has("type") ? cmd["type"] : "",
                         workerTxt,
-                        res.Has("status") ? res["status"] : "",
-                        res.Has("message") ? res["message"] : ""
+                        cmd.Has("status") ? cmd["status"] : "",
+                        cmd.Has("resultMessage") ? cmd["resultMessage"] : ""
                     )
                 }
                 try {

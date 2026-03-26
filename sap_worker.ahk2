@@ -636,6 +636,79 @@ class SAPWorker {
             this.config["commandResults"].RemoveAt(1)
         }
     }
+    GetWorkerById(workerId) {
+        for worker in this.config["workers"] {
+            if (worker["id"] = workerId) {
+                return worker
+            }
+        }
+        return ""
+    }
+    MarkQueueCommand(command, status, resultStatus := "", resultMessage := "") {
+        command["status"] := status
+        command["updatedAt"] := A_Now
+        if (resultStatus != "") {
+            command["resultStatus"] := resultStatus
+        }
+        if (resultMessage != "") {
+            command["resultMessage"] := resultMessage
+        }
+    }
+    ApplyWorkerCommand(command) {
+        cmdType := command.Has("type") ? command["type"] : ""
+        cmdId := command.Has("id") ? command["id"] : 0
+        workerEntry := this.GetWorkerById(this.workerId)
+        if (cmdType = "pause") {
+            this.isPaused := true
+            if (workerEntry != "") {
+                workerEntry["status"] := "paused"
+                workerEntry["currentTask"] := ""
+                workerEntry["lastUpdate"] := A_Now
+                workerEntry["current_status"] := "Paused by command"
+            }
+            this.AddCommandResult("pause", "ok", "Worker paused.", cmdId)
+            this.MarkQueueCommand(command, "done", "ok", "Worker paused.")
+            if (cmdId > 0) {
+                this.processedCommandIds[cmdId] := true
+            }
+            return "pause"
+        } else if (cmdType = "resume") {
+            this.isPaused := false
+            if (workerEntry != "") {
+                workerEntry["status"] := "ready"
+                workerEntry["lastUpdate"] := A_Now
+                workerEntry["current_status"] := "Resumed by command"
+            }
+            this.AddCommandResult("resume", "ok", "Worker resumed.", cmdId)
+            this.MarkQueueCommand(command, "done", "ok", "Worker resumed.")
+            if (cmdId > 0) {
+                this.processedCommandIds[cmdId] := true
+            }
+            return "resume"
+        } else if (cmdType = "stop") {
+            if (workerEntry != "") {
+                workerEntry["status"] := "stopped"
+                workerEntry["currentTask"] := ""
+                workerEntry["lastUpdate"] := A_Now
+                workerEntry["current_status"] := "Stopped by command"
+            }
+            this.AddCommandResult("stop", "ok", "Worker stopping now.", cmdId)
+            this.MarkQueueCommand(command, "done", "ok", "Worker stopping now.")
+            if (cmdId > 0) {
+                this.processedCommandIds[cmdId] := true
+            }
+            this.isRunning := false
+            return "stop"
+        } else if (cmdType != "") {
+            this.AddCommandResult(cmdType, "ignored", "Unsupported worker command.", cmdId)
+            this.MarkQueueCommand(command, "done", "ignored", "Unsupported worker command.")
+            if (cmdId > 0) {
+                this.processedCommandIds[cmdId] := true
+            }
+            return "ignored"
+        }
+        return "none"
+    }
     ProcessCommands() {
         if (!this.LockConfig()) {
             return
@@ -647,76 +720,36 @@ class SAPWorker {
             this.EnsureCommandChannels()
 
             queueChanged := false
+            shouldExit := false
             for cmd in this.config["commandQueue"] {
-                if (!cmd.Has("status") || cmd["status"] = "queued") {
-                    isTarget := (cmd.Has("targetWorker") && (cmd["targetWorker"] = -1 || cmd["targetWorker"] = this.workerId))
-                    if (!isTarget) {
-                        continue
-                    }
-                    cmdId := cmd.Has("id") ? cmd["id"] : 0
-                    if (cmdId > 0 && this.processedCommandIds.Has(cmdId)) {
-                        continue
-                    }
-                    cmdType := cmd.Has("type") ? cmd["type"] : ""
-                    if (cmdType = "pause") {
-                        this.isPaused := true
-                        for worker in this.config["workers"] {
-                            if (worker["id"] = this.workerId) {
-                                worker["status"] := "paused"
-                                worker["currentTask"] := ""
-                                worker["lastUpdate"] := A_Now
-                                worker["current_status"] := "Paused by command"
-                                break
-                            }
-                        }
-                        this.AddCommandResult("pause", "ok", "Worker paused.", cmdId)
-                        cmd["status"] := "done"
-                        queueChanged := true
-                    } else if (cmdType = "resume") {
-                        this.isPaused := false
-                        for worker in this.config["workers"] {
-                            if (worker["id"] = this.workerId) {
-                                worker["status"] := "ready"
-                                worker["lastUpdate"] := A_Now
-                                worker["current_status"] := "Resumed by command"
-                                break
-                            }
-                        }
-                        this.AddCommandResult("resume", "ok", "Worker resumed.", cmdId)
-                        cmd["status"] := "done"
-                        queueChanged := true
-                    } else if (cmdType = "stop") {
-                        for worker in this.config["workers"] {
-                            if (worker["id"] = this.workerId) {
-                                worker["status"] := "stopped"
-                                worker["currentTask"] := ""
-                                worker["lastUpdate"] := A_Now
-                                worker["current_status"] := "Stopped by command"
-                                break
-                            }
-                        }
-                        this.AddCommandResult("stop", "ok", "Worker stopping now.", cmdId)
-                        cmd["status"] := "done"
-                        queueChanged := true
-                        if (cmdId > 0) {
-                            this.processedCommandIds[cmdId] := true
-                        }
-                        file := FileOpen(CONFIG_FILE, "w")
-                        file.Write(JSON.Stringify(this.config))
-                        file.Close()
-                        this.last_config := JSON.Stringify(this.config)
-                        this.UnlockConfig()
-                        this.isRunning := false
-                        ExitApp(0)
-                    } else if (cmdType != "") {
-                        this.AddCommandResult(cmdType, "ignored", "Unsupported worker command.", cmdId)
-                        cmd["status"] := "done"
-                        queueChanged := true
-                    }
-                    if (cmdId > 0) {
-                        this.processedCommandIds[cmdId] := true
-                    }
+                cmdStatus := cmd.Has("status") ? cmd["status"] : "queued"
+                isTarget := (cmd.Has("targetWorker") && (cmd["targetWorker"] = -1 || cmd["targetWorker"] = this.workerId))
+                if (cmdStatus = "in_progress" && !isTarget) {
+                    break
                 }
+                if ((cmdStatus = "queued" || cmdStatus = "") && !isTarget) {
+                    continue
+                }
+                if ((cmdStatus = "queued" || cmdStatus = "") && isTarget) {
+                    this.MarkQueueCommand(cmd, "in_progress")
+                    queueChanged := true
+                }
+                cmdId := cmd.Has("id") ? cmd["id"] : 0
+                if (cmdId > 0 && this.processedCommandIds.Has(cmdId)) {
+                    if (cmdStatus = "in_progress") {
+                        this.MarkQueueCommand(cmd, "done")
+                        queueChanged := true
+                    }
+                    break
+                }
+                if (cmd.Has("status") && cmd["status"] = "in_progress" && isTarget) {
+                    action := this.ApplyWorkerCommand(cmd)
+                    if (action = "stop") {
+                        shouldExit := true
+                    }
+                    queueChanged := true
+                }
+                break
             }
 
             if (this.config["uiState"]["paused"]) {
@@ -732,6 +765,9 @@ class SAPWorker {
                 this.last_config := JSON.Stringify(this.config)
             }
             this.UnlockConfig()
+            if (shouldExit) {
+                ExitApp(0)
+            }
         } catch {
             this.UnlockConfig()
         }
