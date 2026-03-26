@@ -682,8 +682,10 @@ class SAPWorker {
                 conI += 1
             }
             if (!sessionFound) {
-                set_status(this, "Session not found")
-                Error("Session not found at index " . workerConfig["sessionIndex"])
+                set_status(this, "Configured session not found, requesting reselection")
+                if (!this.PromptForSapSessionSelection()) {
+                    Error("Session not found at index " . workerConfig["sessionIndex"])
+                }
             }
 
             ; Get SAP system info
@@ -710,6 +712,149 @@ class SAPWorker {
             this.UpdateWorkerStatus("error", "")
             set_status(this, "ConnectToSAP failed")
             return false
+        }
+    }
+
+    PromptForSapSessionSelection() {
+        loop {
+            availableSessions := this.DiscoverSelectableSapSessions()
+            if (availableSessions.Length > 0) {
+                break
+            }
+
+            choice := MsgBox(
+                "No SAP sessions are currently available.`n"
+                . "Please open SAP GUI and log in, then click Yes to retry.",
+                "SAP session required",
+                "YN Icon!"
+            )
+            if (choice != "Yes") {
+                this.lastErrorMessage := "SAP session reselection cancelled by user"
+                return false
+            }
+        }
+
+        prompt := "Configured SAP session is unavailable.`n"
+            . "Select a replacement SAP session for this worker:`n`n"
+            . this.BuildSapSessionSelectionPrompt(availableSessions)
+        while true {
+            ib := InputBox(prompt, "Select SAP Session", "w750 h420", "1")
+            if (ib.Result != "OK") {
+                this.lastErrorMessage := "SAP session reselection cancelled by user"
+                return false
+            }
+
+            try {
+                selectedIndex := Integer(ib.Value)
+            } catch {
+                MsgBox("Invalid selection '" . ib.Value . "'. Please enter a valid number.")
+                continue
+            }
+
+            if (selectedIndex >= 1 && selectedIndex <= availableSessions.Length) {
+                selectedSession := availableSessions[selectedIndex]
+                this.session := selectedSession["comSession"]
+                this.PersistSelectedWorkerSession(selectedSession)
+                LogMessage("INFO", Format("Worker {} reselected SAP session {} (global index {}, {} / Client {}, User {})",
+                    this.workerId,
+                    selectedIndex,
+                    selectedSession["index"],
+                    selectedSession["sysId"],
+                    selectedSession["client"],
+                    selectedSession["user"]))
+                return true
+            }
+
+            MsgBox("Invalid selection. Enter a number between 1 and " . availableSessions.Length . ".")
+        }
+    }
+
+    DiscoverSelectableSapSessions() {
+        sessions := []
+        sessionIndex := 0
+        try {
+            appCom := SapGuiBootstrap.GetScriptingEngineFromROT()
+            policy := SapHookPolicy()
+            app := GuiApplication(appCom, policy)
+
+            conCount := app.Children.Count
+            conI := 0
+            while (conI < conCount) {
+                con := app.Children[conI]
+                sesCount := con.Children.Count
+                sesI := 0
+                while (sesI < sesCount) {
+                    ses := con.Children[sesI]
+                    try {
+                        info := ses.Info
+                        sessions.Push({
+                            index: sessionIndex,
+                            connectionIndex: conI,
+                            sessionIndex: sesI,
+                            sysId: info.SystemName,
+                            client: info.Client,
+                            user: info.User,
+                            transaction: info.Transaction,
+                            comSession: ses
+                        })
+                        sessionIndex += 1
+                    } catch {
+                        ; If scripting is disabled for this backend, Info access can throw.
+                    }
+                    sesI += 1
+                }
+                conI += 1
+            }
+        } catch {
+            return []
+        }
+        return sessions
+    }
+
+    BuildSapSessionSelectionPrompt(sessions) {
+        prompt := ""
+        for idx, sessionData in sessions {
+            line := Format("{} ) {} / Client {} (User: {})",
+                idx,
+                sessionData["sysId"],
+                sessionData["client"],
+                sessionData["user"])
+            if (sessionData["transaction"] != "") {
+                line .= " [" . sessionData["transaction"] . "]"
+            }
+            line .= " (Global Index " . sessionData["index"] . ")"
+            prompt .= line . "`n"
+        }
+        return prompt
+    }
+
+    PersistSelectedWorkerSession(selectedSession) {
+        if (!IsObject(selectedSession)) {
+            return false
+        }
+        if (!this.LockConfig()) {
+            return false
+        }
+
+        try {
+            currentConfig := JSON.Parse(FileRead(CONFIG_FILE))
+            for worker in currentConfig["workers"] {
+                if (worker["id"] = this.workerId) {
+                    worker["sessionIndex"] := selectedSession["index"]
+                    worker["connectionIndex"] := selectedSession["connectionIndex"]
+                    break
+                }
+            }
+
+            file := FileOpen(CONFIG_FILE, "w")
+            file.Write(JSON.Stringify(currentConfig))
+            file.Close()
+            this.config := currentConfig
+            return true
+        } catch {
+            return false
+        } finally {
+            this.UnlockConfig()
         }
     }
 
