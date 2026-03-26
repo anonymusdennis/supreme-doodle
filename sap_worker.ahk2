@@ -95,6 +95,7 @@ class SAPWorker {
         this.successCount := 0
         this.failureCount := 0
         this.isPaused := false
+        this.lastCommandPoll := 0
         this.processedCommandIds := Map()
 
         ; Ensure logs directory exists
@@ -666,6 +667,8 @@ class SAPWorker {
 
             if (this.config["uiState"]["paused"]) {
                 this.isPaused := true
+            } else {
+                this.isPaused := false
             }
 
             if (queueChanged) {
@@ -864,7 +867,10 @@ class SAPWorker {
         success := false
 
         while (this.isRunning) {
-            this.ProcessCommands()
+            if (A_TickCount - this.lastCommandPoll >= 250) {
+                this.ProcessCommands()
+                this.lastCommandPoll := A_TickCount
+            }
             if (!this.isRunning) {
                 break
             }

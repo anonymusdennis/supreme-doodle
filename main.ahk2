@@ -22,6 +22,7 @@ global WORKER_START_DELAY := 6000
 global BATCH_SIZE_PER_WORKER := 5  ; Each worker gets 5 tables per batch
 global LOCK_RETRY_INTERVAL := 50
 global MAX_LOCK_WAIT := 10000
+global MAX_COMMAND_RESULTS_DISPLAY := 10
 
 ; ==================== GLOBAL VARIABLES ====================
 global Databases := []
@@ -410,8 +411,9 @@ class TaskDistributor {
         }
     }
     LockConfig(lockOwner := "main") {
-        startTime := A_TickCount
-        while (A_TickCount - startTime < MAX_LOCK_WAIT) {
+        lockOwner := String(lockOwner)
+        startTick := A_TickCount
+        while (A_TickCount - startTick < MAX_LOCK_WAIT) {
             try {
                 if (FileExist(LOCK_FILE)) {
                     lockContent := FileRead(LOCK_FILE)
@@ -426,7 +428,7 @@ class TaskDistributor {
                 file.Close()
 
                 verifyContent := FileRead(LOCK_FILE)
-                if (Trim(verifyContent) = String(lockOwner)) {
+                if (Trim(String(verifyContent)) = lockOwner) {
                     return true
                 }
             } catch {
@@ -436,10 +438,11 @@ class TaskDistributor {
         return false
     }
     UnlockConfig(lockOwner := "main") {
+        lockOwner := String(lockOwner)
         try {
             if (FileExist(LOCK_FILE)) {
                 lockContent := FileRead(LOCK_FILE)
-                if (Trim(lockContent) = String(lockOwner)) {
+                if (Trim(String(lockContent)) = lockOwner) {
                     file := FileOpen(LOCK_FILE, "w")
                     file.Write("")
                     file.Close()
@@ -701,7 +704,7 @@ class TaskDistributor {
     }
     ResetAllWorkers() {
         this.StopAllWorkers()
-        Sleep(1000)
+        Sleep(1000) ; allow worker processes to fully exit before restart
         if (!this.ReadConfigLocked("main")) {
             MsgBox("Could not lock config for reset.", "Error", 0x10)
             return
@@ -870,12 +873,10 @@ class TaskDistributor {
             this.EnqueueCommand("stop", workerId)
         }
         _PauseAll(*) {
-            this.EnqueueCommand("pause", -1)
             this.uiPaused := true
             this.SetGlobalPauseState(true)
         }
         _ResumeAll(*) {
-            this.EnqueueCommand("resume", -1)
             this.uiPaused := false
             this.SetGlobalPauseState(false)
             this.StartWorkers()
@@ -978,7 +979,7 @@ class TaskDistributor {
 
                 ; Command results in UI
                 this.commandListView.Delete()
-                startIdx := this.config["commandResults"].Length - 9
+                startIdx := this.config["commandResults"].Length - (MAX_COMMAND_RESULTS_DISPLAY - 1)
                 if (startIdx < 1) {
                     startIdx := 1
                 }
