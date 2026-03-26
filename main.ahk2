@@ -113,6 +113,7 @@ class TaskDistributor {
         this.commandListView := ""
         this.commandSeq := 0
         this.uiPaused := false
+        this.batchSizePerWorker := BATCH_SIZE_PER_WORKER
     }
 
     fixconfig() {
@@ -136,7 +137,7 @@ class TaskDistributor {
 
         ; Calculate batch count
         workerCount := this.config["workers"].Length
-        batchSize := workerCount * BATCH_SIZE_PER_WORKER
+        batchSize := workerCount * this.batchSizePerWorker
         this.totalBatches := Ceil(this.allTasks.Length / batchSize)
         this.EnsureCommandChannels()
 
@@ -229,10 +230,24 @@ class TaskDistributor {
         btnOK := myGui.Add("Button", "xs Section w100", "OK")
         btnCancel := myGui.Add("Button", "x+10 w100", "Cancel")
         btnSelectAll := myGui.Add("Button", "x+10 w100", "Select All")
+        myGui.Add("Text", "xs y+12", "Batch size per worker:")
+        batchSizeInput := myGui.Add("Edit", "w120 Number")
+        batchSizeInput.Value := String(this.batchSizePerWorker)
 
         result := false
 
         OnOKClick(*) {
+            batchSizeValue := 0
+            try {
+                batchSizeValue := Integer(Trim(batchSizeInput.Value))
+            } catch {
+                batchSizeValue := 0
+            }
+            if (batchSizeValue < 1) {
+                MsgBox("Batch size per worker must be at least 1.", "Error", 0x30)
+                return
+            }
+            this.batchSizePerWorker := batchSizeValue
             selectedCount := 0
             Loop checkboxes.Length {
                 if (checkboxes[A_Index].Value) {
@@ -322,7 +337,7 @@ class TaskDistributor {
 
         ; Calculate batch size
         workerCount := this.config["workers"].Length
-        batchSize := workerCount * BATCH_SIZE_PER_WORKER
+        batchSize := workerCount * this.batchSizePerWorker
 
         ; Calculate batch range
         startIdx := this.currentBatchIndex * batchSize + 1
@@ -985,11 +1000,12 @@ class TaskDistributor {
                 )
 
                 ; Update batch info
-                batchText.Text := Format("Current Batch: {}/{} | Batch Progress: {}/{}",
+                batchText.Text := Format("Current Batch: {}/{} | Batch Progress: {}/{} | Batch Size/Worker: {}",
                     this.currentBatchIndex,
                     this.totalBatches,
                     batchCompleted + batchFailed,
-                    this.config["tasks"].Length
+                    this.config["tasks"].Length,
+                    this.batchSizePerWorker
                 )
 
                 selectedWorkerId := this.GetSelectedWorkerId()
@@ -1077,12 +1093,14 @@ class TaskDistributor {
             . "Completed: {}`n"
             . "Failed: {}`n"
             . "Total Batches: {}`n"
+            . "Batch Size/Worker: {}`n"
             . "Duration: {} minutes`n`n"
             . "Check the logs folder for details.",
             this.allTasks.Length,
             this.globalCompletedTasks,
             this.globalFailedTasks,
             this.totalBatches,
+            this.batchSizePerWorker,
             duration
         )
 

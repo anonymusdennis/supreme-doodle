@@ -171,13 +171,9 @@ class SAPWorker {
                     throw Error("Cache directory could not be created: " . SCRIPT_CACHE_DIR)
                 }
             }
-
-            ; overwrite existing cache
-            if (FileExist(cachePath)) {
-                FileDelete(cachePath)
-            }
-
-            FileAppend(scriptText, cachePath, "UTF-8")
+            file := FileOpen(cachePath, "w", "UTF-8")
+            file.Write(scriptText)
+            file.Close()
             LogMessage("INFO", "Cached script written: " . cachePath)
             return true
         } catch {
@@ -187,23 +183,8 @@ class SAPWorker {
     }
 
     DeleteCachedScript(tableName) {
-        if (Trim(tableName) = "") {
-            return false
-        }
-
-        cachePath := this.GetScriptCachePath(tableName)
-        if (!FileExist(cachePath)) {
-            return true
-        }
-
-        try {
-            FileDelete(cachePath)
-            LogMessage("INFO", "Cached script deleted: " . cachePath)
-            return true
-        } catch {
-            LogError("Failed to delete cached script for table " . tableName)
-            return false
-        }
+        LogMessage("INFO", "Cache deletion disabled; keeping cached script for table " . tableName)
+        return true
     }
 
     ShouldFallbackToDD03L(cachedFlowErrorMessage) {
@@ -221,8 +202,7 @@ class SAPWorker {
             return false
         }
 
-        LogMessage("WARNING", "Cached script invalid or failed to apply for " . tableName . " - deleting cache and falling back to DD03L flow")
-        this.DeleteCachedScript(tableName)
+        LogMessage("WARNING", "Cached script invalid or failed to apply for " . tableName . " - keeping cache and falling back to DD03L flow")
         set_status(this, "Cached script invalid for " . tableName . " - falling back to DD03L flow")
         return true
     }
@@ -795,6 +775,20 @@ class SAPWorker {
         }
         this.SaveConfig()
     }
+    RequeueTask(taskId) {
+        this.LoadConfig()
+        for task in this.config["tasks"] {
+            if (task["id"] == taskId) {
+                task["status"] := "pending"
+                task["working"] := false
+                task["startTime"] := ""
+                task["endTime"] := ""
+                task["error"] := ""
+                break
+            }
+        }
+        this.SaveConfig()
+    }
 
     GetNextTask() {
         set_status(this, "Acquiring next task")
@@ -1051,6 +1045,9 @@ class SAPWorker {
                     this.lastSapMessage := this.GetCurrentSapMessage()
                     this.LogFailure(task["tableName"], task["destination"], this.lastErrorMessage, this.lastSapMessage)
                 }
+                if (!this.isRunning) {
+                    break
+                }
 
                 if (success) {
                     ; Update task status to completed
@@ -1059,6 +1056,11 @@ class SAPWorker {
                         this.workerId, task["tableName"], task["destination"]))
                     set_status(this, Format("Task completed: {} -> {}", task["tableName"], task["destination"]))
                 } else {
+                    if (this.isPaused && this.isRunning) {
+                        this.RequeueTask(task["id"])
+                        set_status(this, Format("Task re-queued after pause: {} -> {}", task["tableName"], task["destination"]))
+                        continue
+                    }
                     ; Update task status to failed
                     this.UpdateTaskStatus(task["id"], "failed", this.lastErrorMessage)
                     LogMessage("ERROR", Format("Worker {} failed task: {} -> {} ({})",
@@ -1098,6 +1100,10 @@ class SAPWorker {
         ))
         set_status(this, Format("Processing table {} for destination {}", task["tableName"], task["destination"]))
         this.UpdateWorkerStatus("working", task["tableName"] . " -> " . task["destination"])
+        this.ProcessCommands()
+        if (!this.isRunning || this.isPaused) {
+            return false
+        }
 
         ; Save and resize window if configured
         if (this.workerConfig["RESIZE_WINDOW"]) {
@@ -1119,6 +1125,10 @@ class SAPWorker {
             destination := task["destination"]
             cachedScript := this.LoadCachedScript(tableName)
             runDd03LFlow := true
+            this.ProcessCommands()
+            if (!this.isRunning || this.isPaused) {
+                return false
+            }
 
             if (cachedScript != "") {
                 set_status(this, "Cached script found for " . tableName . " - skipping DD03L")
@@ -1129,6 +1139,10 @@ class SAPWorker {
                     processResult := this.ProcessTableFromCachedScript(tableName, destination, cachedScript)
                 } catch {
                     this.SetDefaultCachedFlowError()
+                }
+                this.ProcessCommands()
+                if (!this.isRunning || this.isPaused) {
+                    return false
                 }
 
                 if (!processResult) {
@@ -1144,8 +1158,16 @@ class SAPWorker {
 
             if (runDd03LFlow) {
                 set_status(this, "No cached script found for " . tableName . " - using DD03L flow")
+                this.ProcessCommands()
+                if (!this.isRunning || this.isPaused) {
+                    return false
+                }
 
                 fields := this.ReadDD03LFields(tableName)
+                this.ProcessCommands()
+                if (!this.isRunning || this.isPaused) {
+                    return false
+                }
 
                 ; Restore window size after reading fields
                 if (this.workerConfig["RESIZE_WINDOW"]) {
@@ -2485,6 +2507,11 @@ set_status(worker, status) {
     }
     try
     {
+        worker.ProcessCommands()
+        if (!worker.isRunning) {
+            currently_statusing := false
+            return
+        }
         LogMessage("STATUS", Format("[Worker {}] {}", worker.workerId, status))
         ; also change config with current status
         if (worker.LoadConfig()) {
