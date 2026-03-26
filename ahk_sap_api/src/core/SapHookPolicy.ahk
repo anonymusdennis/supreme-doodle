@@ -304,7 +304,7 @@ class SapHookPolicy {
                     context.selectedIndex := 1
                 }
                 radio := reconnectGui.Add("Radio", opt, label)
-                radio.OnEvent("Click", ObjBindMethod(this, "_OnReconnectSessionRadioClick", context, idx))
+                radio.OnEvent("Click", ObjBindMethod(this, "_DoSelectSession", context, idx))
                 context.sessionControls.Push(radio)
                 yPos += 24
                 idx += 1
@@ -344,7 +344,7 @@ class SapHookPolicy {
         return context.resultSession
     }
 
-    _OnReconnectSessionRadioClick(context, selectedIndex, *) {
+    _DoSelectSession(context, selectedIndex, *) {
         context.selectedIndex := selectedIndex
     }
 

@@ -97,6 +97,8 @@ class SAPWorker {
         this.isPaused := false
         this.lastCommandPoll := 0
         this.processedCommandIds := Map()
+        this.lastRecoveryTick := 0
+        this.recoveryStepBackTasks := 2
 
         ; Ensure logs directory exists
         if (!DirExist(A_ScriptDir . "\logs")) {
@@ -912,6 +914,57 @@ class SAPWorker {
         }
     }
 
+    RecoverSapSession() {
+        set_status(this, "SAP session unavailable - reconnect required")
+        this.UpdateWorkerStatus("error", "SAP disconnected")
+        if (!this.ConnectToSAP()) {
+            return false
+        }
+        this.RewindRecentTasks(this.recoveryStepBackTasks)
+        this.UpdateWorkerStatus("ready", "Recovered SAP session")
+        set_status(this, "Recovered SAP session and rewound recent tasks")
+        return true
+    }
+
+    RewindRecentTasks(steps := 2) {
+        if (steps <= 0) {
+            return 0
+        }
+        if (!this.LockConfig()) {
+            return 0
+        }
+        reverted := 0
+        try {
+            currentConfigText := FileRead(CONFIG_FILE)
+            currentConfig := JSON.Parse(currentConfigText)
+            idx := currentConfig["tasks"].Length
+            while (idx >= 1 && reverted < steps) {
+                task := currentConfig["tasks"][idx]
+                if ((task["status"] = "completed" || task["status"] = "failed")
+                    && task.Has("assignedWorker")
+                    && task["assignedWorker"] = this.workerId) {
+                    task["status"] := "pending"
+                    task["working"] := false
+                    task["startTime"] := ""
+                    task["endTime"] := ""
+                    task["error"] := ""
+                    reverted += 1
+                }
+                idx -= 1
+            }
+            file := FileOpen(CONFIG_FILE, "w")
+            file.Write(JSON.Stringify(currentConfig))
+            file.Close()
+            this.config := currentConfig
+            this.last_config := JSON.Stringify(currentConfig)
+            this.UnlockConfig()
+            return reverted
+        } catch {
+            this.UnlockConfig()
+            return reverted
+        }
+    }
+
     Run() {
         LogMessage("INFO", "Worker " . this.workerId . " started processing")
         set_status(this, "Waiting for tasks")
@@ -930,6 +983,14 @@ class SAPWorker {
                 Sleep(CHECK_INTERVAL)
                 continue
             }
+
+            if (!this.IsSessionAlive()) {
+                if (!this.TryRecoverDisconnectedSession()) {
+                    Sleep(CHECK_INTERVAL)
+                    continue
+                }
+            }
+
             task := this.GetNextTask()
             if (task) {
                 set_status(this, Format("Processing: {} -> {}", task["tableName"], task["destination"]))
@@ -1129,6 +1190,27 @@ class SAPWorker {
             this.UpdateTaskStatus(task["id"], "failed", this.lastErrorMessage)
             return false
         }
+    }
+
+    IsSessionAlive() {
+        try {
+            if (!IsObject(this.session)) {
+                return false
+            }
+            wnd := this.session.FindById("wnd[0]", false)
+            return IsObject(wnd)
+        } catch {
+            return false
+        }
+    }
+
+    TryRecoverDisconnectedSession() {
+        nowTick := A_TickCount
+        if (nowTick - this.lastRecoveryTick < 2000) {
+            return false
+        }
+        this.lastRecoveryTick := nowTick
+        return this.RecoverSapSession()
     }
 
     ReadDD03LFields(tableName) {
