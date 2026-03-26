@@ -13,12 +13,16 @@
 ShowDisclaimerIfNeeded()
 ; ==================== CONSTANTS ====================
 global CONFIG_FILE := A_ScriptDir . "\sessions.json"
+global LOCK_FILE := A_ScriptDir . "\lockconfig"
 global WORKER_SCRIPT := A_ScriptDir . "\sap_worker.ahk2"
 global STOP_FILE := A_ScriptDir . "\STOP_ALL_WORKERS"
 global REFRESH_INTERVAL := 500
 global MAX_ENTRIES := 5
 global WORKER_START_DELAY := 6000
 global BATCH_SIZE_PER_WORKER := 5  ; Each worker gets 5 tables per batch
+global LOCK_RETRY_INTERVAL := 50
+global MAX_LOCK_WAIT := 10000
+global MAX_COMMAND_RESULTS_DISPLAY := 10
 
 ; ==================== GLOBAL VARIABLES ====================
 global Databases := []
@@ -106,6 +110,9 @@ class TaskDistributor {
         this.workerListView := ""
         this.globalCompletedTasks := 0
         this.globalFailedTasks := 0
+        this.commandListView := ""
+        this.commandSeq := 0
+        this.uiPaused := false
     }
 
     fixconfig() {
@@ -131,6 +138,7 @@ class TaskDistributor {
         workerCount := this.config["workers"].Length
         batchSize := workerCount * BATCH_SIZE_PER_WORKER
         this.totalBatches := Ceil(this.allTasks.Length / batchSize)
+        this.EnsureCommandChannels()
 
         LogMessage("INFO", Format("Total tasks: {}, Batch size: {}, Total batches: {}",
             this.allTasks.Length, batchSize, this.totalBatches))
@@ -397,14 +405,339 @@ class TaskDistributor {
     }
 
     SaveConfig() {
-        jsonText := JSON.Stringify(this.config)
+        this.EnsureCommandChannels()
+        if (!this.WriteConfigLocked("main")) {
+            LogError("Failed to save config: ")
+        }
+    }
+    LockConfig(lockOwner := "main") {
+        lockOwner := String(lockOwner)
+        startTick := A_TickCount
+        while (A_TickCount - startTick < MAX_LOCK_WAIT) {
+            try {
+                if (FileExist(LOCK_FILE)) {
+                    lockContent := FileRead(LOCK_FILE)
+                    if (Trim(lockContent) != "" && Trim(lockContent) != String(lockOwner)) {
+                        Sleep(LOCK_RETRY_INTERVAL)
+                        continue
+                    }
+                }
+
+                file := FileOpen(LOCK_FILE, "w")
+                file.Write(String(lockOwner))
+                file.Close()
+
+                verifyContent := FileRead(LOCK_FILE)
+                if (Trim(String(verifyContent)) = lockOwner) {
+                    return true
+                }
+            } catch {
+            }
+            Sleep(LOCK_RETRY_INTERVAL)
+        }
+        return false
+    }
+    UnlockConfig(lockOwner := "main") {
+        lockOwner := String(lockOwner)
         try {
+            if (FileExist(LOCK_FILE)) {
+                lockContent := FileRead(LOCK_FILE)
+                if (Trim(String(lockContent)) = lockOwner) {
+                    file := FileOpen(LOCK_FILE, "w")
+                    file.Write("")
+                    file.Close()
+                }
+            }
+        } catch {
+        }
+    }
+    ReadConfigLocked(lockOwner := "main") {
+        if (!this.LockConfig(lockOwner)) {
+            return false
+        }
+        try {
+            jsonText := FileRead(CONFIG_FILE)
+            this.config := JSON.Parse(jsonText)
+            this.UnlockConfig(lockOwner)
+            return true
+        } catch {
+            this.UnlockConfig(lockOwner)
+            return false
+        }
+    }
+    WriteConfigLocked(lockOwner := "main") {
+        if (!this.LockConfig(lockOwner)) {
+            return false
+        }
+        try {
+            jsonText := JSON.Stringify(this.config)
             file := FileOpen(CONFIG_FILE, "w")
             file.Write(jsonText)
             file.Close()
+            this.UnlockConfig(lockOwner)
+            return true
         } catch {
-            LogError("Failed to save config: ")
+            this.UnlockConfig(lockOwner)
+            return false
         }
+    }
+    EnsureCommandChannels() {
+        if (!this.config.Has("commandQueue")) {
+            this.config["commandQueue"] := []
+        }
+        if (!this.config.Has("commandResults")) {
+            this.config["commandResults"] := []
+        }
+        if (!this.config.Has("uiState")) {
+            this.config["uiState"] := {
+                paused: false
+            }
+        } else if (!this.config["uiState"].Has("paused")) {
+            this.config["uiState"]["paused"] := false
+        }
+    }
+    NextCommandId() {
+        maxId := 0
+        if (this.config.Has("commandQueue")) {
+            for cmd in this.config["commandQueue"] {
+                if (cmd.Has("id") && cmd["id"] > maxId) {
+                    maxId := cmd["id"]
+                }
+            }
+        }
+        if (this.config.Has("commandResults")) {
+            for res in this.config["commandResults"] {
+                if (res.Has("id") && res["id"] > maxId) {
+                    maxId := res["id"]
+                }
+            }
+        }
+        return maxId + 1
+    }
+    EnqueueCommand(commandType, targetWorker := -1, payload := "") {
+        if (!this.LockConfig("main")) {
+            MsgBox("Could not acquire sessions.json lock to enqueue command.", "Error", 0x10)
+            return false
+        }
+        try {
+            jsonText := FileRead(CONFIG_FILE)
+            this.config := JSON.Parse(jsonText)
+            this.EnsureCommandChannels()
+            cmdId := this.NextCommandId()
+            command := {
+                id: cmdId,
+                type: commandType,
+                targetWorker: targetWorker,
+                payload: payload,
+                createdAt: A_Now,
+                status: "queued",
+                issuer: "main"
+            }
+            this.config["commandQueue"].Push(command)
+            file := FileOpen(CONFIG_FILE, "w")
+            file.Write(JSON.Stringify(this.config))
+            file.Close()
+            this.UnlockConfig("main")
+            return true
+        } catch {
+            this.UnlockConfig("main")
+            MsgBox("Failed to write command to sessions.json.", "Error", 0x10)
+            return false
+        }
+    }
+    AppendCommandResult(resultEntry) {
+        this.EnsureCommandChannels()
+        this.config["commandResults"].Push(resultEntry)
+        while (this.config["commandResults"].Length > 200) {
+            this.config["commandResults"].RemoveAt(1)
+        }
+    }
+    SetGlobalPauseState(paused) {
+        if (!this.LockConfig("main")) {
+            return false
+        }
+        try {
+            jsonText := FileRead(CONFIG_FILE)
+            this.config := JSON.Parse(jsonText)
+            this.EnsureCommandChannels()
+            this.config["uiState"]["paused"] := paused
+            this.AppendCommandResult({
+                id: this.NextCommandId(),
+                type: paused ? "pause_all" : "resume_all",
+                workerId: -1,
+                at: A_Now,
+                status: "ok",
+                message: paused ? "Global pause enabled." : "Global pause disabled."
+            })
+            file := FileOpen(CONFIG_FILE, "w")
+            file.Write(JSON.Stringify(this.config))
+            file.Close()
+            this.UnlockConfig("main")
+            return true
+        } catch {
+            this.UnlockConfig("main")
+            return false
+        }
+    }
+    GetSelectedWorkerId() {
+        row := this.workerListView.GetNext(0)
+        if (!row) {
+            return -1
+        }
+        workerText := this.workerListView.GetText(row, 1)
+        if (RegExMatch(workerText, "Worker\s+(\d+)", &m)) {
+            return m[1] + 0
+        }
+        return -1
+    }
+    AddWorkerWithSessionPrompt() {
+        this.DiscoverSAPSessions()
+        if (this.availableSessions.Length < 1) {
+            MsgBox("No SAP sessions found.", "Error", 0x10)
+            return
+        }
+
+        selector := Gui("+Resize", "Add Worker - Select SAP Session")
+        selector.MarginX := 12
+        selector.MarginY := 12
+        selector.Add("Text", "w520", "Select a SAP session for the new worker:")
+        ddl := selector.Add("DropDownList", "w520")
+
+        sessionMap := Map()
+        for idx, sessionData in this.availableSessions {
+            label := Format("Session {}: {} / Client {} (User: {}) [{}:{}]",
+                idx,
+                sessionData.sysId,
+                sessionData.client,
+                sessionData.user,
+                sessionData.connectionIndex,
+                sessionData.sessionIndex)
+            ddl.Add([label])
+            sessionMap[label] := sessionData
+        }
+        ddl.Choose(1)
+
+        btnAdd := selector.Add("Button", "w100", "Add")
+        btnCancel := selector.Add("Button", "x+10 w100", "Cancel")
+        selectedSession := ""
+
+        btnAdd.OnEvent("Click", (*) => (selectedSession := ddl.Text, selector.Destroy()))
+        btnCancel.OnEvent("Click", (*) => selector.Destroy())
+
+        selector.Show()
+        WinWait(selector)
+        WinWaitClose(selector)
+
+        if (selectedSession = "") {
+            return
+        }
+
+        if (!this.ReadConfigLocked("main")) {
+            MsgBox("Could not lock config to add worker.", "Error", 0x10)
+            return
+        }
+        this.EnsureCommandChannels()
+
+        selected := sessionMap[selectedSession]
+        nextWorkerId := 0
+        for worker in this.config["workers"] {
+            if (worker["id"] >= nextWorkerId) {
+                nextWorkerId := worker["id"] + 1
+            }
+        }
+        this.config["workers"].Push({
+            id: nextWorkerId,
+            sessionIndex: selected.index,
+            connectionIndex: selected.connectionIndex,
+            status: "queued",
+            currentTask: "",
+            completedTasks: 0,
+            lastUpdate: A_Now,
+            current_status: "Added by UI"
+        })
+        this.WriteConfigLocked("main")
+        this.StartNextWorker()
+    }
+    StepBackTasks() {
+        countInput := InputBox("How many completed/failed tasks to move back to pending?", "Step Back Tasks", "w420 h140")
+        if (countInput.Result != "OK") {
+            return
+        }
+        stepsText := Trim(countInput.Value)
+        if (!RegExMatch(stepsText, "^\d+$")) {
+            MsgBox("Please enter a valid positive number.", "Invalid Input", 0x30)
+            return
+        }
+        steps := stepsText + 0
+        if (steps <= 0) {
+            MsgBox("Please enter a number greater than zero.", "Invalid Input", 0x30)
+            return
+        }
+
+        if (!this.ReadConfigLocked("main")) {
+            MsgBox("Could not lock config for step-back.", "Error", 0x10)
+            return
+        }
+        reverted := 0
+        idx := this.config["tasks"].Length
+        while (idx >= 1 && reverted < steps) {
+            task := this.config["tasks"][idx]
+            if (task["status"] = "completed" || task["status"] = "failed") {
+                task["status"] := "pending"
+                task["working"] := false
+                task["startTime"] := ""
+                task["endTime"] := ""
+                task["error"] := ""
+                reverted++
+            }
+            idx--
+        }
+        this.AppendCommandResult({
+            id: this.NextCommandId(),
+            type: "step_back",
+            workerId: -1,
+            at: A_Now,
+            status: "ok",
+            message: Format("Moved {} tasks back to pending.", reverted)
+        })
+        this.WriteConfigLocked("main")
+    }
+    ResetAllWorkers() {
+        this.StopAllWorkers()
+        Sleep(1000) ; allow worker processes to fully exit before restart
+        if (!this.ReadConfigLocked("main")) {
+            MsgBox("Could not lock config for reset.", "Error", 0x10)
+            return
+        }
+        this.EnsureCommandChannels()
+        for worker in this.config["workers"] {
+            worker["status"] := "queued"
+            worker["currentTask"] := ""
+            worker["completedTasks"] := 0
+            worker["current_status"] := "Reset by UI"
+            worker["lastUpdate"] := A_Now
+        }
+        for task in this.config["tasks"] {
+            task["status"] := "pending"
+            task["working"] := false
+            task["startTime"] := ""
+            task["endTime"] := ""
+            task["error"] := ""
+        }
+        this.globalCompletedTasks := 0
+        this.globalFailedTasks := 0
+        this.workerStarted.Clear()
+        this.workerProcesses.Clear()
+        this.AppendCommandResult({
+            id: this.NextCommandId(),
+            type: "reset",
+            workerId: -1,
+            at: A_Now,
+            status: "ok",
+            message: "All workers/tasks reset and restarted."
+        })
+        this.WriteConfigLocked("main")
+        this.StartWorkers()
     }
 
     StartWorkers() {
@@ -412,9 +745,13 @@ class TaskDistributor {
     }
 
     StartNextWorker() {
-        ; read config file
-        jsonText := FileRead(CONFIG_FILE)
-        this.config := JSON.Parse(jsonText)
+        if (!this.ReadConfigLocked("main")) {
+            return
+        }
+        this.EnsureCommandChannels()
+        if (this.config["uiState"]["paused"]) {
+            return
+        }
         for rowIdx in range(1, this.config["workers"].Length) {
             worker := this.config["workers"][rowIdx]
             if (!this.workerStarted.Has(worker["id"]) && worker["status"] = "queued") {
@@ -490,38 +827,104 @@ class TaskDistributor {
         this.workerListView.ModifyCol(4, 80)
         this.workerListView.ModifyCol(5, 210)
 
-        btnStop := this.progressGui.Add("Button", "w100", "&Stop All")
-        btnClose := this.progressGui.Add("Button", "x+10 w100", "&Close")
+        this.progressGui.Add("Text", "xs y+10", "Worker Commands:")
+        btnPauseWorker := this.progressGui.Add("Button", "w120", "Pause Worker")
+        btnResumeWorker := this.progressGui.Add("Button", "x+10 w120", "Resume Worker")
+        btnStopWorker := this.progressGui.Add("Button", "x+10 w120", "Stop Worker")
+        btnPauseAll := this.progressGui.Add("Button", "xs y+8 w120", "Pause All")
+        btnResumeAll := this.progressGui.Add("Button", "x+10 w120", "Resume All")
+        btnAddWorker := this.progressGui.Add("Button", "x+10 w120", "Add Worker")
+        btnStepBack := this.progressGui.Add("Button", "x+10 w120", "Step Back")
+        btnReset := this.progressGui.Add("Button", "xs y+8 w120", "Reset")
+        btnStop := this.progressGui.Add("Button", "x+10 w120", "&Stop All")
+        btnClose := this.progressGui.Add("Button", "x+10 w120", "&Close")
+
+        this.progressGui.Add("Text", "xs y+12", "Command Results:")
+        this.commandListView := this.progressGui.Add("ListView", "w600 h120",
+            ["Time", "Command", "Worker", "Status", "Message"])
+        this.commandListView.ModifyCol(1, 130)
+        this.commandListView.ModifyCol(2, 100)
+        this.commandListView.ModifyCol(3, 80)
+        this.commandListView.ModifyCol(4, 80)
+        this.commandListView.ModifyCol(5, 210)
+
+        _PauseSelected(*) {
+            workerId := this.GetSelectedWorkerId()
+            if (workerId < 0) {
+                MsgBox("Select a worker row first.", "Info", 0x40)
+                return
+            }
+            this.EnqueueCommand("pause", workerId)
+        }
+        _ResumeSelected(*) {
+            workerId := this.GetSelectedWorkerId()
+            if (workerId < 0) {
+                MsgBox("Select a worker row first.", "Info", 0x40)
+                return
+            }
+            this.EnqueueCommand("resume", workerId)
+        }
+        _StopSelected(*) {
+            workerId := this.GetSelectedWorkerId()
+            if (workerId < 0) {
+                MsgBox("Select a worker row first.", "Info", 0x40)
+                return
+            }
+            this.EnqueueCommand("stop", workerId)
+        }
+        _PauseAll(*) {
+            this.uiPaused := true
+            this.SetGlobalPauseState(true)
+        }
+        _ResumeAll(*) {
+            this.uiPaused := false
+            this.SetGlobalPauseState(false)
+            this.StartWorkers()
+        }
+        _AddWorker(*) {
+            this.AddWorkerWithSessionPrompt()
+        }
+        _StepBack(*) {
+            this.StepBackTasks()
+        }
+        _Reset(*) {
+            this.ResetAllWorkers()
+        }
 
         _BtnStopClickHandler(*) {
             this.StopAllWorkers()
         }
         _BtnCloseClickHandler(*) {
-            asasd()
-        }
-        btnStop.OnEvent("Click", _BtnStopClickHandler)
-        btnClose.OnEvent("Click", _BtnCloseClickHandler)
-        asasd()
-        {
-            {
-                if (this.batchInProgress) {
-                    if (MsgBox("Processing is still active. Stop all workers and close?", "Confirm", 0x34) = "Yes") {
-                        this.StopAllWorkers()
-                        this.progressGui.Destroy()
-                    }
-                } else {
+            if (this.batchInProgress) {
+                if (MsgBox("Processing is still active. Stop all workers and close?", "Confirm", 0x34) = "Yes") {
+                    this.StopAllWorkers()
                     this.progressGui.Destroy()
                 }
+            } else {
+                this.progressGui.Destroy()
             }
         }
+        btnPauseWorker.OnEvent("Click", _PauseSelected)
+        btnResumeWorker.OnEvent("Click", _ResumeSelected)
+        btnStopWorker.OnEvent("Click", _StopSelected)
+        btnPauseAll.OnEvent("Click", _PauseAll)
+        btnResumeAll.OnEvent("Click", _ResumeAll)
+        btnAddWorker.OnEvent("Click", _AddWorker)
+        btnStepBack.OnEvent("Click", _StepBack)
+        btnReset.OnEvent("Click", _Reset)
+        btnStop.OnEvent("Click", _BtnStopClickHandler)
+        btnClose.OnEvent("Click", _BtnCloseClickHandler)
         this.progressGui.Show()
 
         ; Update timer
         UpdateProgress() {
             try {
                 this.workerListView.Opt("-Redraw")
-                jsonText := FileRead(CONFIG_FILE)
-                this.config := JSON.Parse(jsonText)
+                if (!this.ReadConfigLocked("main")) {
+                    this.workerListView.Opt("+Redraw")
+                    return
+                }
+                this.EnsureCommandChannels()
 
                 ; Count current batch progress
                 batchCompleted := 0
@@ -573,6 +976,24 @@ class TaskDistributor {
                 this.workerListView.ModifyCol(3, 150)
                 this.workerListView.ModifyCol(4, 80)
                 this.workerListView.ModifyCol(5, 210)
+
+                ; Command results in UI
+                this.commandListView.Delete()
+                startIdx := this.config["commandResults"].Length - (MAX_COMMAND_RESULTS_DISPLAY - 1)
+                if (startIdx < 1) {
+                    startIdx := 1
+                }
+                for idx in range(startIdx, this.config["commandResults"].Length) {
+                    res := this.config["commandResults"][idx]
+                    workerTxt := (res.Has("workerId") && res["workerId"] >= 0) ? ("Worker " . res["workerId"]) : "All/Main"
+                    this.commandListView.Add(,
+                        res.Has("at") ? res["at"] : "",
+                        res.Has("type") ? res["type"] : "",
+                        workerTxt,
+                        res.Has("status") ? res["status"] : "",
+                        res.Has("message") ? res["message"] : ""
+                    )
+                }
                 try {
                     this.workerListView.Opt("+Redraw")
                 } catch {

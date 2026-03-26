@@ -94,6 +94,9 @@ class SAPWorker {
         this.lastSapMessage := ""
         this.successCount := 0
         this.failureCount := 0
+        this.isPaused := false
+        this.lastCommandPoll := 0
+        this.processedCommandIds := Map()
 
         ; Ensure logs directory exists
         if (!DirExist(A_ScriptDir . "\logs")) {
@@ -581,6 +584,151 @@ class SAPWorker {
 
         return currentFileConfig
     }
+    EnsureCommandChannels() {
+        if (!this.config.Has("commandQueue")) {
+            this.config["commandQueue"] := []
+        }
+        if (!this.config.Has("commandResults")) {
+            this.config["commandResults"] := []
+        }
+        if (!this.config.Has("uiState")) {
+            this.config["uiState"] := {
+                paused: false
+            }
+        } else if (!this.config["uiState"].Has("paused")) {
+            this.config["uiState"]["paused"] := false
+        }
+    }
+    NextCommandResultId() {
+        maxId := 0
+        this.EnsureCommandChannels()
+        for cmd in this.config["commandQueue"] {
+            if (cmd.Has("id") && cmd["id"] > maxId) {
+                maxId := cmd["id"]
+            }
+        }
+        for res in this.config["commandResults"] {
+            if (res.Has("id") && res["id"] > maxId) {
+                maxId := res["id"]
+            }
+        }
+        return maxId + 1
+    }
+    AddCommandResult(commandType, status, message, commandId := 0) {
+        this.EnsureCommandChannels()
+        this.config["commandResults"].Push({
+            id: this.NextCommandResultId(),
+            commandId: commandId,
+            type: commandType,
+            workerId: this.workerId,
+            at: A_Now,
+            status: status,
+            message: message
+        })
+        while (this.config["commandResults"].Length > 200) {
+            this.config["commandResults"].RemoveAt(1)
+        }
+    }
+    ProcessCommands() {
+        if (!this.LockConfig()) {
+            return
+        }
+        try {
+            currentConfigText := FileRead(CONFIG_FILE)
+            currentConfig := JSON.Parse(currentConfigText)
+            this.config := currentConfig
+            this.EnsureCommandChannels()
+
+            queueChanged := false
+            for cmd in this.config["commandQueue"] {
+                if (!cmd.Has("status") || cmd["status"] = "queued") {
+                    isTarget := (cmd.Has("targetWorker") && (cmd["targetWorker"] = -1 || cmd["targetWorker"] = this.workerId))
+                    if (!isTarget) {
+                        continue
+                    }
+                    cmdId := cmd.Has("id") ? cmd["id"] : 0
+                    if (cmdId > 0 && this.processedCommandIds.Has(cmdId)) {
+                        continue
+                    }
+                    cmdType := cmd.Has("type") ? cmd["type"] : ""
+                    if (cmdType = "pause") {
+                        this.isPaused := true
+                        for worker in this.config["workers"] {
+                            if (worker["id"] = this.workerId) {
+                                worker["status"] := "paused"
+                                worker["currentTask"] := ""
+                                worker["lastUpdate"] := A_Now
+                                worker["current_status"] := "Paused by command"
+                                break
+                            }
+                        }
+                        this.AddCommandResult("pause", "ok", "Worker paused.", cmdId)
+                        cmd["status"] := "done"
+                        queueChanged := true
+                    } else if (cmdType = "resume") {
+                        this.isPaused := false
+                        for worker in this.config["workers"] {
+                            if (worker["id"] = this.workerId) {
+                                worker["status"] := "ready"
+                                worker["lastUpdate"] := A_Now
+                                worker["current_status"] := "Resumed by command"
+                                break
+                            }
+                        }
+                        this.AddCommandResult("resume", "ok", "Worker resumed.", cmdId)
+                        cmd["status"] := "done"
+                        queueChanged := true
+                    } else if (cmdType = "stop") {
+                        for worker in this.config["workers"] {
+                            if (worker["id"] = this.workerId) {
+                                worker["status"] := "stopped"
+                                worker["currentTask"] := ""
+                                worker["lastUpdate"] := A_Now
+                                worker["current_status"] := "Stopped by command"
+                                break
+                            }
+                        }
+                        this.AddCommandResult("stop", "ok", "Worker stopping now.", cmdId)
+                        cmd["status"] := "done"
+                        queueChanged := true
+                        if (cmdId > 0) {
+                            this.processedCommandIds[cmdId] := true
+                        }
+                        file := FileOpen(CONFIG_FILE, "w")
+                        file.Write(JSON.Stringify(this.config))
+                        file.Close()
+                        this.last_config := JSON.Stringify(this.config)
+                        this.UnlockConfig()
+                        this.isRunning := false
+                        ExitApp(0)
+                    } else if (cmdType != "") {
+                        this.AddCommandResult(cmdType, "ignored", "Unsupported worker command.", cmdId)
+                        cmd["status"] := "done"
+                        queueChanged := true
+                    }
+                    if (cmdId > 0) {
+                        this.processedCommandIds[cmdId] := true
+                    }
+                }
+            }
+
+            if (this.config["uiState"]["paused"]) {
+                this.isPaused := true
+            } else {
+                this.isPaused := false
+            }
+
+            if (queueChanged) {
+                file := FileOpen(CONFIG_FILE, "w")
+                file.Write(JSON.Stringify(this.config))
+                file.Close()
+                this.last_config := JSON.Stringify(this.config)
+            }
+            this.UnlockConfig()
+        } catch {
+            this.UnlockConfig()
+        }
+    }
 
     UpdateWorkerStatus(status, currentTask) {
         set_status(this, Format("Worker status: {} - {}", status, currentTask))
@@ -766,6 +914,18 @@ class SAPWorker {
         success := false
 
         while (this.isRunning) {
+            if (A_TickCount - this.lastCommandPoll >= 250) {
+                this.ProcessCommands()
+                this.lastCommandPoll := A_TickCount
+            }
+            if (!this.isRunning) {
+                break
+            }
+            if (this.isPaused) {
+                set_status(this, "Paused by command")
+                Sleep(CHECK_INTERVAL)
+                continue
+            }
             task := this.GetNextTask()
             if (task) {
                 set_status(this, Format("Processing: {} -> {}", task["tableName"], task["destination"]))
