@@ -1,9 +1,14 @@
 #Requires AutoHotkey v2.0
 
 class SapHookPolicy {
-    __New() {
+    static RECONNECT_COOLDOWN_MS := 3000
+    static SAP_WINDOW_ID_PREFIX := "/wnd["
+
+    __New(reconnectCooldownMs := unset) {
         this._recentReconnectAttempts := Map()
-        this._reconnectCooldownMs := 3000
+        this._reconnectCooldownMs := IsSet(reconnectCooldownMs)
+            ? reconnectCooldownMs
+            : SapHookPolicy.RECONNECT_COOLDOWN_MS
     }
 
     On_Call(op, typeName, member, path, args, proxy) {
@@ -130,7 +135,12 @@ class SapHookPolicy {
             if (ib.Result != "OK") {
                 return ""
             }
-            idx := Integer(ib.Value)
+            try {
+                idx := Integer(ib.Value)
+            } catch {
+                MsgBox("Invalid selection '" ib.Value "'. Please enter a valid number.")
+                continue
+            }
             if (idx >= 1 && idx <= sessions.Length) {
                 return sessions[idx]
             }
@@ -249,12 +259,12 @@ class SapHookPolicy {
         if (path = "") {
             return ""
         }
-        needle := "/wnd["
+        needle := SapHookPolicy.SAP_WINDOW_ID_PREFIX
         pos := InStr(path, needle)
         if (!pos) {
             return ""
         }
-        return SubStr(path, pos + 1)
+        return SubStr(path, pos)
     }
 
     _TryReadProxyElementId(proxy) {
