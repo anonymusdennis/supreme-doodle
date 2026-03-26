@@ -1,0 +1,75 @@
+﻿  FF_DEF   diff_count    TYPE TCREP-CNTR.
+  FF_DEF   diff_count2  TYPE TCREP-CNTR.
+  FF_DEF   message    TYPE bapiret2-message.
+
+  FF_TEXT  diff_count    EN  'Kurz'  'rows with error'.
+  FF_TEXT  diff_count2   EN  'Kurz'  'fields with error'.
+  FF_TEXT  message       EN  'Kurz'  'message'.
+
+"REMOVED FIELDS => NOT FOUND ON SYSTEM B
+
+
+"REMOVED FIELDS WITH LOOKALIKES ON SYSTEM B:
+
+
+"ACTUAL WORKING CODE:
+IF row-b IS INITIAL.
+  diff_count = 1.
+  message = '(B) Entry missing'. 
+  EXIT. 
+ENDIF.
+
+
+  IF ROW-A~BERID <> ROW-B~BERID. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'BERID' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~FIRST_CONS <> ROW-B~FIRST_CONS. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'FIRST_CONS' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~LGORT <> ROW-B~LGORT. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'LGORT' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~MATNR <> ROW-B~MATNR. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'MATNR' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~PERIOD_MONTH <> ROW-B~PERIOD_MONTH. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'PERIOD_MONTH' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~PERIOD_WEEK <> ROW-B~PERIOD_WEEK. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'PERIOD_WEEK' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~SOURCE <> ROW-B~SOURCE. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'SOURCE' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~VKORG <> ROW-B~VKORG. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'VKORG' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~WERKS <> ROW-B~WERKS. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'WERKS' && ';'. 
+  ENDIF. 

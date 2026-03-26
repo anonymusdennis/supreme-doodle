@@ -6,67 +6,12 @@
   "statistics": {
     "completedTasks": 0,
     "failedTasks": 0,
-    "startTime": "20260306165841",
+    "startTime": "20260326084622",
     "totalTasks": 520
   },
   "tasks": [
     {
       "assignedWorker": 0,
-      "destination": "NONE",
-      "endTime": "",
-      "error": "",
-      "id": 1,
-      "startTime": "20260306165943",
-      "status": "pending",
-      "tableName": "\/WUE\/KOBE_C",
-      "working": 1
-    },
-    {
-      "assignedWorker": 1,
-      "destination": "NONE",
-      "endTime": "20260306170105",
-      "error": "",
-      "id": 2,
-      "startTime": "20260306165951",
-      "status": "completed",
-      "tableName": "\/SAPLOM\/FMO_ATTR",
-      "working": 0
-    },
-    {
-      "assignedWorker": 0,
-      "destination": "NONE",
-      "endTime": "20260306170132",
-      "error": "SE16XXL processing failed",
-      "id": 3,
-      "startTime": "20260306170105",
-      "status": "failed",
-      "tableName": "\/SAPLOM\/FMO_DTL",
-      "working": 0
-    },
-    {
-      "assignedWorker": 1,
-      "destination": "NONE",
-      "endTime": "",
-      "error": "",
-      "id": 4,
-      "startTime": "20260306170133",
-      "status": "pending",
-      "tableName": "\/SAPLOM\/FMO_FLEX",
-      "working": 1
-    },
-    {
-      "assignedWorker": 0,
-      "destination": "NONE",
-      "endTime": "",
-      "error": "",
-      "id": 5,
-      "startTime": "",
-      "status": "pending",
-      "tableName": "\/SAPLOM\/FMO_INT",
-      "working": 0
-    },
-    {
-      "assignedWorker": 1,
       "destination": "NONE",
       "endTime": "",
       "error": "",
@@ -88,7 +33,7 @@
       "working": 0
     },
     {
-      "assignedWorker": 1,
+      "assignedWorker": 0,
       "destination": "NONE",
       "endTime": "",
       "error": "",
@@ -110,7 +55,7 @@
       "working": 0
     },
     {
-      "assignedWorker": 1,
+      "assignedWorker": 0,
       "destination": "NONE",
       "endTime": "",
       "error": "",
@@ -123,24 +68,14 @@
   ],
   "workers": [
     {
-      "completedTasks": 1,
-      "connectionIndex": 0,
-      "currentTask": "\/SAPLOM\/FMO_FLEX -> NONE",
-      "current_status": "Inserting script and syntax check (attempt 1)",
-      "id": 0,
-      "lastUpdate": "20260306170133",
-      "sessionIndex": 0,
-      "status": "working"
-    },
-    {
-      "completedTasks": 0,
+      "completedTasks": 2,
       "connectionIndex": 0,
       "currentTask": "",
-      "current_status": "Batch 1\/52 - Starting",
-      "id": 1,
-      "lastUpdate": "20260306165847",
-      "sessionIndex": 1,
-      "status": "starting"
+      "current_status": "SAP connection failed",
+      "id": 0,
+      "lastUpdate": "20260326084935",
+      "sessionIndex": 0,
+      "status": "error"
     }
   ]
 }
