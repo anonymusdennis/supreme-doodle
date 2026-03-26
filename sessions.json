@@ -6,29 +6,29 @@
   "statistics": {
     "completedTasks": 0,
     "failedTasks": 0,
-    "startTime": "20260306124924",
+    "startTime": "20260326084622",
     "totalTasks": 520
   },
   "tasks": [
     {
       "assignedWorker": 0,
       "destination": "NONE",
-      "endTime": "20260306125253",
+      "endTime": "",
       "error": "",
       "id": 6,
-      "startTime": "20260306125203",
-      "status": "completed",
+      "startTime": "",
+      "status": "pending",
       "tableName": "\/SAPLOM\/FMO_PROP",
       "working": 0
     },
     {
       "assignedWorker": 0,
       "destination": "NONE",
-      "endTime": "20260306125306",
+      "endTime": "",
       "error": "",
       "id": 7,
-      "startTime": "20260306125253",
-      "status": "completed",
+      "startTime": "",
+      "status": "pending",
       "tableName": "\/SAPLOM\/FMO_RSLH",
       "working": 0
     },
@@ -38,10 +38,10 @@
       "endTime": "",
       "error": "",
       "id": 8,
-      "startTime": "20260306125307",
+      "startTime": "",
       "status": "pending",
       "tableName": "\/SAPLOM\/FMO_RSLT",
-      "working": 1
+      "working": 0
     },
     {
       "assignedWorker": 0,
@@ -68,14 +68,14 @@
   ],
   "workers": [
     {
-      "completedTasks": 7,
+      "completedTasks": 2,
       "connectionIndex": 0,
-      "currentTask": "\/SAPLOM\/FMO_RSLT -> NONE",
-      "current_status": "No cached script found for \/SAPLOM\/FMO_RSLT - using DD03L flow",
+      "currentTask": "",
+      "current_status": "SAP connection failed",
       "id": 0,
-      "lastUpdate": "20260306125307",
-      "sessionIndex": 1,
-      "status": "working"
+      "lastUpdate": "20260326084935",
+      "sessionIndex": 0,
+      "status": "error"
     }
   ]
 }

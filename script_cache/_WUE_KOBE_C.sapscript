@@ -1,0 +1,147 @@
+﻿  FF_DEF   diff_count    TYPE TCREP-CNTR.
+  FF_DEF   diff_count2  TYPE TCREP-CNTR.
+  FF_DEF   message    TYPE bapiret2-message.
+
+  FF_TEXT  diff_count    EN  'Kurz'  'rows with error'.
+  FF_TEXT  diff_count2   EN  'Kurz'  'fields with error'.
+  FF_TEXT  message       EN  'Kurz'  'message'.
+
+"REMOVED FIELDS => NOT FOUND ON SYSTEM B
+
+
+"REMOVED FIELDS WITH LOOKALIKES ON SYSTEM B:
+
+
+"ACTUAL WORKING CODE:
+IF row-b IS INITIAL.
+  diff_count = 1.
+  message = '(B) Entry missing'. 
+  EXIT. 
+ENDIF.
+
+
+  IF ROW-A~APPLICATION <> ROW-B~APPLICATION. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'APPLICATION' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~BITFUNCTION <> ROW-B~BITFUNCTION. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'BITFUNCTION' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~BLOCKED <> ROW-B~BLOCKED. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'BLOCKED' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~CARRIER_ACTIVE <> ROW-B~CARRIER_ACTIVE. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'CARRIER_ACTIVE' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~DATEFROM <> ROW-B~DATEFROM. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'DATEFROM' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~DATETO <> ROW-B~DATETO. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'DATETO' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~DAYSTODELIVERY <> ROW-B~DAYSTODELIVERY. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'DAYSTODELIVERY' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~EKGRP <> ROW-B~EKGRP. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'EKGRP' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~EKORG <> ROW-B~EKORG. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'EKORG' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~LAST_BILLING <> ROW-B~LAST_BILLING. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'LAST_BILLING' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~LIFNR <> ROW-B~LIFNR. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'LIFNR' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~LOEKZ <> ROW-B~LOEKZ. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'LOEKZ' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~LOEKZ_DATE <> ROW-B~LOEKZ_DATE. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'LOEKZ_DATE' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~MULT_OUTPUT <> ROW-B~MULT_OUTPUT. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'MULT_OUTPUT' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~ONLINEMODUS <> ROW-B~ONLINEMODUS. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'ONLINEMODUS' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~PP_COMMENT <> ROW-B~PP_COMMENT. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'PP_COMMENT' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~PRINTFORMAT <> ROW-B~PRINTFORMAT. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'PRINTFORMAT' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~SENDMAIL <> ROW-B~SENDMAIL. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'SENDMAIL' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~SENDMAIL2 <> ROW-B~SENDMAIL2. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'SENDMAIL2' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~UNAME <> ROW-B~UNAME. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'UNAME' && ';'. 
+  ENDIF. 
+
+  IF ROW-A~WERKS <> ROW-B~WERKS. 
+     diff_count = 1. 
+     diff_count2 = diff_count2 + 1. 
+     message = message && 'WERKS' && ';'. 
+  ENDIF. 
