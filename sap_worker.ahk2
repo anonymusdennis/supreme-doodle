@@ -211,6 +211,17 @@ class SAPWorker {
             || InStr(msg, "SYNTAX")
     }
 
+    HandleCachedScriptFallback(tableName) {
+        if (!this.ShouldFallbackToDd03L(this.lastErrorMessage)) {
+            return false
+        }
+
+        LogMessage("WARNING", "Cached script unusable for " . tableName . " - deleting cache and falling back to DD03L flow")
+        this.DeleteCachedScript(tableName)
+        set_status(this, "Cached script invalid for " . tableName . " - falling back to DD03L flow")
+        return true
+    }
+
     ApplyScriptInEditor(scriptText) {
         editor := this.session.FindById("wnd[0]/usr/cntlCC/shellcont/shell/shellcont[0]/shell")
         editor.Text := scriptText
@@ -855,10 +866,7 @@ class SAPWorker {
                             this.lastErrorMessage := "Cached script flow failed"
                         }
 
-                        if (this.ShouldFallbackToDd03L(this.lastErrorMessage)) {
-                            LogMessage("WARNING", "Cached script unusable for " . tableName . " - deleting cache and falling back to DD03L flow")
-                            this.DeleteCachedScript(tableName)
-                            set_status(this, "Cached script invalid for " . tableName . " - falling back to DD03L flow")
+                        if (this.HandleCachedScriptFallback(tableName)) {
                             runDd03LFlow := true
                         } else {
                             throw Error(this.lastErrorMessage)
@@ -869,10 +877,7 @@ class SAPWorker {
                         this.lastErrorMessage := "Cached script flow failed"
                     }
 
-                    if (this.ShouldFallbackToDd03L(this.lastErrorMessage)) {
-                        LogMessage("WARNING", "Cached script unusable for " . tableName . " - deleting cache and falling back to DD03L flow")
-                        this.DeleteCachedScript(tableName)
-                        set_status(this, "Cached script invalid for " . tableName . " - falling back to DD03L flow")
+                    if (this.HandleCachedScriptFallback(tableName)) {
                         runDd03LFlow := true
                     } else {
                         throw Error(this.lastErrorMessage)
