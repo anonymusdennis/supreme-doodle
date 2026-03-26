@@ -27,6 +27,7 @@ global RECOVERY_COOLDOWN_MS := 2000
 global LOCK_RETRY_INTERVAL := 50 ; ms
 global MAX_LOCK_WAIT := 10000 ; ms
 global STALE_LOCK_SECONDS := 30
+global MAX_SESSION_PROMPT_ATTEMPTS := 30
 global SUCCESS_LOG := A_ScriptDir . "\logs\success_tables.log"
 global FAILURE_LOG := A_ScriptDir . "\logs\failed_tables.log"
 global REMOVED_FIELDS_LOG := A_ScriptDir . "\removed_fields.log"
@@ -979,8 +980,10 @@ class SAPWorker {
                 conI += 1
             }
             if (!sessionFound) {
-                set_status(this, "Session not found")
-                Error("Session not found at index " . workerConfig["sessionIndex"])
+                set_status(this, "Configured session not found, requesting reselection")
+                if (!this.PromptForSapSessionSelection()) {
+                    Error("Session not found at index " . workerConfig["sessionIndex"])
+                }
             }
 
             ; Get SAP system info
@@ -1057,7 +1060,6 @@ class SAPWorker {
                     try {
                         file.Close()
                     } catch {
-                        LogError("Worker " . this.workerId . ": Failed to close config file handle during task rewind")
                     }
                 }
             }
