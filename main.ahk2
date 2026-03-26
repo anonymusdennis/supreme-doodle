@@ -626,20 +626,20 @@ class TaskDistributor {
 
         btnAdd := selector.Add("Button", "w100", "Add")
         btnCancel := selector.Add("Button", "x+10 w100", "Cancel")
-        dialogState := {
+        dialogContext := {
             selectedSession: "",
             ddl: ddl,
             selector: selector
         }
 
-        btnAdd.OnEvent("Click", ObjBindMethod(this, "OnAddWorkerDialogAdd", dialogState))
-        btnCancel.OnEvent("Click", ObjBindMethod(this, "OnAddWorkerDialogCancel", dialogState))
+        btnAdd.OnEvent("Click", ObjBindMethod(this, "OnAddWorkerDialogAdd", dialogContext))
+        btnCancel.OnEvent("Click", ObjBindMethod(this, "OnAddWorkerDialogCancel", dialogContext))
 
         selector.Show()
         WinWait(selector)
         WinWaitClose(selector)
 
-        selectedSession := dialogState.selectedSession
+        selectedSession := dialogContext.selectedSession
         if (selectedSession = "") {
             return
         }
@@ -670,12 +670,12 @@ class TaskDistributor {
         this.WriteConfigLocked("main")
         this.StartNextWorker()
     }
-    OnAddWorkerDialogAdd(dialogState, *) {
-        dialogState.selectedSession := dialogState.ddl.Text
-        dialogState.selector.Destroy()
+    OnAddWorkerDialogAdd(dialogContext, *) {
+        dialogContext.selectedSession := dialogContext.ddl.Text
+        dialogContext.selector.Destroy()
     }
-    OnAddWorkerDialogCancel(dialogState, *) {
-        dialogState.selector.Destroy()
+    OnAddWorkerDialogCancel(dialogContext, *) {
+        dialogContext.selector.Destroy()
     }
     StepBackTasks() {
         countInput := InputBox("How many completed/failed tasks to move back to pending?", "Step Back Tasks", "w420 h140")
