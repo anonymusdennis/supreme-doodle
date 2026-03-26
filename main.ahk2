@@ -488,19 +488,16 @@ class TaskDistributor {
         if (!this.config.Has("commandResults")) {
             this.config["commandResults"] := []
         }
-        if (!this.config.Has("uiState")) {
-            this.config["uiState"] := {
-                paused: false
+        if (!this.config.Has("uiState") || Type(this.config["uiState"]) != "Map") {
+            pausedState := false
+            if (this.config.Has("uiState")
+                && Type(this.config["uiState"]) = "Object"
+                && ObjHasOwnProp(this.config["uiState"], "paused")) {
+                pausedState := this.config["uiState"].paused
             }
-        } else {
-            hasPaused := false
-            try {
-                this.config["uiState"]["paused"]
-                hasPaused := true
-            }
-            if (!hasPaused) {
-                this.config["uiState"]["paused"] := false
-            }
+            this.config["uiState"] := Map("paused", pausedState)
+        } else if (!this.config["uiState"].Has("paused")) {
+            this.config["uiState"]["paused"] := false
         }
     }
     NextCommandId() {
