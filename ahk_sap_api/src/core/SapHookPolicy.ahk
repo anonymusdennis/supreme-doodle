@@ -99,6 +99,10 @@ class SapHookPolicy {
             return false
         }
 
+        if (!this._IsProxyComAvailable(proxy)) {
+            return true
+        }
+
         session := this._GetOwningSession(proxy, typeName)
         if (!IsObject(session)) {
             return true
@@ -187,47 +191,13 @@ class SapHookPolicy {
     }
 
     _PromptForReplacementSession() {
-        loop {
+        app := ""
+        try {
+            app := SapGuiBootstrap.GetScriptingEngineFromROT()
+        } catch {
             app := ""
-            try {
-                app := SapGuiBootstrap.GetScriptingEngineFromROT()
-            } catch {
-                app := ""
-            }
-
-            sessions := this._EnumerateSessions(app)
-            if (sessions.Length > 0) {
-                break
-            }
-
-            choice := MsgBox(
-                "SAP GUI appears disconnected or closed.`n"
-                . "Please open SAP GUI and log in, then click Yes to retry.",
-                "SAP GUI reconnect required",
-                "YN Icon!"
-            )
-            if (choice != "Yes") {
-                return ""
-            }
         }
-
-        prompt := "Select replacement SAP session:`n`n" this._BuildSessionPrompt(sessions)
-        while true {
-            ib := InputBox(prompt, "SAP GUI reconnect", "w700 h420", "1")
-            if (ib.Result != "OK") {
-                return ""
-            }
-            try {
-                idx := Integer(ib.Value)
-            } catch {
-                MsgBox("Invalid selection '" ib.Value "'. Please enter a valid number.")
-                continue
-            }
-            if (idx >= 1 && idx <= sessions.Length) {
-                return sessions[idx]
-            }
-            MsgBox("Invalid selection. Enter a number between 1 and " sessions.Length ".")
-        }
+        return this._ShowSessionSelectionDialog(app)
     }
 
     _EnumerateSessions(app) {
@@ -283,6 +253,112 @@ class SapHookPolicy {
             idx += 1
         }
         return text
+    }
+
+    _ShowSessionSelectionDialog(app) {
+        context := {
+            app: app,
+            sessions: this._EnumerateSessions(app),
+            selectedIndex: 0,
+            resultSession: "",
+            gui: "",
+            sessionControls: []
+        }
+
+        reconnectGui := Gui("+Resize", "SAP GUI reconnect")
+        reconnectGui.MarginX := 12
+        reconnectGui.MarginY := 12
+        reconnectGui.Add("Text", "xm w680", "Select replacement SAP session:")
+        listContainer := reconnectGui.Add("GroupBox", "xm y+8 w680 h300", "Available sessions")
+        btnRefresh := reconnectGui.Add("Button", "xm y+10 w90", "Refresh")
+        btnOk := reconnectGui.Add("Button", "x+10 yp w90 Default", "OK")
+        btnCancel := reconnectGui.Add("Button", "x+10 yp w90", "Cancel")
+
+        context.gui := reconnectGui
+        context.listContainer := listContainer
+        context.btnOk := btnOk
+
+        _RenderSessions(*) {
+            for _, ctrl in context.sessionControls {
+                try ctrl.Destroy()
+            }
+            context.sessionControls := []
+            context.selectedIndex := 0
+
+            context.sessions := this._EnumerateSessions(context.app)
+            yPos := 52
+            if (context.sessions.Length = 0) {
+                msg := reconnectGui.Add("Text", "x24 y" yPos " w650 cRed", "No SAP sessions found. Open SAP GUI/login, then click Refresh.")
+                context.sessionControls.Push(msg)
+                context.btnOk.Enabled := false
+                return
+            }
+
+            context.btnOk.Enabled := true
+            idx := 1
+            for _, session in context.sessions {
+                label := idx ") " this._DescribeSession(session)
+                opt := "x24 y" yPos " w650"
+                if (idx = 1) {
+                    opt .= " Checked"
+                    context.selectedIndex := 1
+                }
+                radio := reconnectGui.Add("Radio", opt, label)
+                radio.OnEvent("Click", ((selIdx, *) => (context.selectedIndex := selIdx)).Bind(idx))
+                context.sessionControls.Push(radio)
+                yPos += 24
+                idx += 1
+            }
+        }
+
+        _DoRefresh(*) {
+            try {
+                context.app := SapGuiBootstrap.GetScriptingEngineFromROT()
+            } catch {
+                context.app := ""
+            }
+            _RenderSessions()
+        }
+
+        _DoOk(*) {
+            if (context.selectedIndex < 1 || context.selectedIndex > context.sessions.Length) {
+                MsgBox("Please select a SAP session first.", "SAP GUI reconnect", "Icon!")
+                return
+            }
+            context.resultSession := context.sessions[context.selectedIndex]
+            reconnectGui.Destroy()
+        }
+
+        _DoCancel(*) {
+            context.resultSession := ""
+            reconnectGui.Destroy()
+        }
+
+        reconnectGui.OnEvent("Close", _DoCancel)
+        btnRefresh.OnEvent("Click", _DoRefresh)
+        btnOk.OnEvent("Click", _DoOk)
+        btnCancel.OnEvent("Click", _DoCancel)
+        _RenderSessions()
+        reconnectGui.Show("w710 h420")
+        WinWaitClose(reconnectGui)
+        return context.resultSession
+    }
+
+    _IsProxyComAvailable(proxy) {
+        if (!IsObject(proxy)) {
+            return false
+        }
+
+        try {
+            raw := proxy.Raw()
+            if (!IsObject(raw)) {
+                return false
+            }
+            _ := raw.Type
+            return true
+        } catch {
+            return false
+        }
     }
 
     _DescribeSession(session) {

@@ -975,9 +975,14 @@ class TaskDistributor {
                     this.config["tasks"].Length
                 )
 
+                selectedWorkerId := this.GetSelectedWorkerId()
+
                 ; Update worker status
                 this.workerListView.Delete()
+                selectedRow := 0
+                rowIndex := 0
                 for worker in this.config["workers"] {
+                    rowIndex += 1
                     this.workerListView.Add(,
                         "Worker " . worker["id"],
                         worker["status"],
@@ -985,6 +990,9 @@ class TaskDistributor {
                         worker["completedTasks"],
                         worker["current_status"]
                     )
+                    if (selectedWorkerId >= 0 && worker["id"] = selectedWorkerId) {
+                        selectedRow := rowIndex
+                    }
                 }
 
                 this.workerListView.ModifyCol(1, 80)
@@ -992,6 +1000,9 @@ class TaskDistributor {
                 this.workerListView.ModifyCol(3, 150)
                 this.workerListView.ModifyCol(4, 80)
                 this.workerListView.ModifyCol(5, 210)
+                if (selectedRow > 0) {
+                    this.workerListView.Modify(selectedRow, "Select Focus Vis")
+                }
 
                 ; Command results in UI
                 this.commandListView.Delete()
