@@ -406,13 +406,12 @@ class TaskDistributor {
 
         ; Kill all workers
         KillAllWorkers()
-        Sleep(2000)  ; Wait for cleanup
+        Sleep(200)  ; Small buffer for process/file-handle cleanup without long batch delay
 
         this.batchInProgress := false
 
         ; Load next batch
         if (this.LoadNextBatch()) {
-            Sleep(3000)  ; Pause between batches
             this.StartWorkers()
             return false  ; More batches to process
         }
