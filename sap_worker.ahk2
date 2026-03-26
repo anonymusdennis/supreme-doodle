@@ -598,10 +598,8 @@ class SAPWorker {
         } else {
             hasPaused := false
             try {
-                _paused := this.config["uiState"]["paused"]
+                this.config["uiState"]["paused"]
                 hasPaused := true
-            } catch {
-                hasPaused := false
             }
             if (!hasPaused) {
                 this.config["uiState"]["paused"] := false
